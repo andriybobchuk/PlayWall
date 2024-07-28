@@ -271,9 +271,6 @@ fun MessageItem(message: Message, currentUserId: String, isLastMessage: Boolean,
                     .padding(end = 16.dp)
             )
         }
-        if (isLastMessage) {
-            Spacer(modifier = Modifier.padding(vertical = 36.dp))
-        }
     }
 
     if (isSheetOpen) {

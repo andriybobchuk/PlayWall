@@ -18,7 +18,7 @@ import java.util.UUID
 class ChatViewModel : ViewModel() {
     companion object {
         private const val LOG_TAG = "ChatViewModel"
-        private const val PAGE_SIZE = 7
+        private const val PAGE_SIZE = 10
     }
 
     private val repository = FakeChatRepository()

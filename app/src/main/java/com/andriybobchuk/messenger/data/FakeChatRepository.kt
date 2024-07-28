@@ -21,7 +21,7 @@ class FakeChatRepository {
                     id = UUID.randomUUID().toString(),
                     imageUrl = "https://cdn.britannica.com/34/235834-050-C5843610/two-different-breeds-of-cats-side-by-side-outdoors-in-the-garden.jpg",
                     caption = "Nice view!",
-                    timestamp = System.currentTimeMillis() - 1000000,
+                    timestamp = System.currentTimeMillis() - 86400000 * 3,
                     status = MessageStatus.SENT,
                     reactions = listOf(Reaction("Andrii Bobchuk", "👍")),
                     senderId = _currentUser.id,
@@ -31,7 +31,7 @@ class FakeChatRepository {
                     id = UUID.randomUUID().toString(),
                     imageUrl = "https://static.scientificamerican.com/sciam/cache/file/32665E6F-8D90-4567-9769D59E11DB7F26_source.jpg?w=1200",
                     caption = "",
-                    timestamp = System.currentTimeMillis() - 500000,
+                    timestamp = System.currentTimeMillis() - 86400000 * 3,
                     status = MessageStatus.DELIVERED,
                     reactions = listOf(),
                     senderId = _recipient.id,
@@ -41,7 +41,7 @@ class FakeChatRepository {
                     id = UUID.randomUUID().toString(),
                     imageUrl = "https://ichef.bbci.co.uk/news/976/cpsprodpb/114BC/production/_127844807_henry_daniella_hutchinson.jpg",
                     caption = "Hello, how are you? this is an example of a long message",
-                    timestamp = System.currentTimeMillis() - 200000,
+                    timestamp = System.currentTimeMillis() - 86400000 * 2,
                     status = MessageStatus.SENT,
                     reactions = listOf(
                         Reaction("Andrii Bobchuk", "😂"),
@@ -54,7 +54,7 @@ class FakeChatRepository {
                     id = UUID.randomUUID().toString(),
                     imageUrl = "https://preview.redd.it/feeling-bummed-just-found-out-my-kitten-is-fiv-positive-v0-m0xy8scgbxed1.jpg?width=640&crop=smart&auto=webp&s=6ea11a6076f7b0447cc25d51c448929a6cf88fe0",
                     caption = "Check this out! This message cpation is also long",
-                    timestamp = System.currentTimeMillis() - 1500000,
+                    timestamp = System.currentTimeMillis() - 86400000 * 2,
                     status = MessageStatus.SENT,
                     reactions = listOf(),
                     senderId = _recipient.id,
@@ -64,7 +64,7 @@ class FakeChatRepository {
                     id = UUID.randomUUID().toString(),
                     imageUrl = "https://www.pbs.org/wnet/nature/files/2014/09/ExtraordinaryCats-Main.jpg",
                     caption = "Here's a new photo.",
-                    timestamp = System.currentTimeMillis() - 2500000,
+                    timestamp = System.currentTimeMillis() - 86400000 * 2,
                     status = MessageStatus.SENT,
                     reactions = listOf(
                         Reaction("Andrii Bobchuk", "👍"),
@@ -77,7 +77,7 @@ class FakeChatRepository {
                     id = UUID.randomUUID().toString(),
                     imageUrl = "https://i.pinimg.com/736x/87/4c/9a/874c9a34512567d6b370e66c74bb8b28.jpg",
                     caption = "Did you see this?",
-                    timestamp = System.currentTimeMillis() - 3000000,
+                    timestamp = System.currentTimeMillis() - 86400000,
                     status = MessageStatus.DELIVERED,
                     reactions = listOf(
                         Reaction("Tom Sawyer", "👏")
@@ -88,8 +88,8 @@ class FakeChatRepository {
                 Message(
                     id = UUID.randomUUID().toString(),
                     imageUrl = "https://static.scientificamerican.com/sciam/cache/file/2AE14CDD-1265-470C-9B15F49024186C10_source.jpg?w=1200",
-                    caption = "Incredible shot!",
-                    timestamp = System.currentTimeMillis() - 3500000,
+                    caption = "",
+                    timestamp = System.currentTimeMillis() - 86400000,
                     status = MessageStatus.SENT,
                     reactions = listOf(
                         Reaction("Andrii Bobchuk", "😍"),
@@ -102,7 +102,7 @@ class FakeChatRepository {
                     id = UUID.randomUUID().toString(),
                     imageUrl = "https://www.petethevet.com/wp-content/uploads/2019/02/cat-1739091_1920.jpg",
                     caption = "Look at this!",
-                    timestamp = System.currentTimeMillis() - 4000000,
+                    timestamp = System.currentTimeMillis() - 86400000,
                     status = MessageStatus.SENT,
                     reactions = listOf(
                         Reaction("Tom Sawyer", "😎")
@@ -143,7 +143,7 @@ class FakeChatRepository {
         val startIndex = page * pageSize
         val endIndex = (startIndex + pageSize).coerceAtMost(_messages.size)
         return if (startIndex < _messages.size) {
-            _messages.subList(startIndex, endIndex).sortedByDescending { it.timestamp }
+            _messages.subList(startIndex, endIndex).sortedBy { it.timestamp }
         } else {
             emptyList()
         }

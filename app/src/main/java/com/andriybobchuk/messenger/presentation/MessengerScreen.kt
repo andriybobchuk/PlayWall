@@ -139,6 +139,9 @@ fun MessagesList(
                 }
                 Spacer(modifier = Modifier.height(8.dp))
             }
+            item {
+                Spacer(modifier = Modifier.padding(vertical = 36.dp))
+            }
         }
 
     }
