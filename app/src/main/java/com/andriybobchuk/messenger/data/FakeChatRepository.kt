@@ -164,4 +164,28 @@ class FakeChatRepository {
     fun getRecipient(): User {
         return _recipient
     }
+
+//    fun addReactionToMessage(messageId: String, userId: String, emoji: String) {
+//        val message = _messages.find { it.id == messageId }
+//        message?.let {
+//            val existingReaction = it.reactions.find { reaction -> reaction.userName == userId }
+//            if (existingReaction != null) {
+//                // Update existing reaction
+//                it.reactions.remove(existingReaction)
+//                if (existingReaction.emoji != emoji) {
+//                    it.reactions.add(Reaction(userId, emoji))
+//                }
+//            } else {
+//                // Add new reaction
+//                it.reactions.add(Reaction(userId, emoji))
+//            }
+//        }
+//    }
+//
+//    fun removeReactionFromMessage(messageId: String, userId: String, emoji: String) {
+//        val message = _messages.find { it.id == messageId }
+//        message?.let {
+//            it.reactions.removeIf { reaction -> reaction.userId == userId && reaction.emoji == emoji }
+//        }
+//    }
 }

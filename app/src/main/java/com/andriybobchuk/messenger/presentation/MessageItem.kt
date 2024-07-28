@@ -4,7 +4,6 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,10 +27,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -47,19 +44,18 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.andriybobchuk.messenger.Constants.MESSAGE_CORNER_RADIUS
 import com.andriybobchuk.messenger.presentation.components.EmojiPanel
 import com.andriybobchuk.messenger.presentation.overlays.ReactionBottomSheet
 import com.andriybobchuk.messenger.presentation.formatStatus
 import com.andriybobchuk.messenger.presentation.timestampAsTime
 import com.andriybobchuk.messenger.model.Message
-import com.andriybobchuk.messenger.presentation.calculateImageDimensions
 import com.andriybobchuk.messenger.presentation.components.FetchImageAspectRatio
-import com.andriybobchuk.messenger.ui.theme.MyMessage
+import com.andriybobchuk.messenger.ui.theme.LightBlue
+import com.andriybobchuk.messenger.ui.theme.LightGrey
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-
 
 @SuppressLint("ServiceCast")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
@@ -144,14 +140,14 @@ fun MessageItem(message: Message, currentUserId: String, isLastMessage: Boolean,
             ) {
                 Column(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(
+                            if (isCurrentUser) MESSAGE_CORNER_RADIUS.dp else 4.dp,
+                            MESSAGE_CORNER_RADIUS.dp,
+                            if (isCurrentUser) 4.dp else MESSAGE_CORNER_RADIUS.dp,
+                            MESSAGE_CORNER_RADIUS.dp,
+                        ))
                         .background(
-                            color = if (isCurrentUser) MyMessage else Color.White,
-                        )
-                        .border(
-                            1.dp,
-                            MyMessage,
-                            RoundedCornerShape(18.dp)
+                            color = if (isCurrentUser) LightGrey else LightBlue,
                         )
                         .wrapContentWidth(align = Alignment.End)
                         .then(longPressGestureModifier)
@@ -171,7 +167,6 @@ fun MessageItem(message: Message, currentUserId: String, isLastMessage: Boolean,
                             modifier = Modifier
                                 .width(imageWidth)
                                 .height(imageHeight)
-                                .clip(RoundedCornerShape(12.dp))
                                 .clickable { onImageClick(message.imageUrl) }
                         ) {
                             GlideImage(
@@ -226,7 +221,7 @@ fun MessageItem(message: Message, currentUserId: String, isLastMessage: Boolean,
                             Text(
                                 text = timestampAsTime(message.timestamp),
                                 style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
-                                modifier = Modifier.padding(4.dp)
+                                modifier = Modifier.padding(8.dp)
                             )
                         }
                     }
@@ -239,7 +234,7 @@ fun MessageItem(message: Message, currentUserId: String, isLastMessage: Boolean,
                             .align(Alignment.BottomStart)
                             .offset(x = (-8).dp, y = 8.dp)
                             .clip(RoundedCornerShape(18.dp))
-                            .background(MyMessage)
+                            .background(LightGrey)
                             .border(1.dp, Color.White, RoundedCornerShape(18.dp))
                             .clickable {
                                 coroutineScope.launch {

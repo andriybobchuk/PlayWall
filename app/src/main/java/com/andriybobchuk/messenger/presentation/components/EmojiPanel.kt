@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.andriybobchuk.messenger.ui.theme.MyMessage
+import com.andriybobchuk.messenger.ui.theme.LightGrey
 
 @Composable
 fun EmojiPanel(onEmojiClick: (String) -> Unit) {
@@ -20,7 +20,7 @@ fun EmojiPanel(onEmojiClick: (String) -> Unit) {
         modifier = Modifier
             //.fill()
             .clip(RoundedCornerShape(32.dp))
-            .background(MyMessage)
+            .background(LightGrey)
             .padding(3.dp),
         horizontalArrangement = Arrangement.SpaceAround
     ) {
