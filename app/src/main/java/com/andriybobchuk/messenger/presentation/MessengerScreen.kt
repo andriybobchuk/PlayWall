@@ -229,7 +229,6 @@ fun MessagesList(
 }
 
 
-
 //fun groupMessagesByDate(messages: List<Message>): Map<String, List<Message>> {
 //    return messages.groupBy { message ->
 //        timestampAsDate(message.timestamp)

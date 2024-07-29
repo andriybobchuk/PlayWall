@@ -108,6 +108,16 @@ fun MessageItem(
         Log.d(LOG_TAG, "Fetched aspect ratio for image: $ratio")
     }
 
+    val gestureModifier = gestureModifier(
+        viewModel = viewModel,
+        messageId = message.id,
+        imageUrl = message.imageUrl,
+        caption = message.caption,
+        context = context,
+        showEmojiPanel = showEmojiPanel
+    )
+
+
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = {
             when (it) {
@@ -123,7 +133,7 @@ fun MessageItem(
                 }
             }
         },
-        positionalThreshold = { it * .25f }
+        positionalThreshold = { it * 600f }
     )
 
     // Use conditional content based on whether the message is sent by the current user
@@ -169,7 +179,7 @@ fun MessageItem(
                         maxWidth = maxWidth,
                         maxHeight = maxHeight,
                         isCurrentUser = isCurrentUser,
-                        gestureModifier = Modifier // No-op or actual gesture modifier here
+                        gestureModifier = gestureModifier
                     )
                     MessageReactionBox(
                         reactions = message.reactions,
@@ -193,6 +203,18 @@ fun MessageItem(
                         .padding(end = 16.dp)
                 )
             }
+        }
+        if (isSheetOpen) {
+            ReactionBottomSheet(
+                viewModel = viewModel,
+                reactions = message.reactions,
+                sheetState = sheetState,
+                onDismiss = {
+                    coroutineScope.launch {
+                        isSheetOpen = false
+                    }
+                }
+            )
         }
     } else {
         // Message not sent by current user, swipeable
@@ -242,7 +264,7 @@ fun MessageItem(
                                 maxWidth = maxWidth,
                                 maxHeight = maxHeight,
                                 isCurrentUser = isCurrentUser,
-                                gestureModifier = Modifier // No-op or actual gesture modifier here
+                                gestureModifier = gestureModifier
                             )
                             MessageReactionBox(
                                 reactions = message.reactions,
@@ -284,9 +306,6 @@ fun MessageItem(
     }
 }
 
-
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DismissBackground(dismissState: SwipeToDismissBoxState) {
@@ -297,14 +316,24 @@ fun DismissBackground(dismissState: SwipeToDismissBoxState) {
                     .fillMaxSize()
                     .background(Color.White)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Send,
-                    contentDescription = "Reply",
+                Row(
                     modifier = Modifier
                         .align(Alignment.CenterStart)
-                        .padding(16.dp),
-                    tint = Color.Black
-                )
+                        .padding(16.dp)
+                        .fillMaxHeight(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Send,
+                        contentDescription = "Reply",
+                        tint = Color.Black
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Comment...",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black)
+                    )
+                }
             }
         }
         SwipeToDismissBoxValue.EndToStart -> {
@@ -313,14 +342,24 @@ fun DismissBackground(dismissState: SwipeToDismissBoxState) {
                     .fillMaxSize()
                     .background(Color.White)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Send,
-                    contentDescription = "Reply",
+                Row(
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
-                        .padding(16.dp),
-                    tint = Color.Black
-                )
+                        .padding(16.dp)
+                        .fillMaxHeight(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Comment...",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Icon(
+                        imageVector = Icons.Default.Send,
+                        contentDescription = "Reply",
+                        tint = Color.Black
+                    )
+                }
             }
         }
         else -> {
@@ -328,6 +367,7 @@ fun DismissBackground(dismissState: SwipeToDismissBoxState) {
         }
     }
 }
+
 
 
 
