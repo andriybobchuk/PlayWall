@@ -10,8 +10,18 @@ class FakeChatRepository {
 
     // Fake in-memory storage
     private val _messages = mutableListOf<Message>()
-    private val _currentUser = User(id = "user1", name = "Andrii Bobchuk", profilePictureUrl = "https://media.licdn.com/dms/image/D4D03AQG510ilgQaD_g/profile-displayphoto-shrink_200_200/0/1709116748493?e=2147483647&v=beta&t=rfehlo_FlkkyBXfptFpsVWBUcNnQbID_dR0Ght21TTw", lastOnline = System.currentTimeMillis())
-    private val _recipient = User(id = "user2", name = "Tom Sawyer", profilePictureUrl = "https://lithelper.com/wp-content/uploads/2020/05/tom1.jpeg", lastOnline = System.currentTimeMillis())
+    private val _currentUser = User(
+        id = "user1",
+        name = "Andrii Bobchuk",
+        profilePictureUrl = "https://media.licdn.com/dms/image/D4D03AQG510ilgQaD_g/profile-displayphoto-shrink_200_200/0/1709116748493?e=2147483647&v=beta&t=rfehlo_FlkkyBXfptFpsVWBUcNnQbID_dR0Ght21TTw",
+        lastOnline = System.currentTimeMillis()
+    )
+    private val _recipient = User(
+        id = "user2",
+        name = "Tom Sawyer",
+        profilePictureUrl = "https://lithelper.com/wp-content/uploads/2020/05/tom1.jpeg",
+        lastOnline = System.currentTimeMillis()
+    )
 
     init {
         // Pre-populate with example messages
@@ -23,7 +33,7 @@ class FakeChatRepository {
                     caption = "Nice view!",
                     timestamp = System.currentTimeMillis() - 86400000 * 3,
                     status = MessageStatus.SENT,
-                    reactions = listOf(Reaction("Andrii Bobchuk", "👍")),
+                    reactions = listOf(Reaction("user1", "👍")),
                     senderId = _currentUser.id,
                     recipientId = _recipient.id
                 ),
@@ -44,21 +54,11 @@ class FakeChatRepository {
                     timestamp = System.currentTimeMillis() - 86400000 * 2,
                     status = MessageStatus.SENT,
                     reactions = listOf(
-                        Reaction("Andrii Bobchuk", "😂"),
-                        Reaction("Tom Sawyer", "❤️")
+                        Reaction("user1", "😂"),
+                        Reaction("user2", "❤️")
                     ),
                     senderId = _currentUser.id,
                     recipientId = _recipient.id
-                ),
-                Message(
-                    id = UUID.randomUUID().toString(),
-                    imageUrl = "https://preview.redd.it/feeling-bummed-just-found-out-my-kitten-is-fiv-positive-v0-m0xy8scgbxed1.jpg?width=640&crop=smart&auto=webp&s=6ea11a6076f7b0447cc25d51c448929a6cf88fe0",
-                    caption = "Check this out! This message cpation is also long",
-                    timestamp = System.currentTimeMillis() - 86400000 * 2,
-                    status = MessageStatus.SENT,
-                    reactions = listOf(),
-                    senderId = _recipient.id,
-                    recipientId = _currentUser.id
                 ),
                 Message(
                     id = UUID.randomUUID().toString(),
@@ -67,8 +67,8 @@ class FakeChatRepository {
                     timestamp = System.currentTimeMillis() - 86400000 * 2,
                     status = MessageStatus.SENT,
                     reactions = listOf(
-                        Reaction("Andrii Bobchuk", "👍"),
-                        Reaction("Tom Sawyer", "🔥")
+                        Reaction("user1", "👍"),
+                        Reaction("user2", "🔥")
                     ),
                     senderId = _currentUser.id,
                     recipientId = _recipient.id
@@ -80,7 +80,7 @@ class FakeChatRepository {
                     timestamp = System.currentTimeMillis() - 86400000,
                     status = MessageStatus.DELIVERED,
                     reactions = listOf(
-                        Reaction("Tom Sawyer", "👏")
+                        Reaction("user2", "👏")
                     ),
                     senderId = _recipient.id,
                     recipientId = _currentUser.id
@@ -92,8 +92,8 @@ class FakeChatRepository {
                     timestamp = System.currentTimeMillis() - 86400000,
                     status = MessageStatus.SENT,
                     reactions = listOf(
-                        Reaction("Andrii Bobchuk", "😍"),
-                        Reaction("Tom Sawyer", "👌")
+                        Reaction("user1", "😍"),
+                        Reaction("user2", "👌")
                     ),
                     senderId = _currentUser.id,
                     recipientId = _recipient.id
@@ -105,7 +105,7 @@ class FakeChatRepository {
                     timestamp = System.currentTimeMillis() - 86400000,
                     status = MessageStatus.SENT,
                     reactions = listOf(
-                        Reaction("Tom Sawyer", "😎")
+                        Reaction("user2", "😎")
                     ),
                     senderId = _recipient.id,
                     recipientId = _currentUser.id
@@ -117,8 +117,8 @@ class FakeChatRepository {
                     timestamp = System.currentTimeMillis() - 4500000,
                     status = MessageStatus.SENT,
                     reactions = listOf(
-                        Reaction("Andrii Bobchuk", "🎉"),
-                        Reaction("Tom Sawyer", "👍")
+                        Reaction("user1", "🎉"),
+                        Reaction("user2", "👍")
                     ),
                     senderId = _currentUser.id,
                     recipientId = _recipient.id
@@ -130,7 +130,7 @@ class FakeChatRepository {
                     timestamp = System.currentTimeMillis() - 5000000,
                     status = MessageStatus.DELIVERED,
                     reactions = listOf(
-                        Reaction("Tom Sawyer", "❤️")
+                        Reaction("user2", "❤️")
                     ),
                     senderId = _recipient.id,
                     recipientId = _currentUser.id
@@ -139,7 +139,11 @@ class FakeChatRepository {
         )
     }
 
-    fun retrieveMessages(page: Int, pageSize: Int): List<Message> {
+    fun retrieveMessages(): List<Message> {
+        return _messages
+    }
+
+    fun retrieveMessagesPaginated(page: Int, pageSize: Int): List<Message> {
         val startIndex = page * pageSize
         val endIndex = (startIndex + pageSize).coerceAtMost(_messages.size)
         return if (startIndex < _messages.size) {
@@ -165,27 +169,12 @@ class FakeChatRepository {
         return _recipient
     }
 
-//    fun addReactionToMessage(messageId: String, userId: String, emoji: String) {
-//        val message = _messages.find { it.id == messageId }
-//        message?.let {
-//            val existingReaction = it.reactions.find { reaction -> reaction.userName == userId }
-//            if (existingReaction != null) {
-//                // Update existing reaction
-//                it.reactions.remove(existingReaction)
-//                if (existingReaction.emoji != emoji) {
-//                    it.reactions.add(Reaction(userId, emoji))
-//                }
-//            } else {
-//                // Add new reaction
-//                it.reactions.add(Reaction(userId, emoji))
-//            }
-//        }
-//    }
-//
-//    fun removeReactionFromMessage(messageId: String, userId: String, emoji: String) {
-//        val message = _messages.find { it.id == messageId }
-//        message?.let {
-//            it.reactions.removeIf { reaction -> reaction.userId == userId && reaction.emoji == emoji }
-//        }
-//    }
+    fun getUserNameById(userId: String): String {
+        if (userId == "user1") {
+            return "Andrii Bobchuk"
+        } else if (userId == "user2") {
+            return "Tom Sawyer"
+        }
+        return "Unknown"
+    }
 }

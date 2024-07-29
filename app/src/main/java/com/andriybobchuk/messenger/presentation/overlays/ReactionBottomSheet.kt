@@ -14,10 +14,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.andriybobchuk.messenger.model.Reaction
+import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReactionBottomSheet(
+    viewModel: ChatViewModel,
     reactions: List<Reaction>,
     sheetState: SheetState,
     onDismiss: () -> Unit
@@ -44,7 +46,7 @@ fun ReactionBottomSheet(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = reaction.userName,
+                        text = viewModel.getUserNameById(reaction.userName),
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Text(

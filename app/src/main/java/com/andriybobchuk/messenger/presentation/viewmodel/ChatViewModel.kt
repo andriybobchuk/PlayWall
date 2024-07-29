@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.andriybobchuk.messenger.data.FakeChatRepository
 import com.andriybobchuk.messenger.model.Message
 import com.andriybobchuk.messenger.model.MessageStatus
+import com.andriybobchuk.messenger.model.Reaction
 import com.andriybobchuk.messenger.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +19,7 @@ import java.util.UUID
 class ChatViewModel : ViewModel() {
     companion object {
         private const val LOG_TAG = "ChatViewModel"
-        private const val PAGE_SIZE = 4
+        private const val PAGE_SIZE = 15
     }
 
     private val repository = FakeChatRepository()
@@ -69,40 +70,48 @@ class ChatViewModel : ViewModel() {
 
     init {
         Log.d(LOG_TAG, "ViewModel initialized")
-        loadInitialMessages()
+        loadMessages()
         setCurrentUser(repository.getCurrentUser())
         setRecipient(repository.getRecipient())
     }
 
+    private fun loadMessages() {
+        Log.d(LOG_TAG, "Loading messages...")
+        val retrievedMessages = repository.retrieveMessages()
+        _uiState.update { currentState ->
+            currentState.copy(messages = retrievedMessages)
+        }
+        Log.d(LOG_TAG, "Messages loaded: ${retrievedMessages.size}")
+    }
+
     private fun loadInitialMessages() {
         currentPage = 0
-        loadMessages(currentPage)
+        loadMessagesPaginated(currentPage)
     }
 
     fun loadMoreMessages() {
         currentPage++
-        loadMessages(currentPage)
+        loadMessagesPaginated(currentPage)
     }
 
-    private fun loadMessages(page: Int) {
+    private fun loadMessagesPaginated(page: Int) {
         viewModelScope.launch {
             if (isLoading || !hasMoreMessages) return@launch
 
             isLoading = true
             Log.d(LOG_TAG, "Loading messages for page: $page")
 
-            val retrievedMessages = repository.retrieveMessages(page, PAGE_SIZE)
+            val retrievedMessages = repository.retrieveMessagesPaginated(page, PAGE_SIZE)
             hasMoreMessages = retrievedMessages.size >= PAGE_SIZE
 
             _uiState.update { currentState ->
-                currentState.copy(messages = currentState.messages + retrievedMessages)
+                currentState.copy(messages = retrievedMessages)
             }
 
             isLoading = false
             Log.d(LOG_TAG, "Messages loaded for page $page: ${retrievedMessages.size}")
         }
     }
-
 
     fun sendImage(imageUri: Uri?, caption: String) {
         viewModelScope.launch {
@@ -123,7 +132,9 @@ class ChatViewModel : ViewModel() {
                     recipientId = _uiState.value.recipient!!.id
                 )
                 repository.addMessage(message)
-                loadMessages(currentPage) // Reload messages to include the new one
+
+                Log.d(LOG_TAG, "Message added: $message")
+                loadMessages()
             } ?: Log.d(LOG_TAG, "No image URI provided")
         }
     }
@@ -132,6 +143,50 @@ class ChatViewModel : ViewModel() {
         Log.d(LOG_TAG, "Deleting message with ID: $messageId")
         repository.deleteMessage(messageId)
         Log.d(LOG_TAG, "Message deleted")
-        loadMessages(currentPage) // Reload messages to reflect the deletion
+        loadMessagesPaginated(currentPage)
+    }
+
+    fun getUserReaction(messageId: String, userId: String): Reaction? {
+        return _uiState.value.messages.find { it.id == messageId }
+            ?.reactions?.find { it.userName == userId }
+    }
+
+    fun addOrUpdateReaction(messageId: String, reaction: Reaction) {
+        _uiState.update { currentState ->
+            val messages = currentState.messages.map { message ->
+                if (message.id == messageId) {
+                    val newReactions = message.reactions.toMutableList().apply {
+                        // Remove existing reaction from the user
+                        removeAll { it.userName == reaction.userName }
+                        // Add the new reaction if it's not a removal action
+                        if (reaction.emoji.isNotEmpty()) {
+                            add(reaction)
+                        }
+                    }
+                    message.copy(reactions = newReactions)
+                } else {
+                    message
+                }
+            }
+            currentState.copy(messages = messages)
+        }
+    }
+
+    fun removeReaction(messageId: String, userId: String) {
+        _uiState.update { currentState ->
+            val messages = currentState.messages.map { message ->
+                if (message.id == messageId) {
+                    val newReactions = message.reactions.filterNot { it.userName == userId }
+                    message.copy(reactions = newReactions)
+                } else {
+                    message
+                }
+            }
+            currentState.copy(messages = messages)
+        }
+    }
+
+    fun getUserNameById(userId: String): String {
+        return repository.getUserNameById(userId)
     }
 }

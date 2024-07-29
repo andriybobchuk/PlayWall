@@ -50,7 +50,9 @@ import com.andriybobchuk.messenger.presentation.overlays.ReactionBottomSheet
 import com.andriybobchuk.messenger.presentation.formatStatus
 import com.andriybobchuk.messenger.presentation.timestampAsTime
 import com.andriybobchuk.messenger.model.Message
+import com.andriybobchuk.messenger.model.Reaction
 import com.andriybobchuk.messenger.presentation.components.FetchImageAspectRatio
+import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
 import com.andriybobchuk.messenger.ui.theme.LightBlue
 import com.andriybobchuk.messenger.ui.theme.LightGrey
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -60,7 +62,7 @@ import kotlinx.coroutines.launch
 @SuppressLint("ServiceCast")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
 @Composable
-fun MessageItem(message: Message, currentUserId: String, isLastMessage: Boolean, onImageClick: (String) -> Unit) {
+fun MessageItem(viewModel: ChatViewModel, message: Message, currentUserId: String, isLastMessage: Boolean, onImageClick: (String) -> Unit) {
     val isCurrentUser = message.senderId == currentUserId
 
     val configuration = LocalConfiguration.current
@@ -121,11 +123,20 @@ fun MessageItem(message: Message, currentUserId: String, isLastMessage: Boolean,
             horizontalArrangement = if (isCurrentUser) Arrangement.End else Arrangement.Start
         ) {
             // Show emoji panel if it's toggled on
+            val selectedEmoji = viewModel.getUserReaction(message.id, currentUserId)?.emoji
             if (showEmojiPanel.value) {
-                EmojiPanel(onEmojiClick = { emoji ->
-                    // onEmojiClick(message.id, emoji)
-                    showEmojiPanel.value = false
-                })
+                EmojiPanel(
+                    selectedEmoji = selectedEmoji,
+                    onEmojiClick = { emoji ->
+                        if (selectedEmoji == emoji) {
+                            viewModel.removeReaction(message.id, currentUserId)
+                        } else {
+                            val reaction = Reaction(userName = currentUserId, emoji = emoji)
+                            viewModel.addOrUpdateReaction(message.id, reaction)
+                        }
+                        showEmojiPanel.value = false
+                    }
+                )
             }
         }
         Row(
@@ -270,6 +281,7 @@ fun MessageItem(message: Message, currentUserId: String, isLastMessage: Boolean,
 
     if (isSheetOpen) {
         ReactionBottomSheet(
+            viewModel = viewModel,
             reactions = message.reactions,
             sheetState = sheetState,
             onDismiss = {

@@ -75,6 +75,7 @@ fun MessengerScreen(
                     .background(Color.Gray.copy(alpha = 0.1f))
             ) {
                 MessagesList(
+                    viewModel = viewModel,
                     messages = uiState.messages,
                     currentUserId = uiState.currentUser!!.id,
                     onImageClick = { imageUrl, caption ->
@@ -100,6 +101,7 @@ fun MessengerScreen(
  */
 @Composable
 fun MessagesList(
+    viewModel: ChatViewModel,
     messages: List<Message>,
     currentUserId: String,
     onImageClick: (String, String) -> Unit
@@ -130,6 +132,7 @@ fun MessagesList(
                     horizontalArrangement = Arrangement.End
                 ) {
                     MessageItem(
+                        viewModel = viewModel,
                         message = message,
                         currentUserId = currentUserId,
                         isLastMessage = isLastMessage,
