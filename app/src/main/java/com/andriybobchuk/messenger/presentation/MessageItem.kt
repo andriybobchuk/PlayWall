@@ -292,11 +292,10 @@ fun MessageItem(
 fun DismissBackground(dismissState: SwipeToDismissBoxState) {
     when (dismissState.dismissDirection) {
         SwipeToDismissBoxValue.StartToEnd -> {
-            // Background for swipe from start to end (e.g., reply action)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White) // Change the color as needed
+                    .background(Color.White)
             ) {
                 Icon(
                     imageVector = Icons.Default.Send,
@@ -309,11 +308,10 @@ fun DismissBackground(dismissState: SwipeToDismissBoxState) {
             }
         }
         SwipeToDismissBoxValue.EndToStart -> {
-            // Background for swipe from end to start (e.g., reply action)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White) // Change the color as needed
+                    .background(Color.White)
             ) {
                 Icon(
                     imageVector = Icons.Default.Send,
@@ -326,7 +324,6 @@ fun DismissBackground(dismissState: SwipeToDismissBoxState) {
             }
         }
         else -> {
-            // Default background
             Box(modifier = Modifier.fillMaxSize())
         }
     }

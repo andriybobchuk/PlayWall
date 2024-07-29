@@ -9,9 +9,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,12 +29,16 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color.Companion.Black
+import androidx.compose.ui.graphics.Color.Companion.LightGray
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
 import com.andriybobchuk.messenger.presentation.components.DateHeader
 import com.andriybobchuk.messenger.presentation.components.rememberRequestPermissionAndPickImage
 import com.andriybobchuk.messenger.presentation.components.showOverlays
 import com.andriybobchuk.messenger.model.User
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
+import com.andriybobchuk.messenger.ui.theme.LightGrey
 
 private const val LOG_TAG = "MessengerScreen"
 
@@ -107,31 +113,60 @@ fun ReplyField(
     modifier: Modifier = Modifier
 ) {
     var text by remember { mutableStateOf(message.caption ?: "") }
+    val roundedShape = RoundedCornerShape(48.dp)
 
     Column(
         modifier = modifier
+            .padding(8.dp)
             .fillMaxWidth()
-            .background(Color.White)
-            .padding(16.dp)
+            .background(LightGrey, shape = roundedShape)
+            .padding(5.dp)
     ) {
-        TextField(
-            value = text,
-            onValueChange = { text = it },
-            label = { Text("Edit Message") },
-            modifier = Modifier.fillMaxWidth()
-        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp),
-            horizontalArrangement = Arrangement.End
+                .padding(horizontal = 10.dp), // To create space for buttons
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp) // Spacing between items
         ) {
-            Button(onClick = onCancel) {
-                Text("Cancel")
+            Button(
+                onClick = onCancel,
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(Color.White, shape = CircleShape),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                contentPadding = PaddingValues(0.dp) // No extra padding inside the button
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Cancel",
+                    tint = Color.Black,
+                    modifier = Modifier.size(24.dp)
+                )
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { onComment(text) }) {
-                Text("Comment")
+
+            TextField(
+                value = text,
+                onValueChange = { text = it },
+                label = { Text("Your comment...") },
+                modifier = Modifier
+                    .weight(1f) // Allows the TextField to take remaining space
+                    .background(LightGrey, shape = roundedShape),
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = LightGrey,
+                    focusedContainerColor = LightGrey,
+                    focusedIndicatorColor = LightGrey,
+                    unfocusedIndicatorColor = LightGrey
+                ),
+                singleLine = true,
+                textStyle = TextStyle(color = Black, fontSize = 16.sp),
+                shape = roundedShape
+            )
+            Button(
+                onClick = { onComment(text) },
+                colors = ButtonDefaults.buttonColors(containerColor = Black)
+            ) {
+                Text("Comment", color = Color.White)
             }
         }
     }
