@@ -49,11 +49,11 @@ fun timestampAsTime(timestamp: Long): String {
     return timeFormat.format(date)
 }
 
-fun groupMessagesByDate(messages: List<Message>): Map<String, List<Message>> {
-    return messages.groupBy { message ->
-        timestampAsDate(message.timestamp)
-    }
-}
+//fun groupMessagesByDate(messages: List<Message>): Map<String, List<Message>> {
+//    return messages.groupBy { message ->
+//        timestampAsDate(message.timestamp)
+//    }
+//}
 
 fun formatStatus(status: MessageStatus): String {
     return when (status) {

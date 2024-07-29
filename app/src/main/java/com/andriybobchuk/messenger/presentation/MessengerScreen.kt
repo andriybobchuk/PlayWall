@@ -107,12 +107,12 @@ fun MessagesList(
     onImageClick: (String, String) -> Unit
 ) {
     val groupedMessages = groupMessagesByDate(messages)
-    val lastMessageId = messages.lastOrNull()?.id
-
     val listState = rememberLazyListState()
-    LaunchedEffect(messages) {
-        listState.animateScrollToItem(messages.size - 1)
-        Log.d(LOG_TAG, "Messages updated, scrolling to bottom")
+
+    // Autoscroll to the most recent message
+    LaunchedEffect(groupedMessages.size) {
+        listState.animateScrollToItem(groupedMessages.size - 1)
+        //Log.d(LOG_TAG, "Messages updated, scrolling to bottom: " + groupedMessages[groupedMessages.size-1])
     }
 
     LazyColumn(
@@ -126,7 +126,7 @@ fun MessagesList(
                 DateHeader(date = date)
             }
             items(messagesOnDate) { message ->
-                val isLastMessage = message.id == lastMessageId
+                val isLastMessage = message.id == messages.lastOrNull()?.id
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
@@ -143,12 +143,57 @@ fun MessagesList(
                 Spacer(modifier = Modifier.height(8.dp))
             }
             item {
-                Spacer(modifier = Modifier.padding(vertical = 36.dp))
+                Spacer(modifier = Modifier.height(36.dp)) // Adjust height for spacing
             }
         }
-
     }
 }
+
+
+
+//fun groupMessagesByDate(messages: List<Message>): Map<String, List<Message>> {
+//    return messages.groupBy { message ->
+//        timestampAsDate(message.timestamp)
+//    }.toSortedMap() // Ensure that messages are sorted by date
+//}
+
+//fun groupMessagesByDate(messages: List<Message>): Map<String, List<Message>> {
+//    return messages.groupBy { message ->
+//        timestampAsDate(message.timestamp)
+//    }.toSortedMap() // Ensure that messages are sorted by date
+//}
+
+//fun groupMessagesByDate(messages: List<Message>): Map<String, List<Message>> {
+//
+//    Log.e(LOG_TAG, "Messages: " + messages.sortedBy { message ->
+//        message.timestamp
+//    }.groupBy { message ->
+//        message.timestamp
+//    })
+//
+//    return messages.sortedBy { message ->
+//        message.timestamp
+//    }.groupBy { message ->
+//        message.timestamp
+//    }
+//}
+
+fun groupMessagesByDate(messages: List<Message>): Map<String, List<Message>> {
+    // First, sort messages by timestamp
+    val sortedMessages = messages.sortedBy { it.timestamp }
+
+    // Then, group messages by date
+    val grouped = sortedMessages.groupBy { message ->
+        timestampAsDate(message.timestamp)
+    }
+
+    // Ensure that each group is sorted by timestamp
+    return grouped.mapValues { (_, messagesInGroup) ->
+        messagesInGroup.sortedBy { it.timestamp }
+    }.toSortedMap()
+}
+
+
 
 /**
  * Displays the header of the messenger screen with recipient's information

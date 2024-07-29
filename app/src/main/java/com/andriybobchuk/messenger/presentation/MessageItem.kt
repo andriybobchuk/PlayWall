@@ -4,9 +4,11 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -60,7 +62,9 @@ import com.bumptech.glide.integration.compose.GlideImage
 import kotlinx.coroutines.launch
 
 @SuppressLint("ServiceCast")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 fun MessageItem(viewModel: ChatViewModel, message: Message, currentUserId: String, isLastMessage: Boolean, onImageClick: (String) -> Unit) {
     val isCurrentUser = message.senderId == currentUserId
@@ -92,28 +96,27 @@ fun MessageItem(viewModel: ChatViewModel, message: Message, currentUserId: Strin
         mutableStateOf(false)
     }
 
-    // Handle long press gesture
-    val longPressGestureModifier = Modifier.pointerInput(Unit) {
-        detectTapGestures(
-            onLongPress = {
-                showEmojiPanel.value = !showEmojiPanel.value
-                // Trigger haptic feedback
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-                    val vibrator = vibratorManager.defaultVibrator
-                    vibrator.vibrate(
-                        VibrationEffect.createOneShot(
-                            50,
-                            VibrationEffect.DEFAULT_AMPLITUDE
-                        )
+    val gestureModifier = Modifier.combinedClickable(
+        onClick = { onImageClick(message.imageUrl) },
+        onLongClick = {
+            showEmojiPanel.value = !showEmojiPanel.value
+            // Trigger haptic feedback
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+                val vibrator = vibratorManager.defaultVibrator
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(
+                        50,
+                        VibrationEffect.DEFAULT_AMPLITUDE
                     )
-                } else {
-                    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                    vibrator.vibrate(50)
-                }
+                )
+            } else {
+                val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                vibrator.vibrate(50)
             }
-        )
-    }
+        },
+        onLongClickLabel = "React!"
+    )
 
     Column {
         Row(
@@ -150,7 +153,7 @@ fun MessageItem(viewModel: ChatViewModel, message: Message, currentUserId: Strin
                     .widthIn(max = maxWidth)
             ) {
                 Column(
-                    modifier = Modifier
+                    modifier = gestureModifier
                         .clip(RoundedCornerShape(
                             if (isCurrentUser) MESSAGE_CORNER_RADIUS.dp else 4.dp,
                             MESSAGE_CORNER_RADIUS.dp,
@@ -161,7 +164,6 @@ fun MessageItem(viewModel: ChatViewModel, message: Message, currentUserId: Strin
                             color = if (isCurrentUser) LightGrey else LightBlue,
                         )
                         .wrapContentWidth(align = Alignment.End)
-                        .then(longPressGestureModifier)
                 ) {
                     if (dimensionsLoaded) {
                         if (aspectRatio > 1) {
@@ -178,7 +180,7 @@ fun MessageItem(viewModel: ChatViewModel, message: Message, currentUserId: Strin
                             modifier = Modifier
                                 .width(imageWidth)
                                 .height(imageHeight)
-                                .clickable { onImageClick(message.imageUrl) }
+                                //.clickable { onImageClick(message.imageUrl) }
                         ) {
                             GlideImage(
                                 model = message.imageUrl,
