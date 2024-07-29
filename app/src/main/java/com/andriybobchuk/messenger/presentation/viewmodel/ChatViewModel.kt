@@ -32,9 +32,9 @@ class ChatViewModel : ViewModel() {
     val uiState: StateFlow<MessengerUiState> = _uiState.asStateFlow()
 
 
-    fun setFullscreenImage(url: String?, caption: String?) {
+    fun setFullscreenImage(url: String?, caption: String?, messageId: String) {
         _uiState.update { currentState ->
-            currentState.copy(fullscreenImageUrl = url, fullscreenCaption = caption)
+            currentState.copy(fullscreenImageUrl = url, fullscreenCaption = caption, currentMessageId = messageId)
         }
     }
 
@@ -188,5 +188,9 @@ class ChatViewModel : ViewModel() {
 
     fun getUserNameById(userId: String): String {
         return repository.getUserNameById(userId)
+    }
+
+    fun getMessageById(messageId: String): Message? {
+        return repository.getMessageById(messageId)
     }
 }

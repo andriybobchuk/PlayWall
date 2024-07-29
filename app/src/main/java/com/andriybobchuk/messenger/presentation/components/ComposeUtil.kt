@@ -6,12 +6,18 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
@@ -29,13 +35,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.andriybobchuk.messenger.Constants.HORIZONTAL_SCREEN_PERCENTAGE
+import com.andriybobchuk.messenger.Constants.VERTICAL_SCREEN_PERCENTAGE
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
 import com.andriybobchuk.messenger.presentation.overlays.FullscreenImageViewer
 import com.andriybobchuk.messenger.presentation.overlays.ImagePickerScreen
 import com.andriybobchuk.messenger.presentation.provideHapticFeedback
+import com.andriybobchuk.messenger.presentation.timestampAsDate
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -68,12 +79,12 @@ fun rememberRequestPermissionAndPickImage(
     context: Context,
     onImagePicked: (Uri) -> Unit
 ): () -> Unit {
-    val coroutineScope = rememberCoroutineScope()
-    val getContentLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let {
-            onImagePicked(it)
+    val getContentLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let {
+                onImagePicked(it)
+            }
         }
-    }
 
     return remember {
         {
@@ -94,7 +105,11 @@ fun rememberRequestPermissionAndPickImage(
 
                         override fun onPermissionDenied(response: PermissionDeniedResponse) {
                             Log.e(LOG_TAG, "Permission denied")
-                            Toast.makeText(context, "Permission denied. Cannot pick images.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "Permission denied. Cannot pick images.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
 
                         override fun onPermissionRationaleShouldBeShown(
@@ -111,7 +126,6 @@ fun rememberRequestPermissionAndPickImage(
     }
 }
 
-
 /**
  * Fetches the aspect ratio of an image from the provided URL and returns it through a callback.
  *
@@ -125,7 +139,6 @@ fun rememberRequestPermissionAndPickImage(
 @Composable
 fun FetchImageAspectRatio(imageUrl: String, onAspectRatioReady: (Float) -> Unit) {
     val context = LocalContext.current
-
     LaunchedEffect(imageUrl) {
         Log.d(LOG_TAG, "Loading image from URL: $imageUrl")
         Glide.with(context)
@@ -167,12 +180,14 @@ fun showOverlays(uiState: MessengerUiState, viewModel: ChatViewModel): Boolean {
             imageUrl = uiState.fullscreenImageUrl,
             caption = uiState.fullscreenCaption ?: "",
             sender = uiState.currentUser!!.name,
-            dateTime = "Date & Time", // Replace with actual date/time
+            dateTime = timestampAsDate(viewModel.getMessageById(uiState.currentMessageId)!!.timestamp),
             onDismiss = {
-                viewModel.setFullscreenImage(null, null)
+                viewModel.setFullscreenImage(null, null, "")
             },
-            onDeleteClick = { /* handle delete */ },
-            onDownloadClick = { /* handle download */ }
+            onDeleteClick = {
+                viewModel.deleteMessage(uiState.currentMessageId)
+                viewModel.setFullscreenImage(null, null, "")
+            }
         )
         return true
     } else if (uiState.pickedImageUri != null) {
@@ -214,21 +229,55 @@ fun DateHeader(date: String) {
 }
 
 /**
- * Modifier for handling long press gestures and providing haptic feedback.
- *
- * @param context The context for accessing system services.
- * @param showEmojiPanel Mutable state for showing the emoji panel.
+ * Calculates the maximum dimensions that a message can take up on the screen.
  */
-fun Modifier.longPressGestureModifier(
+@Composable
+fun getMaxMessageDimensions(): Pair<Dp, Dp> {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val screenHeight = configuration.screenHeightDp.dp
+    val maxWidth = screenWidth * HORIZONTAL_SCREEN_PERCENTAGE
+    val maxHeight = screenHeight * VERTICAL_SCREEN_PERCENTAGE
+    return Pair(maxWidth, maxHeight)
+}
+
+/**
+ * Creates a gesture modifier for a chat message, enabling interactions such as opening the
+ * image in fullscreen on click and showing the emoji panel on long click.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+fun gestureModifier(
+    viewModel: ChatViewModel,
+    messageId: String,
+    imageUrl: String,
+    caption: String,
     context: Context,
-    showEmojiPanel: MutableState<Boolean>
+    showEmojiPanel: MutableState<Boolean>,
 ): Modifier {
-    return this.pointerInput(Unit) {
-        detectTapGestures(
-            onLongPress = {
-                showEmojiPanel.value = !showEmojiPanel.value
-                provideHapticFeedback(context)
-            }
+    return Modifier.combinedClickable(
+        onClick = { viewModel.setFullscreenImage(imageUrl, caption, messageId) },
+        onLongClick = {
+            showEmojiPanel.value = !showEmojiPanel.value
+            triggerHapticFeedback(context)
+        },
+        onLongClickLabel = "React!"
+    )
+}
+
+/**
+ * Triggers a haptic feedback vibration when a long click is detected.
+ * Uses different APIs depending on the Android version.
+ */
+private fun triggerHapticFeedback(context: Context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val vibratorManager =
+            context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+        val vibrator = vibratorManager.defaultVibrator
+        vibrator.vibrate(
+            VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE)
         )
+    } else {
+        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        vibrator.vibrate(50)
     }
 }

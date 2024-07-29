@@ -32,6 +32,7 @@ import com.andriybobchuk.messenger.presentation.components.DateHeader
 import com.andriybobchuk.messenger.presentation.components.rememberRequestPermissionAndPickImage
 import com.andriybobchuk.messenger.presentation.components.showOverlays
 import com.andriybobchuk.messenger.model.User
+import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
 
 private const val LOG_TAG = "MessengerScreen"
 
@@ -76,11 +77,8 @@ fun MessengerScreen(
             ) {
                 MessagesList(
                     viewModel = viewModel,
-                    messages = uiState.messages,
-                    currentUserId = uiState.currentUser!!.id,
-                    onImageClick = { imageUrl, caption ->
-                        viewModel.setFullscreenImage(imageUrl, caption)
-                    })
+                    uiState = uiState,
+                )
                 SendImageButton(
                     onClick = {
                         requestPermissionAndPickImage()
@@ -102,17 +100,15 @@ fun MessengerScreen(
 @Composable
 fun MessagesList(
     viewModel: ChatViewModel,
-    messages: List<Message>,
-    currentUserId: String,
-    onImageClick: (String, String) -> Unit
+    uiState: MessengerUiState
 ) {
+    val messages = uiState.messages
+    if (messages.isEmpty()) return
     val groupedMessages = groupMessagesByDate(messages)
     val listState = rememberLazyListState()
 
-    // Autoscroll to the most recent message
-    LaunchedEffect(groupedMessages.size) {
-        listState.animateScrollToItem(groupedMessages.size - 1)
-        //Log.d(LOG_TAG, "Messages updated, scrolling to bottom: " + groupedMessages[groupedMessages.size-1])
+    LaunchedEffect(messages.size) {
+        listState.animateScrollToItem(messages.size - 1)
     }
 
     LazyColumn(
@@ -134,16 +130,14 @@ fun MessagesList(
                     MessageItem(
                         viewModel = viewModel,
                         message = message,
-                        currentUserId = currentUserId,
-                        isLastMessage = isLastMessage,
-                        onImageClick = { imageUrl ->
-                            onImageClick(imageUrl, message.caption)
-                        })
+                        uiState = uiState,
+                        isLastMessage = isLastMessage
+                    )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
             }
             item {
-                Spacer(modifier = Modifier.height(36.dp)) // Adjust height for spacing
+                Spacer(modifier = Modifier.height(48.dp)) // Adjust height for spacing
             }
         }
     }
@@ -192,8 +186,6 @@ fun groupMessagesByDate(messages: List<Message>): Map<String, List<Message>> {
         messagesInGroup.sortedBy { it.timestamp }
     }.toSortedMap()
 }
-
-
 
 /**
  * Displays the header of the messenger screen with recipient's information

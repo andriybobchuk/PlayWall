@@ -11,5 +11,6 @@ data class MessengerUiState(
     val fullscreenImageUrl: String? = null,
     val fullscreenCaption: String? = null,
     val pickedImageUri: Uri? = null,
-    val pickedImageCaption: String = ""
+    val pickedImageCaption: String = "",
+    val currentMessageId: String = ""
 )
