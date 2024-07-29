@@ -193,4 +193,18 @@ class ChatViewModel : ViewModel() {
     fun getMessageById(messageId: String): Message? {
         return repository.getMessageById(messageId)
     }
+
+    fun updateMessageCaption(messageId: String, newCaption: String) {
+        viewModelScope.launch {
+            // Retrieve the existing message
+            val existingMessage = repository.getMessageById(messageId)
+            existingMessage?.let { message ->
+                // Update the message with the new caption
+                val updatedMessage = message.copy(caption = newCaption)
+                repository.updateMessage(updatedMessage)
+                // Reload messages to update the UI
+                loadMessages()
+            } ?: Log.d(LOG_TAG, "Message with ID $messageId not found.")
+        }
+    }
 }

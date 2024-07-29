@@ -51,7 +51,7 @@ fun MessengerScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
+    var replyingToMessage by remember { mutableStateOf<Message?>(null) }
     val requestPermissionAndPickImage = rememberRequestPermissionAndPickImage(
         context = LocalContext.current,
         onImagePicked = { uri ->
@@ -60,15 +60,8 @@ fun MessengerScreen(
     )
 
     Column(modifier = modifier.fillMaxSize()) {
-        if (!showOverlays(
-                uiState = uiState,
-                viewModel = viewModel
-            )
-        ) {
-            MessengerScreenHeader(
-                recipient = uiState.recipient!!,
-                onBackClick = onBackClick
-            )
+        if (!showOverlays(uiState = uiState, viewModel = viewModel)) {
+            MessengerScreenHeader(recipient = uiState.recipient!!, onBackClick = onBackClick)
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -78,14 +71,67 @@ fun MessengerScreen(
                 MessagesList(
                     viewModel = viewModel,
                     uiState = uiState,
-                )
-                SendImageButton(
-                    onClick = {
-                        requestPermissionAndPickImage()
+                    onMessageSwipe = { message ->
+                        // No action needed here for now
                     },
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
+                    onSwipeComplete = { message ->
+                        replyingToMessage = message
+                    }
                 )
+                if (replyingToMessage == null) {
+                    SendImageButton(
+                        onClick = { requestPermissionAndPickImage() },
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                    )
+                } else {
+                    ReplyField(
+                        message = replyingToMessage!!,
+                        onCancel = { replyingToMessage = null },
+                        onComment = { newCaption ->
+                            viewModel.updateMessageCaption(replyingToMessage!!.id, newCaption)
+                            replyingToMessage = null
+                        },
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ReplyField(
+    message: Message,
+    onCancel: () -> Unit,
+    onComment: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var text by remember { mutableStateOf(message.caption ?: "") }
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(16.dp)
+    ) {
+        TextField(
+            value = text,
+            onValueChange = { text = it },
+            label = { Text("Edit Message") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Button(onClick = onCancel) {
+                Text("Cancel")
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = { onComment(text) }) {
+                Text("Comment")
             }
         }
     }
@@ -100,7 +146,9 @@ fun MessengerScreen(
 @Composable
 fun MessagesList(
     viewModel: ChatViewModel,
-    uiState: MessengerUiState
+    uiState: MessengerUiState,
+    onMessageSwipe: (Message) -> Unit,
+    onSwipeComplete: (Message) -> Unit
 ) {
     val messages = uiState.messages
     if (messages.isEmpty()) return
@@ -131,7 +179,9 @@ fun MessagesList(
                         viewModel = viewModel,
                         message = message,
                         uiState = uiState,
-                        isLastMessage = isLastMessage
+                        isLastMessage = isLastMessage,
+                        onMessageSwipe = onMessageSwipe,
+                        onSwipeComplete = { onSwipeComplete(message) }
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))

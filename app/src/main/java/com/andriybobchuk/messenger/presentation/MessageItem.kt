@@ -1,5 +1,6 @@
 import android.annotation.SuppressLint
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -15,10 +17,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -70,14 +81,15 @@ private const val LOG_TAG = "MessageItem"
  * @see ReactionBottomSheet -> This rolls up when you click on MessageReactionBox and shows you
  * people who reacted
  */
-@SuppressLint("ServiceCast")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessageItem(
     viewModel: ChatViewModel,
     uiState: MessengerUiState,
     message: Message,
-    isLastMessage: Boolean
+    isLastMessage: Boolean,
+    onMessageSwipe: (Message) -> Unit,
+    onSwipeComplete: () -> Unit // Added callback for swipe completion
 ) {
     val currentUserId = uiState.currentUser!!.id
     val isCurrentUser = message.senderId == currentUserId
@@ -88,105 +100,240 @@ fun MessageItem(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
-    var isSheetOpen by rememberSaveable {
-        mutableStateOf(false)
-    }
+    var isSheetOpen by rememberSaveable { mutableStateOf(false) }
+
     FetchImageAspectRatio(message.imageUrl) { ratio ->
         aspectRatio = ratio
         dimensionsLoaded = true
         Log.d(LOG_TAG, "Fetched aspect ratio for image: $ratio")
     }
 
-    val gestureModifier = gestureModifier(
-        viewModel = viewModel,
-        messageId = message.id,
-        imageUrl = message.imageUrl,
-        caption = message.caption,
-        context = context,
-        showEmojiPanel = showEmojiPanel
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = {
+            when (it) {
+                SwipeToDismissBoxValue.StartToEnd, SwipeToDismissBoxValue.EndToStart -> {
+                    if (!isCurrentUser) {
+                        onMessageSwipe(message)
+                    }
+                    true
+                }
+                SwipeToDismissBoxValue.Settled -> {
+                    onSwipeComplete() // Notify when swipe is complete
+                    false
+                }
+            }
+        },
+        positionalThreshold = { it * .25f }
     )
 
-    Column {
-        Row(
-            modifier = Modifier
-                .padding(top = 8.dp, end = 8.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = if (isCurrentUser) Arrangement.End else Arrangement.Start
-        ) {
-            // Show emoji panel if its toggled on:
-            val selectedEmoji = viewModel.getUserReaction(message.id, currentUserId)?.emoji
-            if (showEmojiPanel.value) {
-                EmojiPanel(
-                    selectedEmoji = selectedEmoji,
-                    onEmojiClick = { emoji ->
-                        if (selectedEmoji == emoji) {
-                            viewModel.removeReaction(message.id, currentUserId)
-                        } else {
-                            val reaction = Reaction(userName = currentUserId, emoji = emoji)
-                            viewModel.addOrUpdateReaction(message.id, reaction)
-                        }
-                        showEmojiPanel.value = false
-                    }
-                )
-            }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            horizontalArrangement = if (isCurrentUser) Arrangement.End else Arrangement.Start
-        ) {
-            Box(
+    // Use conditional content based on whether the message is sent by the current user
+    if (isCurrentUser) {
+        // Message sent by current user, not swipeable
+        Column {
+            Row(
                 modifier = Modifier
-                    .widthIn(max = maxWidth)
+                    .padding(top = 8.dp, end = 8.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
             ) {
-                MessageContent(
-                    message = message,
-                    aspectRatio = aspectRatio,
-                    dimensionsLoaded = dimensionsLoaded,
-                    maxWidth = maxWidth,
-                    maxHeight = maxHeight,
-                    isCurrentUser = isCurrentUser,
-                    gestureModifier = gestureModifier
-                )
-                // Emoji reaction box
-                MessageReactionBox(
-                    reactions = message.reactions,
-                    onReactionClick = {
-                        coroutineScope.launch {
-                            isSheetOpen = true
+                val selectedEmoji = viewModel.getUserReaction(message.id, currentUserId)?.emoji
+                if (showEmojiPanel.value) {
+                    EmojiPanel(
+                        selectedEmoji = selectedEmoji,
+                        onEmojiClick = { emoji ->
+                            if (selectedEmoji == emoji) {
+                                viewModel.removeReaction(message.id, currentUserId)
+                            } else {
+                                val reaction = Reaction(userName = currentUserId, emoji = emoji)
+                                viewModel.addOrUpdateReaction(message.id, reaction)
+                            }
+                            showEmojiPanel.value = false
                         }
-                    },
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Box(
                     modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .offset(x = (-8).dp, y = 8.dp)
+                        .widthIn(max = maxWidth)
+                ) {
+                    MessageContent(
+                        message = message,
+                        aspectRatio = aspectRatio,
+                        dimensionsLoaded = dimensionsLoaded,
+                        maxWidth = maxWidth,
+                        maxHeight = maxHeight,
+                        isCurrentUser = isCurrentUser,
+                        gestureModifier = Modifier // No-op or actual gesture modifier here
+                    )
+                    MessageReactionBox(
+                        reactions = message.reactions,
+                        onReactionClick = {
+                            coroutineScope.launch {
+                                isSheetOpen = true
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .offset(x = (-8).dp, y = 8.dp)
+                    )
+                }
+            }
+            if (isLastMessage) {
+                Text(
+                    text = formatStatus(message.status),
+                    style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(end = 16.dp)
                 )
             }
         }
-        // Show status below the last message
-        if (isLastMessage && isCurrentUser) {
-            Text(
-                text = formatStatus(message.status),
-                style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .padding(end = 16.dp)
-            )
-        }
-    }
-    if (isSheetOpen) {
-        ReactionBottomSheet(
-            viewModel = viewModel,
-            reactions = message.reactions,
-            sheetState = sheetState,
-            onDismiss = {
-                coroutineScope.launch {
-                    isSheetOpen = false
+    } else {
+        // Message not sent by current user, swipeable
+        SwipeToDismissBox(
+            state = dismissState,
+            backgroundContent = {
+                DismissBackground(dismissState)
+            },
+            content = {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .padding(top = 8.dp, end = 8.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        val selectedEmoji = viewModel.getUserReaction(message.id, currentUserId)?.emoji
+                        if (showEmojiPanel.value) {
+                            EmojiPanel(
+                                selectedEmoji = selectedEmoji,
+                                onEmojiClick = { emoji ->
+                                    if (selectedEmoji == emoji) {
+                                        viewModel.removeReaction(message.id, currentUserId)
+                                    } else {
+                                        val reaction = Reaction(userName = currentUserId, emoji = emoji)
+                                        viewModel.addOrUpdateReaction(message.id, reaction)
+                                    }
+                                    showEmojiPanel.value = false
+                                }
+                            )
+                        }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .widthIn(max = maxWidth)
+                        ) {
+                            MessageContent(
+                                message = message,
+                                aspectRatio = aspectRatio,
+                                dimensionsLoaded = dimensionsLoaded,
+                                maxWidth = maxWidth,
+                                maxHeight = maxHeight,
+                                isCurrentUser = isCurrentUser,
+                                gestureModifier = Modifier // No-op or actual gesture modifier here
+                            )
+                            MessageReactionBox(
+                                reactions = message.reactions,
+                                onReactionClick = {
+                                    coroutineScope.launch {
+                                        isSheetOpen = true
+                                    }
+                                },
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .offset(x = (-8).dp, y = 8.dp)
+                            )
+                        }
+                    }
+                    if (isLastMessage) {
+                        Text(
+                            text = formatStatus(message.status),
+                            style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
+                            modifier = Modifier
+                                .align(Alignment.End)
+                                .padding(end = 16.dp)
+                        )
+                    }
+                }
+                if (isSheetOpen) {
+                    ReactionBottomSheet(
+                        viewModel = viewModel,
+                        reactions = message.reactions,
+                        sheetState = sheetState,
+                        onDismiss = {
+                            coroutineScope.launch {
+                                isSheetOpen = false
+                            }
+                        }
+                    )
                 }
             }
         )
     }
 }
+
+
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DismissBackground(dismissState: SwipeToDismissBoxState) {
+    when (dismissState.dismissDirection) {
+        SwipeToDismissBoxValue.StartToEnd -> {
+            // Background for swipe from start to end (e.g., reply action)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White) // Change the color as needed
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Send,
+                    contentDescription = "Reply",
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(16.dp),
+                    tint = Color.Black
+                )
+            }
+        }
+        SwipeToDismissBoxValue.EndToStart -> {
+            // Background for swipe from end to start (e.g., reply action)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White) // Change the color as needed
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Send,
+                    contentDescription = "Reply",
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(16.dp),
+                    tint = Color.Black
+                )
+            }
+        }
+        else -> {
+            // Default background
+            Box(modifier = Modifier.fillMaxSize())
+        }
+    }
+}
+
+
+
 
 /**
  * Displays the content of a chat message, including the image, caption, and timestamp.

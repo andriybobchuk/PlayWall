@@ -2,6 +2,7 @@ package com.andriybobchuk.messenger.presentation.components
 
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
@@ -231,6 +232,7 @@ fun getMaxMessageDimensions(): Pair<Dp, Dp> {
  * Creates a gesture modifier for a chat message, enabling interactions such as opening the
  * image in fullscreen on click and showing the emoji panel on long click.
  */
+@SuppressLint("ModifierFactoryUnreferencedReceiver")
 @OptIn(ExperimentalFoundationApi::class)
 fun gestureModifier(
     viewModel: ChatViewModel,

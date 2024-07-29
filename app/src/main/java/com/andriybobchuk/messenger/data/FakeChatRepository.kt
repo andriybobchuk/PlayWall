@@ -161,6 +161,13 @@ class FakeChatRepository {
         _messages.removeAll { it.id == messageId }
     }
 
+    fun updateMessage(message: Message) {
+        val index = _messages.indexOfFirst { it.id == message.id }
+        if (index != -1) {
+            _messages[index] = message
+        }
+    }
+
     fun getCurrentUser(): User {
         return _currentUser
     }
