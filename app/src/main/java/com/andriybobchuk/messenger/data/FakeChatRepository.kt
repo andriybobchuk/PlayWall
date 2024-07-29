@@ -47,94 +47,94 @@ class FakeChatRepository {
                     senderId = _recipient.id,
                     recipientId = _currentUser.id
                 ),
-//                Message(
-//                    id = UUID.randomUUID().toString(),
-//                    imageUrl = "https://ichef.bbci.co.uk/news/976/cpsprodpb/114BC/production/_127844807_henry_daniella_hutchinson.jpg",
-//                    caption = "Hello, how are you? this is an example of a long message",
-//                    timestamp = System.currentTimeMillis() - 86400000 * 2,
-//                    status = MessageStatus.SENT,
-//                    reactions = listOf(
-//                        Reaction("user1", "😂"),
-//                        Reaction("user2", "❤️")
-//                    ),
-//                    senderId = _currentUser.id,
-//                    recipientId = _recipient.id
-//                ),
-//                Message(
-//                    id = UUID.randomUUID().toString(),
-//                    imageUrl = "https://www.pbs.org/wnet/nature/files/2014/09/ExtraordinaryCats-Main.jpg",
-//                    caption = "Here's a new photo.",
-//                    timestamp = System.currentTimeMillis() - 86400000 * 2,
-//                    status = MessageStatus.SENT,
-//                    reactions = listOf(
-//                        Reaction("user1", "👍"),
-//                        Reaction("user2", "🔥")
-//                    ),
-//                    senderId = _currentUser.id,
-//                    recipientId = _recipient.id
-//                ),
-//                Message(
-//                    id = UUID.randomUUID().toString(),
-//                    imageUrl = "https://i.pinimg.com/736x/87/4c/9a/874c9a34512567d6b370e66c74bb8b28.jpg",
-//                    caption = "Did you see this?",
-//                    timestamp = System.currentTimeMillis() - 86400000,
-//                    status = MessageStatus.DELIVERED,
-//                    reactions = listOf(
-//                        Reaction("user2", "👏")
-//                    ),
-//                    senderId = _recipient.id,
-//                    recipientId = _currentUser.id
-//                ),
-//                Message(
-//                    id = UUID.randomUUID().toString(),
-//                    imageUrl = "https://static.scientificamerican.com/sciam/cache/file/2AE14CDD-1265-470C-9B15F49024186C10_source.jpg?w=1200",
-//                    caption = "",
-//                    timestamp = System.currentTimeMillis() - 86400000,
-//                    status = MessageStatus.SENT,
-//                    reactions = listOf(
-//                        Reaction("user1", "😍"),
-//                        Reaction("user2", "👌")
-//                    ),
-//                    senderId = _currentUser.id,
-//                    recipientId = _recipient.id
-//                ),
-//                Message(
-//                    id = UUID.randomUUID().toString(),
-//                    imageUrl = "https://www.petethevet.com/wp-content/uploads/2019/02/cat-1739091_1920.jpg",
-//                    caption = "Look at this!",
-//                    timestamp = System.currentTimeMillis() - 86400000,
-//                    status = MessageStatus.SENT,
-//                    reactions = listOf(
-//                        Reaction("user2", "😎")
-//                    ),
-//                    senderId = _recipient.id,
-//                    recipientId = _currentUser.id
-//                ),
-//                Message(
-//                    id = UUID.randomUUID().toString(),
-//                    imageUrl = "https://www.washingtonpost.com/resizer/7tLgbjOZeTsaTiPuxZ1DaxKbWOA=/arc-anglerfish-washpost-prod-washpost/public/FPGDGYJXM56KI5CTHHDX3DN2WQ.jpg",
-//                    caption = "Another amazing photo.",
-//                    timestamp = System.currentTimeMillis() - 4500000,
-//                    status = MessageStatus.SENT,
-//                    reactions = listOf(
-//                        Reaction("user1", "🎉"),
-//                        Reaction("user2", "👍")
-//                    ),
-//                    senderId = _currentUser.id,
-//                    recipientId = _recipient.id
-//                ),
-//                Message(
-//                    id = UUID.randomUUID().toString(),
-//                    imageUrl = "https://www.thesprucepets.com/thmb/OoMBiCxD3B02Jx-WO9dmY0DAaaI=/4000x0/filters:no_upscale():strip_icc()/cats-recirc3_2-1f5de201af94447a9063f83249260aff.jpg",
-//                    caption = "",
-//                    timestamp = System.currentTimeMillis() - 5000000,
-//                    status = MessageStatus.DELIVERED,
-//                    reactions = listOf(
-//                        Reaction("user2", "❤️")
-//                    ),
-//                    senderId = _recipient.id,
-//                    recipientId = _currentUser.id
-//                )
+                Message(
+                    id = UUID.randomUUID().toString(),
+                    imageUrl = "https://ichef.bbci.co.uk/news/976/cpsprodpb/114BC/production/_127844807_henry_daniella_hutchinson.jpg",
+                    caption = "Hello, how are you? this is an example of a long message",
+                    timestamp = System.currentTimeMillis() - 86400000 * 2,
+                    status = MessageStatus.SENT,
+                    reactions = listOf(
+                        Reaction("user1", "😂"),
+                        Reaction("user2", "❤️")
+                    ),
+                    senderId = _currentUser.id,
+                    recipientId = _recipient.id
+                ),
+                Message(
+                    id = UUID.randomUUID().toString(),
+                    imageUrl = "https://www.pbs.org/wnet/nature/files/2014/09/ExtraordinaryCats-Main.jpg",
+                    caption = "Here's a new photo.",
+                    timestamp = System.currentTimeMillis() - 86400000 * 2,
+                    status = MessageStatus.SENT,
+                    reactions = listOf(
+                        Reaction("user1", "👍"),
+                        Reaction("user2", "🔥")
+                    ),
+                    senderId = _currentUser.id,
+                    recipientId = _recipient.id
+                ),
+                Message(
+                    id = UUID.randomUUID().toString(),
+                    imageUrl = "https://i.pinimg.com/736x/87/4c/9a/874c9a34512567d6b370e66c74bb8b28.jpg",
+                    caption = "Did you see this?",
+                    timestamp = System.currentTimeMillis() - 86400000,
+                    status = MessageStatus.DELIVERED,
+                    reactions = listOf(
+                        Reaction("user2", "👏")
+                    ),
+                    senderId = _recipient.id,
+                    recipientId = _currentUser.id
+                ),
+                Message(
+                    id = UUID.randomUUID().toString(),
+                    imageUrl = "https://static.scientificamerican.com/sciam/cache/file/2AE14CDD-1265-470C-9B15F49024186C10_source.jpg?w=1200",
+                    caption = "",
+                    timestamp = System.currentTimeMillis() - 86400000,
+                    status = MessageStatus.SENT,
+                    reactions = listOf(
+                        Reaction("user1", "😍"),
+                        Reaction("user2", "👌")
+                    ),
+                    senderId = _currentUser.id,
+                    recipientId = _recipient.id
+                ),
+                Message(
+                    id = UUID.randomUUID().toString(),
+                    imageUrl = "https://www.petethevet.com/wp-content/uploads/2019/02/cat-1739091_1920.jpg",
+                    caption = "Look at this!",
+                    timestamp = System.currentTimeMillis() - 86400000,
+                    status = MessageStatus.SENT,
+                    reactions = listOf(
+                        Reaction("user2", "😎")
+                    ),
+                    senderId = _recipient.id,
+                    recipientId = _currentUser.id
+                ),
+                Message(
+                    id = UUID.randomUUID().toString(),
+                    imageUrl = "https://www.washingtonpost.com/resizer/7tLgbjOZeTsaTiPuxZ1DaxKbWOA=/arc-anglerfish-washpost-prod-washpost/public/FPGDGYJXM56KI5CTHHDX3DN2WQ.jpg",
+                    caption = "Another amazing photo.",
+                    timestamp = System.currentTimeMillis() - 4500000,
+                    status = MessageStatus.SENT,
+                    reactions = listOf(
+                        Reaction("user1", "🎉"),
+                        Reaction("user2", "👍")
+                    ),
+                    senderId = _currentUser.id,
+                    recipientId = _recipient.id
+                ),
+                Message(
+                    id = UUID.randomUUID().toString(),
+                    imageUrl = "https://www.thesprucepets.com/thmb/OoMBiCxD3B02Jx-WO9dmY0DAaaI=/4000x0/filters:no_upscale():strip_icc()/cats-recirc3_2-1f5de201af94447a9063f83249260aff.jpg",
+                    caption = "",
+                    timestamp = System.currentTimeMillis() - 5000000,
+                    status = MessageStatus.DELIVERED,
+                    reactions = listOf(
+                        Reaction("user2", "❤️")
+                    ),
+                    senderId = _recipient.id,
+                    recipientId = _currentUser.id
+                )
             )
         )
     }

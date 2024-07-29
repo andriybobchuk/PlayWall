@@ -63,25 +63,6 @@ fun formatStatus(status: MessageStatus): String {
     }
 }
 
-/**
- * Provides haptic feedback on devices running both old and new Android versions.
- */
-fun provideHapticFeedback(context: Context) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-        val vibrator = vibratorManager.defaultVibrator
-        vibrator.vibrate(
-            VibrationEffect.createOneShot(
-                50,
-                VibrationEffect.DEFAULT_AMPLITUDE
-            )
-        )
-    } else { // Old phones:
-        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        vibrator.vibrate(50)
-    }
-}
-
 fun calculateImageDimensions(aspectRatio: Float, maxWidth: Dp, maxHeight: Dp): Pair<Dp, Dp> {
     return if (aspectRatio > 1) {
         val imageWidth = maxWidth
@@ -91,5 +72,23 @@ fun calculateImageDimensions(aspectRatio: Float, maxWidth: Dp, maxHeight: Dp): P
         val imageHeight = maxHeight
         val imageWidth = (maxHeight * aspectRatio).coerceAtMost(maxWidth)
         imageWidth to imageHeight
+    }
+}
+
+/**
+ * Triggers a haptic feedback vibration when a long click is detected.
+ * Uses different APIs depending on the Android version.
+ */
+fun triggerHapticFeedback(context: Context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val vibratorManager =
+            context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+        val vibrator = vibratorManager.defaultVibrator
+        vibrator.vibrate(
+            VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE)
+        )
+    } else {
+        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        vibrator.vibrate(50)
     }
 }
