@@ -71,23 +71,16 @@ import kotlinx.coroutines.launch
 private const val LOG_TAG = "MessageItem"
 
 /**
- * Main composable to hold a skeleton of the whole big message row with all attachments,
- * gestures, and reactions.
- * Handles user interactions like clicking and long-clicking for reactions and viewing images
- * in fullscreen.
- * Uses gestures to toggle emoji panel and open a reaction bottom sheet.
- *
- * A much more isolated representation of the actual message bubble would be MessageContent.
- *
- * @see EmojiPanel -> This appears on top of the message when you log press it.
- * @see MessageContent -> This is the actual message bubble.
- * @see MessageReactionBox -> This is an emoji attached to the message bubble if anyone reacted.
- * @see ReactionBottomSheet -> This rolls up when you click on MessageReactionBox and shows you
- * people who reacted
- */
-/**
  * Main MessageItem function.
- * Decides if this message belongs to us or the other person and applies appropriate parameters.
+ * - Represents a single message item in the chat UI.
+ * - Decides if this message belongs to us or the other person and applies appropriate parameters.
+ * - Handles the display of the message content and applies swipe-to-dismiss(reply) behavior for
+ * received messages.
+ *
+ * Splitting this functionality into different functions helps to maintain a clear separation of concerns,
+ * making the code more modular and easier to maintain.
+ *
+ * @see SwipeToDismissBox - This is my swipe-to-reply functionality
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -131,13 +124,16 @@ fun MessageItem(
 }
 
 /**
- * Displays the content of a chat message, including the image, caption, and timestamp.
- * NOT including the reactions stuff like top reaction panel or reaction box.
- * Handles the dynamic calculation of image dimensions based on the aspect ratio so that long images
- * are displayed as long images and wide images preserve their wide format.
+ * Displays the main content of a chat message, including emoji panel, message bubble,
+ * and reactions bottom sheet. This function focuses on structuring the message layout
+ * and managing state for interactions like emoji reactions and bottom sheet visibility.
  *
- * @see ImageBox
- * @see CaptionAndTimestamp
+ * This separation allows for focused management of message display logic while keeping the
+ * swipe-to-dismiss(reply) and other behaviors modular.
+ *
+ * @see EmojiPanel
+ * @see MessageBubble
+ * @see ReactionBottomSheet
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -184,8 +180,18 @@ fun MessageContent(
     )
 }
 
-
-
+/**
+ * Represents the visual bubble for a chat message, including the image, caption,
+ * timestamp, and reaction options. Handles dynamic image dimension calculations and
+ * gesture interactions for the message bubble.
+ *
+ * This separation helps manage the complexity of the message display and interactions
+ * by focusing on the visual presentation and gestures within the bubble.
+ *
+ * @see ImageBox
+ * @see CaptionAndTimestamp
+ * @see MessageReactionBox
+ */
 @Composable
 private fun MessageBubble(
     viewModel: ChatViewModel,
@@ -266,6 +272,7 @@ private fun bubbleModifier(isCurrentUser: Boolean) = Modifier
         color = if (isCurrentUser) LightGrey else LightBlue,
     )
     .wrapContentWidth(align = Alignment.End)
+
 
 
 @Composable

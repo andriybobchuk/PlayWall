@@ -157,7 +157,7 @@ fun ReactionBottomSheet(
             ) {
                 Text(
                     text = "Reactions",
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 reactions.forEach { reaction ->
