@@ -77,7 +77,6 @@ fun MessengerScreen(
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    // Determine if the user is not at the bottom of the list
     val isAtBottom by remember {
         derivedStateOf {
             val lastIndex = scrollState.layoutInfo.totalItemsCount - 1
@@ -102,7 +101,7 @@ fun MessengerScreen(
                     onSwipeComplete = { message ->
                         replyingToMessage = message
                     },
-                    scrollState = scrollState // Pass scrollState here
+                    scrollState = scrollState
                 )
                 Row(
                     modifier = Modifier
@@ -141,8 +140,6 @@ fun MessengerScreen(
 }
 
 
-
-
 /**
  * Displays a list of messages grouped by date separated by DateHeader tags.
  * Provides functionality to handle image click events and auto-scrolls to the latest message.
@@ -155,7 +152,7 @@ fun MessagesList(
     uiState: MessengerUiState,
     onMessageSwipe: (Message) -> Unit,
     onSwipeComplete: (Message) -> Unit,
-    scrollState: LazyListState // Add this parameter
+    scrollState: LazyListState
 ) {
     val messages = uiState.messages
     if (messages.isEmpty()) return

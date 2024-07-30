@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -64,22 +65,29 @@ import com.andriybobchuk.messenger.ui.theme.LightBlue
 import com.andriybobchuk.messenger.ui.theme.LightGrey
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 private const val LOG_TAG = "MessageItem"
 
 /**
- * Main composable to hold a skeleton of the message bubble with appropriate styling,
+ * Main composable to hold a skeleton of the whole big message row with all attachments,
  * gestures, and reactions.
  * Handles user interactions like clicking and long-clicking for reactions and viewing images
  * in fullscreen.
  * Uses gestures to toggle emoji panel and open a reaction bottom sheet.
+ *
+ * A much more isolated representation of the actual message bubble would be MessageContent.
  *
  * @see EmojiPanel -> This appears on top of the message when you log press it.
  * @see MessageContent -> This is the actual message bubble.
  * @see MessageReactionBox -> This is an emoji attached to the message bubble if anyone reacted.
  * @see ReactionBottomSheet -> This rolls up when you click on MessageReactionBox and shows you
  * people who reacted
+ */
+/**
+ * Main MessageItem function.
+ * Decides if this message belongs to us or the other person and applies appropriate parameters.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,34 +97,185 @@ fun MessageItem(
     message: Message,
     isLastMessage: Boolean,
     onMessageSwipe: (Message) -> Unit,
-    onSwipeComplete: () -> Unit // Added callback for swipe completion
+    onSwipeComplete: () -> Unit
 ) {
     val currentUserId = uiState.currentUser!!.id
     val isCurrentUser = message.senderId == currentUserId
+    val dismissState = swipeToDismissBoxState(isCurrentUser, onMessageSwipe, message, onSwipeComplete)
+
+    if (isCurrentUser) {
+        MessageContent(
+            viewModel = viewModel,
+            message = message,
+            currentUserId = currentUserId,
+            isLastMessage = isLastMessage,
+            horizontalArrangement = Arrangement.End
+        )
+    } else {
+        SwipeToDismissBox(
+            state = dismissState,
+            backgroundContent = {
+                DismissBackground(dismissState)
+            },
+            content = {
+                MessageContent(
+                    viewModel = viewModel,
+                    message = message,
+                    currentUserId = currentUserId,
+                    isLastMessage = isLastMessage,
+                    horizontalArrangement = Arrangement.Start
+                )
+            }
+        )
+    }
+}
+
+/**
+ * Displays the content of a chat message, including the image, caption, and timestamp.
+ * NOT including the reactions stuff like top reaction panel or reaction box.
+ * Handles the dynamic calculation of image dimensions based on the aspect ratio so that long images
+ * are displayed as long images and wide images preserve their wide format.
+ *
+ * @see ImageBox
+ * @see CaptionAndTimestamp
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MessageContent(
+    viewModel: ChatViewModel,
+    message: Message,
+    currentUserId: String,
+    isLastMessage: Boolean,
+    horizontalArrangement: Arrangement.Horizontal
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState()
+    val isSheetOpen = remember { mutableStateOf(false) }
+    val showEmojiPanel = remember { mutableStateOf(false) }
+    val isCurrentUser = message.senderId == currentUserId
+
+    Column {
+        EmojiPanel(showEmojiPanel, viewModel, message, currentUserId, horizontalArrangement)
+        MessageBubble(
+            viewModel = viewModel,
+            message = message,
+            currentUserId = currentUserId,
+            showEmojiPanel = showEmojiPanel,
+            coroutineScope = coroutineScope,
+            isSheetOpen = isSheetOpen,
+            horizontalArrangement = horizontalArrangement
+        )
+        if (isLastMessage && isCurrentUser) {
+            Text(
+                text = formatStatus(message.status),
+                style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(end = 16.dp)
+            )
+        }
+    }
+    ReactionBottomSheet(
+        viewModel = viewModel,
+        reactions = message.reactions,
+        sheetState = sheetState,
+        isSheetOpen = isSheetOpen,
+        coroutineScope = coroutineScope
+    )
+}
+
+
+
+@Composable
+private fun MessageBubble(
+    viewModel: ChatViewModel,
+    message: Message,
+    currentUserId: String,
+    showEmojiPanel: MutableState<Boolean>,
+    coroutineScope: CoroutineScope,
+    isSheetOpen: MutableState<Boolean>,
+    horizontalArrangement: Arrangement.Horizontal
+) {
     val (maxWidth, maxHeight) = getMaxMessageDimensions()
     var aspectRatio by remember { mutableFloatStateOf(1f) }
     var dimensionsLoaded by remember { mutableStateOf(false) }
-    val showEmojiPanel = remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState()
-    var isSheetOpen by rememberSaveable { mutableStateOf(false) }
-
+    val gestureModifier = gestureModifier(viewModel, message, showEmojiPanel)
+    val isCurrentUser = message.senderId == currentUserId
+    val (imageWidth, imageHeight) = if (dimensionsLoaded) {
+        calculateImageDimensions(aspectRatio, maxWidth, maxHeight)
+    } else {
+        Pair(200.dp, 200.dp)
+    }
     FetchImageAspectRatio(message.imageUrl) { ratio ->
         aspectRatio = ratio
         dimensionsLoaded = true
         Log.d(LOG_TAG, "Fetched aspect ratio for image: $ratio")
     }
 
-    val gestureModifier = gestureModifier(
-        viewModel = viewModel,
-        messageId = message.id,
-        imageUrl = message.imageUrl,
-        caption = message.caption,
-        context = context,
-        showEmojiPanel = showEmojiPanel
-    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = horizontalArrangement
+    ) {
+        Box(
+            modifier = Modifier
+                .widthIn(max = maxWidth)
+        ) {
+            Column(bubbleModifier(isCurrentUser)) {
+                ImageBox(
+                    message = message,
+                    imageWidth = imageWidth,
+                    imageHeight = imageHeight,
+                    gestureModifier = gestureModifier
+                )
 
+                CaptionAndTimestamp(
+                    message = message,
+                    imageWidth = imageWidth,
+                    modifier = Modifier
+                        .align(Alignment.End)
+                )
+            }
+            MessageReactionBox(
+                reactions = message.reactions,
+                onReactionClick = {
+                    coroutineScope.launch {
+                        isSheetOpen.value = true
+                    }
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .offset(x = (-8).dp, y = 8.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun bubbleModifier(isCurrentUser: Boolean) = Modifier
+    .clip(
+        RoundedCornerShape(
+            if (isCurrentUser) MESSAGE_CORNER_RADIUS.dp else 4.dp,
+            MESSAGE_CORNER_RADIUS.dp,
+            if (isCurrentUser) 4.dp else MESSAGE_CORNER_RADIUS.dp,
+            MESSAGE_CORNER_RADIUS.dp,
+        )
+    )
+    .background(
+        color = if (isCurrentUser) LightGrey else LightBlue,
+    )
+    .wrapContentWidth(align = Alignment.End)
+
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun swipeToDismissBoxState(
+    isCurrentUser: Boolean,
+    onMessageSwipe: (Message) -> Unit,
+    message: Message,
+    onSwipeComplete: () -> Unit
+): SwipeToDismissBoxState {
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = {
             when (it) {
@@ -126,6 +285,7 @@ fun MessageItem(
                     }
                     true
                 }
+
                 SwipeToDismissBoxValue.Settled -> {
                     onSwipeComplete() // Notify when swipe is complete
                     false
@@ -134,174 +294,7 @@ fun MessageItem(
         },
         positionalThreshold = { it * 10f }
     )
-
-    if (isCurrentUser) {
-        // Message sent by current user, not swipeable
-        Column {
-            Row(
-                modifier = Modifier
-                    .padding(top = 8.dp, end = 8.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                val selectedEmoji = viewModel.getUserReaction(message.id, currentUserId)?.emoji
-                if (showEmojiPanel.value) {
-                    EmojiPanel(
-                        selectedEmoji = selectedEmoji,
-                        onEmojiClick = { emoji ->
-                            if (selectedEmoji == emoji) {
-                                viewModel.removeReaction(message.id, currentUserId)
-                            } else {
-                                val reaction = Reaction(userName = currentUserId, emoji = emoji)
-                                viewModel.addOrUpdateReaction(message.id, reaction)
-                            }
-                            showEmojiPanel.value = false
-                        }
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Box(
-                    modifier = Modifier
-                        .widthIn(max = maxWidth)
-                ) {
-                    MessageContent(
-                        message = message,
-                        aspectRatio = aspectRatio,
-                        dimensionsLoaded = dimensionsLoaded,
-                        maxWidth = maxWidth,
-                        maxHeight = maxHeight,
-                        isCurrentUser = isCurrentUser,
-                        gestureModifier = gestureModifier
-                    )
-                    MessageReactionBox(
-                        reactions = message.reactions,
-                        onReactionClick = {
-                            coroutineScope.launch {
-                                isSheetOpen = true
-                            }
-                        },
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .offset(x = (-8).dp, y = 8.dp)
-                    )
-                }
-            }
-            if (isLastMessage) {
-                Text(
-                    text = formatStatus(message.status),
-                    style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
-                    modifier = Modifier
-                        .align(Alignment.End)
-                        .padding(end = 16.dp)
-                )
-            }
-        }
-        if (isSheetOpen) {
-            ReactionBottomSheet(
-                viewModel = viewModel,
-                reactions = message.reactions,
-                sheetState = sheetState,
-                onDismiss = {
-                    coroutineScope.launch {
-                        isSheetOpen = false
-                    }
-                }
-            )
-        }
-    } else {
-        // Message not sent by current user, swipeable
-        SwipeToDismissBox(
-            state = dismissState,
-            backgroundContent = {
-                DismissBackground(dismissState)
-            },
-            content = {
-                Column {
-                    Row(
-                        modifier = Modifier
-                            .padding(top = 8.dp, end = 8.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        val selectedEmoji = viewModel.getUserReaction(message.id, currentUserId)?.emoji
-                        if (showEmojiPanel.value) {
-                            EmojiPanel(
-                                selectedEmoji = selectedEmoji,
-                                onEmojiClick = { emoji ->
-                                    if (selectedEmoji == emoji) {
-                                        viewModel.removeReaction(message.id, currentUserId)
-                                    } else {
-                                        val reaction = Reaction(userName = currentUserId, emoji = emoji)
-                                        viewModel.addOrUpdateReaction(message.id, reaction)
-                                    }
-                                    showEmojiPanel.value = false
-                                }
-                            )
-                        }
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .widthIn(max = maxWidth)
-                        ) {
-                            MessageContent(
-                                message = message,
-                                aspectRatio = aspectRatio,
-                                dimensionsLoaded = dimensionsLoaded,
-                                maxWidth = maxWidth,
-                                maxHeight = maxHeight,
-                                isCurrentUser = isCurrentUser,
-                                gestureModifier = gestureModifier
-                            )
-                            MessageReactionBox(
-                                reactions = message.reactions,
-                                onReactionClick = {
-                                    coroutineScope.launch {
-                                        isSheetOpen = true
-                                    }
-                                },
-                                modifier = Modifier
-                                    .align(Alignment.BottomStart)
-                                    .offset(x = (-8).dp, y = 8.dp)
-                            )
-                        }
-                    }
-                    if (isLastMessage) {
-                        Text(
-                            text = formatStatus(message.status),
-                            style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
-                            modifier = Modifier
-                                .align(Alignment.End)
-                                .padding(end = 16.dp)
-                        )
-                    }
-                }
-                if (isSheetOpen) {
-                    ReactionBottomSheet(
-                        viewModel = viewModel,
-                        reactions = message.reactions,
-                        sheetState = sheetState,
-                        onDismiss = {
-                            coroutineScope.launch {
-                                isSheetOpen = false
-                            }
-                        }
-                    )
-                }
-            }
-        )
-    }
+    return dismissState
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -370,61 +363,7 @@ fun DismissBackground(dismissState: SwipeToDismissBoxState) {
 
 
 
-/**
- * Displays the content of a chat message, including the image, caption, and timestamp.
- * NOT including the reactions stuff like top reaction panel or reaction box.
- * Handles the dynamic calculation of image dimensions based on the aspect ratio so that long images
- * are displayed as long images and wide images preserve their wide format.
- *
- * @see ImageBox
- * @see CaptionAndTimestamp
- */
-@Composable
-fun MessageContent(
-    message: Message,
-    aspectRatio: Float,
-    dimensionsLoaded: Boolean,
-    maxWidth: Dp,
-    maxHeight: Dp,
-    isCurrentUser: Boolean,
-    gestureModifier: Modifier
-) {
-    val (imageWidth, imageHeight) = if (dimensionsLoaded) {
-        calculateImageDimensions(aspectRatio, maxWidth, maxHeight)
-    } else {
-        Pair(200.dp, 200.dp)
-    }
 
-    Column(
-        modifier = Modifier
-            .clip(
-                RoundedCornerShape(
-                    if (isCurrentUser) MESSAGE_CORNER_RADIUS.dp else 4.dp,
-                    MESSAGE_CORNER_RADIUS.dp,
-                    if (isCurrentUser) 4.dp else MESSAGE_CORNER_RADIUS.dp,
-                    MESSAGE_CORNER_RADIUS.dp,
-                )
-            )
-            .background(
-                color = if (isCurrentUser) LightGrey else LightBlue,
-            )
-            .wrapContentWidth(align = Alignment.End)
-    ) {
-        ImageBox(
-            message = message,
-            imageWidth = imageWidth,
-            imageHeight = imageHeight,
-            gestureModifier = gestureModifier
-        )
-
-        CaptionAndTimestamp(
-            message = message,
-            imageWidth = imageWidth,
-            modifier = Modifier
-                .align(Alignment.End)
-        )
-    }
-}
 
 /**
  * Displays an image within a chat message bubble, including the image's dimensions and gesture handling.

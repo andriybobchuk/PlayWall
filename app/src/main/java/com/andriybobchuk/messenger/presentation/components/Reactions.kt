@@ -17,15 +17,20 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.andriybobchuk.messenger.Constants.EMOJI_LIST
+import com.andriybobchuk.messenger.model.Message
 import com.andriybobchuk.messenger.model.Reaction
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
+import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
 import com.andriybobchuk.messenger.ui.theme.LightGrey
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 /**
  * Displays a panel of emojis for the user to select as reactions to a message.
@@ -37,31 +42,52 @@ import com.andriybobchuk.messenger.ui.theme.LightGrey
  */
 @Composable
 fun EmojiPanel(
-    selectedEmoji: String?,
-    onEmojiClick: (String) -> Unit
+    showEmojiPanel: MutableState<Boolean>,
+    viewModel: ChatViewModel,
+    message: Message,
+    currentUserId: String,
+    horizontalArrangement: Arrangement.Horizontal
 ) {
+    val selectedEmoji = viewModel.getUserReaction(message.id, currentUserId)?.emoji
     Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(32.dp))
-            .background(LightGrey)
-            .padding(3.dp),
-        horizontalArrangement = Arrangement.SpaceAround
+            .padding(top = 8.dp, end = 8.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = horizontalArrangement
     ) {
-        val emojis = EMOJI_LIST
-        emojis.forEach { emoji ->
-            val isSelected = emoji == selectedEmoji
-            Text(
-                text = emoji,
-                fontSize = 18.sp,
-                color = if (isSelected) Color.Black else Color.Unspecified,
+        if (showEmojiPanel.value) {
+            Row(
                 modifier = Modifier
-                    .background(
-                        if (isSelected) Color.DarkGray.copy(alpha = 0.2f) else Color.Transparent,
-                        shape = CircleShape
+                    .clip(RoundedCornerShape(32.dp))
+                    .background(LightGrey)
+                    .padding(3.dp),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                val emojis = EMOJI_LIST
+                emojis.forEach { emoji ->
+                    val isSelected = emoji == selectedEmoji
+                    Text(
+                        text = emoji,
+                        fontSize = 18.sp,
+                        color = if (isSelected) Color.Black else Color.Unspecified,
+                        modifier = Modifier
+                            .background(
+                                if (isSelected) Color.DarkGray.copy(alpha = 0.2f) else Color.Transparent,
+                                shape = CircleShape
+                            )
+                            .clickable {
+                                if (selectedEmoji == emoji) {
+                                    viewModel.removeReaction(message.id, currentUserId)
+                                } else {
+                                    val reaction = Reaction(userName = currentUserId, emoji = emoji)
+                                    viewModel.addOrUpdateReaction(message.id, reaction)
+                                }
+                                showEmojiPanel.value = false
+                            }
+                            .padding(6.dp)
                     )
-                    .clickable { onEmojiClick(emoji) }
-                    .padding(6.dp)
-            )
+                }
+            }
         }
     }
 }
@@ -113,37 +139,43 @@ fun ReactionBottomSheet(
     viewModel: ChatViewModel,
     reactions: List<Reaction>,
     sheetState: SheetState,
-    onDismiss: () -> Unit
+    isSheetOpen: MutableState<Boolean>,
+    coroutineScope: CoroutineScope
 ) {
-    ModalBottomSheet(
-        sheetState = sheetState,
-        onDismissRequest = { onDismiss() }
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+    if (isSheetOpen.value) {
+        ModalBottomSheet(
+            sheetState = sheetState,
+            onDismissRequest = {
+                coroutineScope.launch {
+                isSheetOpen.value = false
+            } }
         ) {
-            Text(
-                text = "Reactions",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            reactions.forEach { reaction ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = viewModel.getUserNameById(reaction.userName),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = reaction.emoji,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Reactions",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                reactions.forEach { reaction ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = viewModel.getUserNameById(reaction.userName),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = reaction.emoji,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
                 }
             }
         }

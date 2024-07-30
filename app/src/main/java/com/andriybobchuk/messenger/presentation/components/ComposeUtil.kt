@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.andriybobchuk.messenger.Constants.HORIZONTAL_SCREEN_PERCENTAGE
 import com.andriybobchuk.messenger.Constants.VERTICAL_SCREEN_PERCENTAGE
+import com.andriybobchuk.messenger.model.Message
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
 import com.andriybobchuk.messenger.presentation.overlays.FullscreenImageViewer
 import com.andriybobchuk.messenger.presentation.overlays.ImagePickerScreen
@@ -232,18 +233,17 @@ fun getMaxMessageDimensions(): Pair<Dp, Dp> {
  * Creates a gesture modifier for a chat message, enabling interactions such as opening the
  * image in fullscreen on click and showing the emoji panel on long click.
  */
+@Composable
 @SuppressLint("ModifierFactoryUnreferencedReceiver")
 @OptIn(ExperimentalFoundationApi::class)
 fun gestureModifier(
     viewModel: ChatViewModel,
-    messageId: String,
-    imageUrl: String,
-    caption: String,
-    context: Context,
+    message: Message,
     showEmojiPanel: MutableState<Boolean>,
 ): Modifier {
+    val context = LocalContext.current
     return Modifier.combinedClickable(
-        onClick = { viewModel.setFullscreenImage(imageUrl, caption, messageId) },
+        onClick = { viewModel.setFullscreenImage(message.imageUrl, message.caption, message.id) },
         onLongClick = {
             showEmojiPanel.value = !showEmojiPanel.value
             triggerHapticFeedback(context)
