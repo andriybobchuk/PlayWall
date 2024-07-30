@@ -82,8 +82,8 @@ class FakeChatRepository {
                     reactions = listOf(
                         Reaction("user2", "👏")
                     ),
-                    senderId = _recipient.id,
-                    recipientId = _currentUser.id
+                    senderId = _currentUser.id,
+                    recipientId = _recipient.id
                 ),
                 Message(
                     id = UUID.randomUUID().toString(),

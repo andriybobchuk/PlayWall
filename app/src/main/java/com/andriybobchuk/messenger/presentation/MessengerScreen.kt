@@ -2,6 +2,7 @@ package com.andriybobchuk.messenger.presentation
 
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
 import MessageItem
+import android.content.Context
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -124,6 +125,7 @@ fun MessengerScreen(
                     }
                 }
                 if (replyingToMessage != null) {
+                    triggerHapticFeedback(LocalContext.current)
                     ReplyField(
                         message = replyingToMessage!!,
                         onCancel = { replyingToMessage = null },

@@ -2,6 +2,7 @@ import android.annotation.SuppressLint
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,14 +14,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +51,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.andriybobchuk.messenger.Constants.HORIZONTAL_SCREEN_PERCENTAGE
 import com.andriybobchuk.messenger.Constants.MESSAGE_CORNER_RADIUS
 import com.andriybobchuk.messenger.presentation.components.EmojiPanel
 import com.andriybobchuk.messenger.presentation.formatStatus
@@ -59,6 +64,7 @@ import com.andriybobchuk.messenger.presentation.components.MessageReactionBox
 import com.andriybobchuk.messenger.presentation.components.ReactionBottomSheet
 import com.andriybobchuk.messenger.presentation.components.gestureModifier
 import com.andriybobchuk.messenger.presentation.components.getMaxMessageDimensions
+import com.andriybobchuk.messenger.presentation.triggerHapticFeedback
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
 import com.andriybobchuk.messenger.ui.theme.LightBlue
@@ -102,7 +108,8 @@ fun MessageItem(
             message = message,
             currentUserId = currentUserId,
             isLastMessage = isLastMessage,
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.End,
+            onSwipeComplete = onSwipeComplete
         )
     } else {
         SwipeToDismissBox(
@@ -116,9 +123,11 @@ fun MessageItem(
                     message = message,
                     currentUserId = currentUserId,
                     isLastMessage = isLastMessage,
-                    horizontalArrangement = Arrangement.Start
+                    horizontalArrangement = Arrangement.Start,
+                    onSwipeComplete = onSwipeComplete
                 )
-            }
+            },
+            enableDismissFromEndToStart = false,
         )
     }
 }
@@ -142,7 +151,8 @@ fun MessageContent(
     message: Message,
     currentUserId: String,
     isLastMessage: Boolean,
-    horizontalArrangement: Arrangement.Horizontal
+    horizontalArrangement: Arrangement.Horizontal,
+    onSwipeComplete: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
@@ -152,15 +162,34 @@ fun MessageContent(
 
     Column {
         EmojiPanel(showEmojiPanel, viewModel, message, currentUserId, horizontalArrangement)
-        MessageBubble(
-            viewModel = viewModel,
-            message = message,
-            currentUserId = currentUserId,
-            showEmojiPanel = showEmojiPanel,
-            coroutineScope = coroutineScope,
-            isSheetOpen = isSheetOpen,
-            horizontalArrangement = horizontalArrangement
-        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = if (isCurrentUser) Arrangement.End else Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                modifier = Modifier
+                    .weight(1f) // Take up available space
+            ) {
+                MessageBubble(
+                    viewModel = viewModel,
+                    message = message,
+                    currentUserId = currentUserId,
+                    showEmojiPanel = showEmojiPanel,
+                    coroutineScope = coroutineScope,
+                    isSheetOpen = isSheetOpen,
+                    horizontalArrangement = horizontalArrangement
+                )
+            }
+
+            if (!isCurrentUser) {
+
+                ReplyButton { onSwipeComplete() }
+                Spacer(modifier = Modifier.weight(1 - HORIZONTAL_SCREEN_PERCENTAGE+0.05f)) // Adjust space between bubble and button
+            }
+        }
+
         if (isLastMessage && isCurrentUser) {
             Text(
                 text = formatStatus(message.status),
@@ -171,6 +200,7 @@ fun MessageContent(
             )
         }
     }
+
     ReactionBottomSheet(
         viewModel = viewModel,
         reactions = message.reactions,
@@ -179,6 +209,27 @@ fun MessageContent(
         coroutineScope = coroutineScope
     )
 }
+
+@Composable
+fun ReplyButton(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(32.dp)
+            .clip(CircleShape)
+            .background(LightGrey)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Send,
+            contentDescription = "Reply",
+            tint = Color.Black,
+            modifier = Modifier.size(16.dp)
+        )
+    }
+}
+
+
 
 /**
  * Represents the visual bubble for a chat message, including the image, caption,
@@ -275,6 +326,7 @@ private fun bubbleModifier(isCurrentUser: Boolean) = Modifier
 
 
 
+
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun swipeToDismissBoxState(
@@ -299,7 +351,7 @@ private fun swipeToDismissBoxState(
                 }
             }
         },
-        positionalThreshold = { it * 10f }
+        positionalThreshold = { it * 100000f }
     )
     return dismissState
 }
@@ -321,41 +373,9 @@ fun DismissBackground(dismissState: SwipeToDismissBoxState) {
                         .fillMaxHeight(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Send,
-                        contentDescription = "Reply",
-                        tint = Color.Black
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = "Comment...",
                         style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black)
-                    )
-                }
-            }
-        }
-        SwipeToDismissBoxValue.EndToStart -> {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(16.dp)
-                        .fillMaxHeight(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Comment...",
-                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Icon(
-                        imageVector = Icons.Default.Send,
-                        contentDescription = "Reply",
-                        tint = Color.Black
                     )
                 }
             }
