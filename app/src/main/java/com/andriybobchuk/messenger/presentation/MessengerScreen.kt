@@ -3,9 +3,12 @@ package com.andriybobchuk.messenger.presentation
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
 import MessageItem
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -14,6 +17,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,6 +44,7 @@ import com.andriybobchuk.messenger.presentation.components.showOverlays
 import com.andriybobchuk.messenger.model.User
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
 import com.andriybobchuk.messenger.ui.theme.LightGrey
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -68,6 +74,17 @@ fun MessengerScreen(
             viewModel.setPickedImage(uri)
         }
     )
+    val scrollState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+
+    // Determine if the user is not at the bottom of the list
+    val isAtBottom by remember {
+        derivedStateOf {
+            val lastIndex = scrollState.layoutInfo.totalItemsCount - 1
+            val lastVisibleItem = scrollState.layoutInfo.visibleItemsInfo.lastOrNull()
+            lastVisibleItem?.index == lastIndex
+        }
+    }
 
     Column(modifier = modifier.fillMaxSize()) {
         if (!showOverlays(uiState = uiState, viewModel = viewModel)) {
@@ -81,19 +98,33 @@ fun MessengerScreen(
                 MessagesList(
                     viewModel = viewModel,
                     uiState = uiState,
-                    onMessageSwipe = { message ->
-                        // No action needed here for now
-                    },
+                    onMessageSwipe = {},
                     onSwipeComplete = { message ->
                         replyingToMessage = message
-                    }
+                    },
+                    scrollState = scrollState // Pass scrollState here
                 )
-                if (replyingToMessage == null) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(8.dp)
+                ) {
                     SendImageButton(
                         onClick = { requestPermissionAndPickImage() },
-                        modifier = Modifier.align(Alignment.BottomCenter)
+                        modifier = Modifier
+                            .padding(end = 8.dp)
                     )
-                } else {
+                    if (!isAtBottom) {
+                        ScrollToBottomButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    scrollState.animateScrollToItem(scrollState.layoutInfo.totalItemsCount + 1)
+                                }
+                            }
+                        )
+                    }
+                }
+                if (replyingToMessage != null) {
                     ReplyField(
                         message = replyingToMessage!!,
                         onCancel = { replyingToMessage = null },
@@ -109,6 +140,9 @@ fun MessengerScreen(
     }
 }
 
+
+
+
 /**
  * Displays a list of messages grouped by date separated by DateHeader tags.
  * Provides functionality to handle image click events and auto-scrolls to the latest message.
@@ -120,20 +154,20 @@ fun MessagesList(
     viewModel: ChatViewModel,
     uiState: MessengerUiState,
     onMessageSwipe: (Message) -> Unit,
-    onSwipeComplete: (Message) -> Unit
+    onSwipeComplete: (Message) -> Unit,
+    scrollState: LazyListState // Add this parameter
 ) {
     val messages = uiState.messages
     if (messages.isEmpty()) return
 
     val sortedMessages = messages.sortedBy { it.timestamp }
-    val listState = rememberLazyListState()
 
     LaunchedEffect(messages.size) {
-        listState.animateScrollToItem(sortedMessages.size + 1)
+        scrollState.animateScrollToItem(sortedMessages.size + 1) // Use scrollState here
     }
 
     LazyColumn(
-        state = listState,
+        state = scrollState,
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
@@ -168,6 +202,26 @@ fun MessagesList(
         item {
             Spacer(modifier = Modifier.height(84.dp))
         }
+    }
+}
+
+@Composable
+fun ScrollToBottomButton(
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clip(CircleShape)
+            .clickable(onClick = onClick)
+            .size(40.dp)
+            .background(LightGrey, shape = CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Filled.KeyboardArrowDown,
+            contentDescription = "Scroll to Bottom",
+            tint = Black
+        )
     }
 }
 
@@ -323,7 +377,7 @@ fun SendImageButton(onClick: () -> Unit, modifier: Modifier) {
     Button(
         onClick = onClick,
         modifier = modifier
-            .padding(horizontal = 18.dp, vertical = 22.dp),
+            .padding(horizontal = 18.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Black
         )
