@@ -117,7 +117,6 @@ fun MessageItem(
         showEmojiPanel = showEmojiPanel
     )
 
-
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = {
             when (it) {
@@ -133,10 +132,9 @@ fun MessageItem(
                 }
             }
         },
-        positionalThreshold = { it * 600f }
+        positionalThreshold = { it * 10f }
     )
 
-    // Use conditional content based on whether the message is sent by the current user
     if (isCurrentUser) {
         // Message sent by current user, not swipeable
         Column {
@@ -452,7 +450,8 @@ fun ImageBox(
                 .fillMaxWidth()
                 .fillMaxHeight()
                 .background(Color.Gray),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Crop,
+
         )
         if (message.caption.isEmpty()) {
             Text(

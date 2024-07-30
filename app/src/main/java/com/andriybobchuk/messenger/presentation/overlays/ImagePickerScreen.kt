@@ -65,34 +65,7 @@ fun ImagePickerScreen(
                 .background(Color.Black.copy(alpha = 0.8f))
                 .padding(16.dp)
         ) {
-            BasicTextField(
-                value = captionState,
-                onValueChange = { newCaption ->
-                    captionState = newCaption
-                    onCaptionChange(newCaption)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.DarkGray, shape = RoundedCornerShape(20.dp))
-                    .padding(12.dp),
-                textStyle = TextStyle(color = Color.White),
-                decorationBox = { innerTextField ->
-                    Box(
-                    ) {
-                        if (captionState.isEmpty()) {
-                            Text(
-                                text = "Add a caption...",
-                                color = Color.White,
-                                modifier = Modifier.align(Alignment.CenterStart)
-                            )
-                        }
-                        innerTextField()
-                    }
-                }
-            )
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween

@@ -39,6 +39,10 @@ import com.andriybobchuk.messenger.presentation.components.showOverlays
 import com.andriybobchuk.messenger.model.User
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
 import com.andriybobchuk.messenger.ui.theme.LightGrey
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.SortedMap
 
 private const val LOG_TAG = "MessengerScreen"
 
@@ -101,6 +105,68 @@ fun MessengerScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+/**
+ * Displays a list of messages grouped by date separated by DateHeader tags.
+ * Provides functionality to handle image click events and auto-scrolls to the latest message.
+ *
+ * @see DateHeader
+ */
+@Composable
+fun MessagesList(
+    viewModel: ChatViewModel,
+    uiState: MessengerUiState,
+    onMessageSwipe: (Message) -> Unit,
+    onSwipeComplete: (Message) -> Unit
+) {
+    val messages = uiState.messages
+    if (messages.isEmpty()) return
+
+    val sortedMessages = messages.sortedBy { it.timestamp }
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(messages.size) {
+        listState.animateScrollToItem(sortedMessages.size + 1)
+    }
+
+    LazyColumn(
+        state = listState,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        var previousDate: String? = null
+        sortedMessages.forEach { message ->
+            val messageDate = timestampAsDate(message.timestamp)
+            if (messageDate != previousDate) {
+                item {
+                    DateHeader(date = messageDate)
+                }
+                previousDate = messageDate
+            }
+            item {
+                val isLastMessage = message.id == sortedMessages.lastOrNull()?.id
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    MessageItem(
+                        viewModel = viewModel,
+                        message = message,
+                        uiState = uiState,
+                        isLastMessage = isLastMessage,
+                        onMessageSwipe = onMessageSwipe,
+                        onSwipeComplete = { onSwipeComplete(message) }
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+            }
+        }
+        item {
+            Spacer(modifier = Modifier.height(84.dp))
         }
     }
 }
@@ -170,105 +236,6 @@ fun ReplyField(
             }
         }
     }
-}
-
-/**
- * Displays a list of messages grouped by date separated by DateHeader tags.
- * Provides functionality to handle image click events and auto-scrolls to the latest message.
- *
- * @see DateHeader
- */
-@Composable
-fun MessagesList(
-    viewModel: ChatViewModel,
-    uiState: MessengerUiState,
-    onMessageSwipe: (Message) -> Unit,
-    onSwipeComplete: (Message) -> Unit
-) {
-    val messages = uiState.messages
-    if (messages.isEmpty()) return
-    val groupedMessages = groupMessagesByDate(messages)
-    val listState = rememberLazyListState()
-
-    LaunchedEffect(messages.size) {
-        listState.animateScrollToItem(messages.size - 1)
-    }
-
-    LazyColumn(
-        state = listState,
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        groupedMessages.forEach { (date, messagesOnDate) ->
-            item {
-                DateHeader(date = date)
-            }
-            items(messagesOnDate) { message ->
-                val isLastMessage = message.id == messages.lastOrNull()?.id
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    MessageItem(
-                        viewModel = viewModel,
-                        message = message,
-                        uiState = uiState,
-                        isLastMessage = isLastMessage,
-                        onMessageSwipe = onMessageSwipe,
-                        onSwipeComplete = { onSwipeComplete(message) }
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-            item {
-                Spacer(modifier = Modifier.height(48.dp)) // Adjust height for spacing
-            }
-        }
-    }
-}
-
-
-//fun groupMessagesByDate(messages: List<Message>): Map<String, List<Message>> {
-//    return messages.groupBy { message ->
-//        timestampAsDate(message.timestamp)
-//    }.toSortedMap() // Ensure that messages are sorted by date
-//}
-
-//fun groupMessagesByDate(messages: List<Message>): Map<String, List<Message>> {
-//    return messages.groupBy { message ->
-//        timestampAsDate(message.timestamp)
-//    }.toSortedMap() // Ensure that messages are sorted by date
-//}
-
-//fun groupMessagesByDate(messages: List<Message>): Map<String, List<Message>> {
-//
-//    Log.e(LOG_TAG, "Messages: " + messages.sortedBy { message ->
-//        message.timestamp
-//    }.groupBy { message ->
-//        message.timestamp
-//    })
-//
-//    return messages.sortedBy { message ->
-//        message.timestamp
-//    }.groupBy { message ->
-//        message.timestamp
-//    }
-//}
-
-fun groupMessagesByDate(messages: List<Message>): Map<String, List<Message>> {
-    // First, sort messages by timestamp
-    val sortedMessages = messages.sortedBy { it.timestamp }
-
-    // Then, group messages by date
-    val grouped = sortedMessages.groupBy { message ->
-        timestampAsDate(message.timestamp)
-    }
-
-    // Ensure that each group is sorted by timestamp
-    return grouped.mapValues { (_, messagesInGroup) ->
-        messagesInGroup.sortedBy { it.timestamp }
-    }.toSortedMap()
 }
 
 /**

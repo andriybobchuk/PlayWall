@@ -112,6 +112,18 @@ class FakeChatRepository {
                 ),
                 Message(
                     id = UUID.randomUUID().toString(),
+                    imageUrl = "https://www.thesprucepets.com/thmb/OoMBiCxD3B02Jx-WO9dmY0DAaaI=/4000x0/filters:no_upscale():strip_icc()/cats-recirc3_2-1f5de201af94447a9063f83249260aff.jpg",
+                    caption = "",
+                    timestamp = System.currentTimeMillis() - 5000000,
+                    status = MessageStatus.DELIVERED,
+                    reactions = listOf(
+                        Reaction("user2", "❤️")
+                    ),
+                    senderId = _recipient.id,
+                    recipientId = _currentUser.id
+                ),
+                Message(
+                    id = UUID.randomUUID().toString(),
                     imageUrl = "https://www.washingtonpost.com/resizer/7tLgbjOZeTsaTiPuxZ1DaxKbWOA=/arc-anglerfish-washpost-prod-washpost/public/FPGDGYJXM56KI5CTHHDX3DN2WQ.jpg",
                     caption = "Another amazing photo.",
                     timestamp = System.currentTimeMillis() - 4500000,
@@ -123,18 +135,6 @@ class FakeChatRepository {
                     senderId = _currentUser.id,
                     recipientId = _recipient.id
                 ),
-                Message(
-                    id = UUID.randomUUID().toString(),
-                    imageUrl = "https://www.thesprucepets.com/thmb/OoMBiCxD3B02Jx-WO9dmY0DAaaI=/4000x0/filters:no_upscale():strip_icc()/cats-recirc3_2-1f5de201af94447a9063f83249260aff.jpg",
-                    caption = "",
-                    timestamp = System.currentTimeMillis() - 5000000,
-                    status = MessageStatus.DELIVERED,
-                    reactions = listOf(
-                        Reaction("user2", "❤️")
-                    ),
-                    senderId = _recipient.id,
-                    recipientId = _currentUser.id
-                )
             )
         )
     }

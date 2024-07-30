@@ -76,12 +76,12 @@ class ChatViewModel : ViewModel() {
     }
 
     private fun loadMessages() {
-        Log.d(LOG_TAG, "Loading messages...")
+        Log.e(LOG_TAG, "Loading messages...")
         val retrievedMessages = repository.retrieveMessages()
         _uiState.update { currentState ->
             currentState.copy(messages = retrievedMessages)
         }
-        Log.d(LOG_TAG, "Messages loaded: ${retrievedMessages.size}")
+        Log.e(LOG_TAG, "Messages loaded: ${retrievedMessages.size}")
     }
 
     private fun loadInitialMessages() {
@@ -196,13 +196,10 @@ class ChatViewModel : ViewModel() {
 
     fun updateMessageCaption(messageId: String, newCaption: String) {
         viewModelScope.launch {
-            // Retrieve the existing message
             val existingMessage = repository.getMessageById(messageId)
             existingMessage?.let { message ->
-                // Update the message with the new caption
                 val updatedMessage = message.copy(caption = newCaption)
                 repository.updateMessage(updatedMessage)
-                // Reload messages to update the UI
                 loadMessages()
             } ?: Log.d(LOG_TAG, "Message with ID $messageId not found.")
         }
