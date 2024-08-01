@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -28,6 +30,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -48,6 +51,29 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+}
+
+val counterFile = file("$projectDir/src/main/assets/build_counter.properties")
+
+tasks.register("incrementBuildCounter") {
+    doLast {
+        if (!counterFile.exists()) {
+            counterFile.createNewFile()
+        }
+
+        val props = Properties().apply {
+            counterFile.inputStream().use { load(it) }
+        }
+
+        val counter = (props.getProperty("buildCounter")?.toInt() ?: 0) + 1
+        props.setProperty("buildCounter", counter.toString())
+
+        counterFile.outputStream().use { props.store(it, null) }
+    }
+}
+
+tasks.named("preBuild") {
+    dependsOn("incrementBuildCounter")
 }
 
 dependencies {

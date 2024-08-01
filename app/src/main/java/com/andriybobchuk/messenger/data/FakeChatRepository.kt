@@ -29,6 +29,89 @@ class FakeChatRepository {
             listOf(
                 Message(
                     id = UUID.randomUUID().toString(),
+                    imageUrl = "https://www.joiipetcare.com/wp-content/uploads/2023/05/BOAS-cat-1-compressed.jpg",
+                    caption = "Look at this cutie!",
+                    timestamp = System.currentTimeMillis() - 86400000 * 5,
+                    status = MessageStatus.SENT,
+                    reactions = listOf(Reaction("user2", "❤️")),
+                    senderId = _currentUser.id,
+                    recipientId = _recipient.id
+                ),
+                Message(
+                    id = UUID.randomUUID().toString(),
+                    imageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcJVO3i3NJtecXei14edIi7shKj2F2fpRcjg&s",
+                    caption = "Funny cat!",
+                    timestamp = System.currentTimeMillis() - 86400000 * 4,
+                    status = MessageStatus.DELIVERED,
+                    reactions = listOf(Reaction("user3", "😂")),
+                    senderId = _recipient.id,
+                    recipientId = _currentUser.id
+                ),
+                Message(
+                    id = UUID.randomUUID().toString(),
+                    imageUrl = "https://st3.depositphotos.com/30152186/37144/i/450/depositphotos_371445966-stock-photo-funny-kitten-grass-summer.jpg",
+                    caption = "Amazing!",
+                    timestamp = System.currentTimeMillis() - 86400000 * 2,
+                    status = MessageStatus.READ,
+                    reactions = listOf(Reaction("user1", "😮")),
+                    senderId = _currentUser.id,
+                    recipientId = _recipient.id
+                ),
+                Message(
+                    id = UUID.randomUUID().toString(),
+                    imageUrl = "https://www.purina.co.nz/sites/default/files/2020-11/6-Small-Cat-BreedsHERO.jpg",
+                    caption = "So cute!",
+                    timestamp = System.currentTimeMillis() - 86400000 * 1,
+                    status = MessageStatus.SENT,
+                    reactions = listOf(Reaction("user4", "😍")),
+                    senderId = _recipient.id,
+                    recipientId = _currentUser.id
+                ),
+                Message(
+                    id = UUID.randomUUID().toString(),
+                    imageUrl = "https://www.purina.co.nz/sites/default/files/styles/ttt_image_510/public/2020-11/6-Small-Cat-Breeds1.jpg?itok=vRRyOFAB",
+                    caption = "",
+                    timestamp = System.currentTimeMillis() - 86400000 * 3,
+                    status = MessageStatus.DELIVERED,
+                    reactions = listOf(),
+                    senderId = _currentUser.id,
+                    recipientId = _recipient.id
+                ),
+                Message(
+                    id = UUID.randomUUID().toString(),
+                    imageUrl = "https://www.omlet.us/images/originals/Cat-Cat_Guide-A_Devon_Rex_cat_showing_off_its_wonderful_pointed_ear_tips.jpg",
+                    caption = "Relaxing day",
+                    timestamp = System.currentTimeMillis() - 86400000 * 6,
+                    status = MessageStatus.READ,
+                    reactions = listOf(Reaction("user2", "👍")),
+                    senderId = _recipient.id,
+                    recipientId = _currentUser.id
+                ),
+                Message(
+                    id = UUID.randomUUID().toString(),
+                    imageUrl = "https://i.pinimg.com/736x/c3/f1/ab/c3f1ab06a04e326d71c8c8f835ab0f11.jpg",
+                    caption = "Lovely dog!",
+                    timestamp = System.currentTimeMillis() - 86400000 * 1,
+                    status = MessageStatus.SENT,
+                    reactions = listOf(Reaction("user3", "❤️")),
+                    senderId = _currentUser.id,
+                    recipientId = _recipient.id
+                ),
+                Message(
+                    id = UUID.randomUUID().toString(),
+                    imageUrl = "https://www.catster.com/wp-content/uploads/2023/12/rsz_shutterstock_147812990-1.jpg",
+                    caption = "Beautiful scenery",
+                    timestamp = System.currentTimeMillis() - 86400000 * 7,
+                    status = MessageStatus.DELIVERED,
+                    reactions = listOf(Reaction("user4", "👍")),
+                    senderId = _recipient.id,
+                    recipientId = _currentUser.id
+                ),
+
+
+
+                Message(
+                    id = UUID.randomUUID().toString(),
                     imageUrl = "https://cdn.britannica.com/34/235834-050-C5843610/two-different-breeds-of-cats-side-by-side-outdoors-in-the-garden.jpg",
                     caption = "Nice view!",
                     timestamp = System.currentTimeMillis() - 86400000 * 3,

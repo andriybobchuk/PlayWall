@@ -34,7 +34,7 @@ import com.andriybobchuk.messenger.Constants.HORIZONTAL_SCREEN_PERCENTAGE
 import com.andriybobchuk.messenger.Constants.VERTICAL_SCREEN_PERCENTAGE
 import com.andriybobchuk.messenger.model.Message
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
-import com.andriybobchuk.messenger.presentation.overlays.FullscreenImageViewer
+import com.andriybobchuk.messenger.presentation.overlays.image_detail.FullscreenImageViewer
 import com.andriybobchuk.messenger.presentation.overlays.ImagePickerScreen
 import com.andriybobchuk.messenger.presentation.timestampAsDate
 import com.andriybobchuk.messenger.presentation.triggerHapticFeedback

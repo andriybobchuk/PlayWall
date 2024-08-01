@@ -43,6 +43,8 @@ import com.andriybobchuk.messenger.presentation.components.DateHeader
 import com.andriybobchuk.messenger.presentation.components.rememberRequestPermissionAndPickImage
 import com.andriybobchuk.messenger.presentation.components.showOverlays
 import com.andriybobchuk.messenger.model.User
+import com.andriybobchuk.messenger.presentation.overlays.FullscreenPopup
+import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel.Companion
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
 import com.andriybobchuk.messenger.ui.theme.LightGrey
 import kotlinx.coroutines.launch
@@ -85,7 +87,9 @@ fun MessengerScreen(
             lastVisibleItem?.index == lastIndex
         }
     }
-
+    FullscreenPopup {
+        Text("Hello World")
+    }
     Column(modifier = modifier.fillMaxSize()) {
         if (!showOverlays(uiState = uiState, viewModel = viewModel)) {
             MessengerScreenHeader(recipient = uiState.recipient!!, onBackClick = onBackClick)
@@ -160,9 +164,11 @@ fun MessagesList(
     if (messages.isEmpty()) return
 
     val sortedMessages = messages.sortedBy { it.timestamp }
+    Log.e(LOG_TAG, "Messages loaded: " + sortedMessages.size)
+    Log.e(LOG_TAG, "Last message: " + sortedMessages.lastOrNull())
 
     LaunchedEffect(messages.size) {
-        scrollState.animateScrollToItem(sortedMessages.size + 1) // Use scrollState here
+        scrollState.animateScrollToItem(sortedMessages.size)
     }
 
     LazyColumn(
@@ -198,9 +204,9 @@ fun MessagesList(
                 Spacer(modifier = Modifier.height(6.dp))
             }
         }
-        item {
-            Spacer(modifier = Modifier.height(84.dp))
-        }
+//        item {
+//            Spacer(modifier = Modifier.height(84.dp))
+//        }
     }
 }
 
@@ -361,11 +367,20 @@ fun MessengerScreenHeader(
                         )
                     }
 
+                    BuildCounterDisplay()
                 }
             }
         }
         HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
     }
+}
+
+@Composable
+fun BuildCounterDisplay() {
+    val context = LocalContext.current
+    val buildCounter = remember { getBuildCounter(context) }
+
+    Text(text = "Build #$buildCounter", fontSize = 14.sp, modifier = Modifier.padding(16.dp))
 }
 
 /**

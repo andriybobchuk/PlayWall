@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.runtime.MutableState
@@ -17,6 +18,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.Properties
 
 fun timestampAsDate(timestamp: Long): String {
     val now = Calendar.getInstance()
@@ -90,5 +92,16 @@ fun triggerHapticFeedback(context: Context) {
     } else {
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         vibrator.vibrate(50)
+    }
+}
+
+fun getBuildCounter(context: Context): Int {
+    val properties = Properties()
+    return try {
+        context.assets.open("build_counter.properties").use { properties.load(it) }
+        properties.getProperty("buildCounter", "0").toInt()
+    } catch (e: Exception) {
+        Log.e("BuildCounter", "Failed to read build counter", e)
+        0 // Default value in case of error
     }
 }
