@@ -251,6 +251,22 @@ class FakeChatRepository {
         }
     }
 
+    fun getLastMessageId(): Result<String> {
+        return if (_messages.isNotEmpty()) {
+            val lastMessage = _messages.maxByOrNull { it.timestamp }
+            lastMessage?.let {
+                Log.d(LOG_TAG, "Last message ID: ${it.id}, Caption: ${it.caption}")
+                Result.success(it.id)
+            } ?: run {
+                Log.e(LOG_TAG, "Unable to find the last message")
+                Result.failure(Exception("Unable to find the last message"))
+            }
+        } else {
+            Log.e(LOG_TAG, "No messages available")
+            Result.failure(Exception("No messages available"))
+        }
+    }
+
     fun addMessage(message: Message) {
         _messages.add(message)
     }

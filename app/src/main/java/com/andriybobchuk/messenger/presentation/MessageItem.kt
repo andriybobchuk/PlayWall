@@ -418,8 +418,6 @@ fun ImageBox(
     imageHeight: Dp,
     showEmojiPanel: MutableState<Boolean>
 ) {
-    //Log.e(LOG_TAG, viewModel.uiState.value.selectedMessage.toString())
-
     Box(
         modifier = Modifier
             .width(imageWidth)
@@ -431,23 +429,13 @@ fun ImageBox(
                 }
             )
     ) {
-//        GlideImage(
-//            model = message.imageUrl,
-//            contentDescription = "Message Image",
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .fillMaxHeight()
-//                .background(Color.Gray),
-//            contentScale = ContentScale.Crop,
-//
-//        )
         GlideImage(
             model = message.imageUrl,
             contentDescription = "Message Image",
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .background(Color.Gray),
+                .background(Color.LightGray),
             contentScale = ContentScale.Crop,
             requestBuilderTransform = { requestBuilder ->
                 requestBuilder.addListener(object : RequestListener<Drawable> {
@@ -475,25 +463,6 @@ fun ImageBox(
                         Log.d(LOG_TAG, "Image loaded successfully")
                         return false
                     }
-
-//                    override fun onLoadFailed(
-//                        e: GlideException?,
-//                        model: Any?,
-//                        target: Target<Drawable>,
-//                        isFirstResource: Boolean
-//                    ): Boolean {
-//                        TODO("Not yet implemented")
-//                    }
-//
-//                    override fun onResourceReady(
-//                        resource: Drawable,
-//                        model: Any,
-//                        target: Target<Drawable>?,
-//                        dataSource: DataSource,
-//                        isFirstResource: Boolean
-//                    ): Boolean {
-//                        TODO("Not yet implemented")
-//                    }
                 })
             }
         )

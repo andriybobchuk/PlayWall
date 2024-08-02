@@ -193,14 +193,28 @@ class ChatViewModel : ViewModel() {
         return repository.getUserNameById(userId)
     }
 
-    fun updateMessageCaption(messageId: String, newCaption: String) {
-        viewModelScope.launch {
-            val existingMessage = repository.getMessageById(messageId)
-            existingMessage?.let { message ->
-                val updatedMessage = message.copy(caption = newCaption)
-                repository.updateMessage(updatedMessage)
-                loadMessages()
-            } ?: Log.d(LOG_TAG, "Message with ID $messageId not found.")
+    fun updateMessageCaption(message: Message, newCaption: String) {
+        val updatedMessage = message.copy(caption = newCaption)
+        repository.updateMessage(updatedMessage)
+
+        // Update the message in the UI state
+        _uiState.update { currentState ->
+            val updatedMessages = currentState.messages.map {
+                if (it.id == message.id) updatedMessage else it
+            }
+            currentState.copy(messages = updatedMessages)
         }
+    }
+
+    fun getLastMessageId(): String {
+        val result = repository.getLastMessageId()
+        result.onSuccess { lastMessageId ->
+            Log.d(LOG_TAG, "Last message ID: $lastMessageId")
+            return lastMessageId
+        }.onFailure { exception ->
+            Log.e(LOG_TAG, "Failed to get last message ID: ${exception.localizedMessage}")
+            return ""
+        }
+        return ""
     }
 }

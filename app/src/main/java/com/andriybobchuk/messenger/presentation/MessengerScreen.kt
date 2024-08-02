@@ -82,13 +82,13 @@ fun MessengerScreen(
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-//    val isAtBottom by remember {
-//        derivedStateOf {
-//            val lastIndex = scrollState.layoutInfo.totalItemsCount - 1
-//            val lastVisibleItem = scrollState.layoutInfo.visibleItemsInfo.lastOrNull()
-//            lastVisibleItem?.index == lastIndex
-//        }
-//    }
+    val isAtBottom by remember {
+        derivedStateOf {
+            val lastIndex = 0
+            val lastVisibleItem = scrollState.layoutInfo.visibleItemsInfo.firstOrNull()
+            lastVisibleItem?.index == lastIndex
+        }
+    }
 
     val selectedMessage = uiState.selectedMessage
     val pickedImageUri = uiState.pickedImageUri
@@ -143,15 +143,15 @@ fun MessengerScreen(
                     modifier = Modifier
                         .padding(end = 8.dp)
                 )
-//                if (!isAtBottom) {
-//                    ScrollToBottomButton(
-//                        onClick = {
-//                            coroutineScope.launch {
-//                                scrollState.animateScrollToItem(scrollState.layoutInfo.totalItemsCount + 1)
-//                            }
-//                        }
-//                    )
-//                }
+                if (!isAtBottom) {
+                    ScrollToBottomButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                scrollState.animateScrollToItem(0)
+                            }
+                        }
+                    )
+                }
             }
             if (replyingToMessage != null) {
                 triggerHapticFeedback(LocalContext.current)
@@ -159,7 +159,7 @@ fun MessengerScreen(
                     message = replyingToMessage!!,
                     onCancel = { replyingToMessage = null },
                     onComment = { newCaption ->
-                        viewModel.updateMessageCaption(replyingToMessage!!.id, newCaption)
+                        viewModel.updateMessageCaption(replyingToMessage!!, newCaption)
                         replyingToMessage = null
                     },
                     modifier = Modifier.align(Alignment.BottomCenter)
@@ -269,10 +269,6 @@ fun MessagesList(
     val messages = uiState.messages
     if (messages.isEmpty()) return
 
-//    LaunchedEffect(messages.size) {
-//        scrollState.animateScrollToItem(messages.size - 1)
-//    }
-
     LazyColumn(
         state = scrollState,
         reverseLayout = true,
@@ -280,13 +276,17 @@ fun MessagesList(
             .fillMaxSize()
             .background(Color.White)
     ) {
+        item {
+            Spacer(modifier = Modifier.height(64.dp))
+        }
+
         items(messages.size) { i ->
             val message = messages[i]
             Log.e(LOG_TAG, "sortedMessages.size : " + messages.size)
             if (i >= messages.size - 1 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
                 viewModel.loadMessages()
             }
-            val isLastMessage = message.id == messages.lastOrNull()?.id
+            val isLastMessage = message.id == viewModel.getLastMessageId()
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
@@ -318,40 +318,6 @@ fun MessagesList(
 
     }
 }
-
-//        var previousDate: String? = null
-//        sortedMessages.forEach { message ->
-//            val messageDate = timestampAsDate(message.timestamp)
-//            if (messageDate != previousDate) {
-//                item {
-//                    DateHeader(date = messageDate)
-//                }
-//                previousDate = messageDate
-//            }
-//            item {
-//                val isLastMessage = message.id == sortedMessages.lastOrNull()?.id
-//                Row(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    horizontalArrangement = Arrangement.End
-//                ) {
-//                    MessageItem(
-//                        viewModel = viewModel,
-//                        message = message,
-//                        uiState = uiState,
-//                        isLastMessage = isLastMessage,
-//                        onMessageSwipe = onMessageSwipe,
-//                        onSwipeComplete = { onSwipeComplete(message) }
-//                    )
-//                }
-//                Spacer(modifier = Modifier.height(6.dp))
-//            }
-//        }
-//        item {
-//            Spacer(modifier = Modifier.height(84.dp))
-//        }
-
-    //}
-//}
 
 @Composable
 fun ScrollToBottomButton(
