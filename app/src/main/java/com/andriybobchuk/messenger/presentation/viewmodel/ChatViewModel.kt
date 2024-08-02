@@ -23,7 +23,7 @@ import java.util.UUID
 class ChatViewModel : ViewModel() {
     companion object {
         private const val LOG_TAG = "ChatViewModel"
-        private const val PAGE_SIZE = 15
+        private const val PAGE_SIZE = 5
     }
 
     private val repository = FakeChatRepository()
@@ -38,7 +38,7 @@ class ChatViewModel : ViewModel() {
             paginationState = paginationState.copy(isLoading = it)
         },
         onRequest = { nextPage ->
-            repository.retrieveMessages(nextPage, 3)
+            repository.retrieveMessages(nextPage, PAGE_SIZE)
         },
         getNextKey = {
             paginationState.page + 1
@@ -56,6 +56,19 @@ class ChatViewModel : ViewModel() {
             }
         }
     )
+
+    init {
+        Log.d(LOG_TAG, "ViewModel initialized")
+        loadMessages()
+        setCurrentUser(repository.getCurrentUser())
+        setRecipient(repository.getRecipient())
+    }
+
+    fun loadMessages() {
+        viewModelScope.launch {
+            paginator.loadNextItems()
+        }
+    }
 
     fun setSelectedMessage(message: Message?) {
         _uiState.update { currentState ->
@@ -94,18 +107,7 @@ class ChatViewModel : ViewModel() {
         }
     }
 
-    init {
-        Log.d(LOG_TAG, "ViewModel initialized")
-        loadMessages()
-        setCurrentUser(repository.getCurrentUser())
-        setRecipient(repository.getRecipient())
-    }
 
-    fun loadMessages() {
-        viewModelScope.launch {
-            paginator.loadNextItems()
-        }
-    }
 
     fun sendImage(imageUri: Uri?, caption: String) {
         viewModelScope.launch {
@@ -126,9 +128,12 @@ class ChatViewModel : ViewModel() {
                     recipientId = _uiState.value.recipient!!.id
                 )
                 repository.addMessage(message)
-
                 Log.d(LOG_TAG, "Message added: $message")
-                loadMessages()
+                // Add message to current UI state without reloading all messages and
+                // NOT to trigger recomposition!!
+                _uiState.update { currentState ->
+                    currentState.copy(messages = listOf(message) + currentState.messages)
+                }
             } ?: Log.d(LOG_TAG, "No image URI provided")
         }
     }
@@ -136,6 +141,11 @@ class ChatViewModel : ViewModel() {
     fun deleteMessage(messageId: String) {
         Log.d(LOG_TAG, "Deleting message with ID: $messageId")
         repository.deleteMessage(messageId)
+        // Remove message DIRECTLY from UI state NOT to trigger recomposition!!
+        _uiState.update { currentState ->
+            val updatedMessages = currentState.messages.filterNot { it.id == messageId }
+            currentState.copy(messages = updatedMessages)
+        }
         Log.d(LOG_TAG, "Message deleted")
     }
 

@@ -82,13 +82,13 @@ fun MessengerScreen(
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    val isAtBottom by remember {
-        derivedStateOf {
-            val lastIndex = scrollState.layoutInfo.totalItemsCount - 1
-            val lastVisibleItem = scrollState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem?.index == lastIndex
-        }
-    }
+//    val isAtBottom by remember {
+//        derivedStateOf {
+//            val lastIndex = scrollState.layoutInfo.totalItemsCount - 1
+//            val lastVisibleItem = scrollState.layoutInfo.visibleItemsInfo.lastOrNull()
+//            lastVisibleItem?.index == lastIndex
+//        }
+//    }
 
     val selectedMessage = uiState.selectedMessage
     val pickedImageUri = uiState.pickedImageUri
@@ -143,15 +143,15 @@ fun MessengerScreen(
                     modifier = Modifier
                         .padding(end = 8.dp)
                 )
-                if (!isAtBottom) {
-                    ScrollToBottomButton(
-                        onClick = {
-                            coroutineScope.launch {
-                                scrollState.animateScrollToItem(scrollState.layoutInfo.totalItemsCount + 1)
-                            }
-                        }
-                    )
-                }
+//                if (!isAtBottom) {
+//                    ScrollToBottomButton(
+//                        onClick = {
+//                            coroutineScope.launch {
+//                                scrollState.animateScrollToItem(scrollState.layoutInfo.totalItemsCount + 1)
+//                            }
+//                        }
+//                    )
+//                }
             }
             if (replyingToMessage != null) {
                 triggerHapticFeedback(LocalContext.current)
@@ -176,6 +176,88 @@ fun MessengerScreen(
  *
  * @see DateHeader
  */
+
+// Using lazy column and my pagination mechanism you should display here the message item items
+// in a way that it firstly loads the most recent 5 messages and they appewar on the list with
+//the very most recent one being on the bottom of the list and the older the messege the higher
+// it is in the list. also the lazy list should have a default scroll staet at the very
+// bottom of the list like in all messengers. Pagination mechanins should be edited too i think
+// So once again, it should begave exactly like any other messenger:
+// it loads the first 5 messages with the most recent being on the bottom of teh screen
+// and to see older ones you hace to scroll up because the default scroll state is
+/// the bottom of the list where the most recent message is. as the user scrolls up and riches
+// the last message there shoiuld be a circular progress bar indicating loading more messages
+// paginator mechanism send 5 more messages and we display it the same way
+//
+//@Composable
+//fun MessagesList(
+//    viewModel: ChatViewModel,
+//    uiState: MessengerUiState,
+//    onMessageSwipe: (Message) -> Unit,
+//    onSwipeComplete: (Message) -> Unit
+//) {
+//    val scrollState = rememberLazyListState()
+//    val coroutineScope = rememberCoroutineScope()
+//    val paginationState = viewModel.paginationState
+//    val messages = uiState.messages
+//
+//    LaunchedEffect(messages.size) {
+//        // Scroll to the bottom when the list initially loads
+//        if (messages.isNotEmpty()) {
+//            coroutineScope.launch {
+//                scrollState.scrollToItem(messages.size - 1)
+//            }
+//        }
+//    }
+//
+//    LazyColumn(
+//        state = scrollState,
+//        reverseLayout = true,
+//        modifier = Modifier.fillMaxSize()
+//    ) {
+//        if (paginationState.isLoading) {
+//            item {
+//                Row(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(8.dp),
+//                    horizontalArrangement = Arrangement.Center
+//                ) {
+//                    CircularProgressIndicator()
+//                }
+//            }
+//        }
+//
+//        items(messages) { message ->
+//            val isLastMessage = message.id == messages.firstOrNull()?.id
+//            MessageItem(
+//                viewModel = viewModel,
+//                message = message,
+//                uiState = uiState,
+//                isLastMessage = isLastMessage,
+//                onMessageSwipe = onMessageSwipe,
+//                onSwipeComplete = { onSwipeComplete(message) }
+//            )
+//        }
+//
+//        // Trigger pagination when scrolled to the top
+//        if (!paginationState.endReached) {
+//            Log.e(LOG_TAG, "paginationState.endReached ")
+//
+//            item {
+//                LaunchedEffect(Unit) {
+//                    coroutineScope.launch {
+//                        if (scrollState.firstVisibleItemIndex == 0) {
+//                            viewModel.loadMessages()
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
+
+
 @Composable
 fun MessagesList(
     viewModel: ChatViewModel,
@@ -184,45 +266,24 @@ fun MessagesList(
     onSwipeComplete: (Message) -> Unit,
     scrollState: LazyListState
 ) {
-//    val messages = uiState.messages
-//    if (messages.isEmpty()) return
-//
-//    val sortedMessages = messages.sortedBy { it.timestamp }
-//    Log.e(LOG_TAG, "Messages loaded: " + sortedMessages.size)
-//    Log.e(LOG_TAG, "Last message: " + sortedMessages.lastOrNull())
-
     val messages = uiState.messages
     if (messages.isEmpty()) return
 
-    LaunchedEffect(messages.size) {
-        scrollState.animateScrollToItem(messages.size-1)
-    }
+//    LaunchedEffect(messages.size) {
+//        scrollState.animateScrollToItem(messages.size - 1)
+//    }
 
     LazyColumn(
         state = scrollState,
+        reverseLayout = true,
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-
-        item {
-            if (viewModel.paginationState.isLoading) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-        }
-
-
         items(messages.size) { i ->
             val message = messages[i]
-            Log.e(LOG_TAG, "sortedMessages.size : " + messages.size )
-            if (i <= 0 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
+            Log.e(LOG_TAG, "sortedMessages.size : " + messages.size)
+            if (i >= messages.size - 1 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
                 viewModel.loadMessages()
             }
             val isLastMessage = message.id == messages.lastOrNull()?.id
@@ -242,7 +303,21 @@ fun MessagesList(
             Spacer(modifier = Modifier.height(6.dp))
         }
 
+        item {
+            if (viewModel.paginationState.isLoading) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+        }
 
+    }
+}
 
 //        var previousDate: String? = null
 //        sortedMessages.forEach { message ->
@@ -275,8 +350,8 @@ fun MessagesList(
 //            Spacer(modifier = Modifier.height(84.dp))
 //        }
 
-    }
-}
+    //}
+//}
 
 @Composable
 fun ScrollToBottomButton(
