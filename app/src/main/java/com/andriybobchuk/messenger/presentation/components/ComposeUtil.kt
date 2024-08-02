@@ -138,7 +138,9 @@ fun FetchImageAspectRatio(imageUrl: String, onAspectRatioReady: (Float) -> Unit)
                     target: com.bumptech.glide.request.target.Target<Drawable>,
                     isFirstResource: Boolean
                 ): Boolean {
-                    Log.e(LOG_TAG, "Image load failed: $e")
+                    if (e != null) {
+                        Log.e(LOG_TAG, "Image load failed: ${e.printStackTrace()}")
+                    }
                     return false
                 }
 
@@ -160,43 +162,43 @@ fun FetchImageAspectRatio(imageUrl: String, onAspectRatioReady: (Float) -> Unit)
             .submit()
     }
 }
-
-@Composable
-fun showOverlays(uiState: MessengerUiState, viewModel: ChatViewModel): Boolean {
-    if (uiState.fullscreenImageUrl != null) {
-        FullscreenImageViewer(
-            imageUrl = uiState.fullscreenImageUrl,
-            caption = uiState.fullscreenCaption ?: "",
-            sender = uiState.currentUser!!.name,
-            dateTime = timestampAsDate(viewModel.getMessageById(uiState.currentMessageId)!!.timestamp),
-            onDismiss = {
-                viewModel.setFullscreenImage(null, null, "")
-            },
-            onDeleteClick = {
-                viewModel.deleteMessage(uiState.currentMessageId)
-                viewModel.setFullscreenImage(null, null, "")
-            }
-        )
-        return true
-    } else if (uiState.pickedImageUri != null) {
-        ImagePickerScreen(
-            imageUri = uiState.pickedImageUri,
-            caption = uiState.pickedImageCaption,
-            onSendClick = { uri, caption ->
-                viewModel.sendImage(uri, caption)
-                viewModel.setPickedImage(null)
-            },
-            onDismiss = {
-                viewModel.setPickedImage(null)
-            },
-            onCaptionChange = { newCaption ->
-                viewModel.updatePickedImageCaption(newCaption)
-            }
-        )
-        return true
-    }
-    return false
-}
+//
+//@Composable
+//fun showOverlays(uiState: MessengerUiState, viewModel: ChatViewModel): Boolean {
+//    if (uiState.fullscreenImageUrl != null) {
+//        FullscreenImageViewer(
+//            imageUrl = uiState.fullscreenImageUrl,
+//            caption = uiState.fullscreenCaption ?: "",
+//            sender = uiState.currentUser!!.name,
+//            dateTime = timestampAsDate(viewModel.getMessageById(uiState.currentMessageId)!!.timestamp),
+//            onDismiss = {
+//                viewModel.setFullscreenImage(null, null, "")
+//            },
+//            onDeleteClick = {
+//                viewModel.deleteMessage(uiState.currentMessageId)
+//                viewModel.setFullscreenImage(null, null, "")
+//            }
+//        )
+//        return true
+//    } else if (uiState.pickedImageUri != null) {
+//        ImagePickerScreen(
+//            imageUri = uiState.pickedImageUri,
+//            caption = uiState.pickedImageCaption,
+//            onSendClick = { uri, caption ->
+//                viewModel.sendImage(uri, caption)
+//                viewModel.setPickedImage(null)
+//            },
+//            onDismiss = {
+//                viewModel.setPickedImage(null)
+//            },
+//            onCaptionChange = { newCaption ->
+//                viewModel.updatePickedImageCaption(newCaption)
+//            }
+//        )
+//        return true
+//    }
+//    return false
+//}
 
 /**
  * Displays the date header tag to separate messages grouped by date.
@@ -233,22 +235,22 @@ fun getMaxMessageDimensions(): Pair<Dp, Dp> {
  * Creates a gesture modifier for a chat message, enabling interactions such as opening the
  * image in fullscreen on click and showing the emoji panel on long click.
  */
-@Composable
-@SuppressLint("ModifierFactoryUnreferencedReceiver")
-@OptIn(ExperimentalFoundationApi::class)
-fun gestureModifier(
-    viewModel: ChatViewModel,
-    message: Message,
-    showEmojiPanel: MutableState<Boolean>,
-): Modifier {
-    val context = LocalContext.current
-    return Modifier.combinedClickable(
-        onClick = { viewModel.setFullscreenImage(message.imageUrl, message.caption, message.id) },
-        onLongClick = {
-            showEmojiPanel.value = !showEmojiPanel.value
-            triggerHapticFeedback(context)
-        },
-        onLongClickLabel = "React!"
-    )
-}
+//@Composable
+//@SuppressLint("ModifierFactoryUnreferencedReceiver")
+//@OptIn(ExperimentalFoundationApi::class)
+//fun imageGestureModifier(
+//    viewModel: ChatViewModel,
+//    message: Message,
+//    showEmojiPanel: MutableState<Boolean>,
+//): Modifier {
+//    val context = LocalContext.current
+//    return Modifier.combinedClickable(
+//        onClick = { viewModel.setSelectedMessage(message) },
+//        onLongClick = {
+//            showEmojiPanel.value = !showEmojiPanel.value
+//            triggerHapticFeedback(context)
+//        },
+//        onLongClickLabel = "React!"
+//    )
+//}
 

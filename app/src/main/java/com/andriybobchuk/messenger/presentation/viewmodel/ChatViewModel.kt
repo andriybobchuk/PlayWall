@@ -2,6 +2,9 @@ package com.andriybobchuk.messenger.presentation.viewmodel
 
 import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.andriybobchuk.messenger.data.FakeChatRepository
@@ -9,6 +12,7 @@ import com.andriybobchuk.messenger.model.Message
 import com.andriybobchuk.messenger.model.MessageStatus
 import com.andriybobchuk.messenger.model.Reaction
 import com.andriybobchuk.messenger.model.User
+import com.andriybobchuk.messenger.presentation.DefaultPaginator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,13 +28,41 @@ class ChatViewModel : ViewModel() {
 
     private val repository = FakeChatRepository()
 
-    private var currentPage = 0
-    private var isLoading = false
-    private var hasMoreMessages = true
-
     private val _uiState = MutableStateFlow(MessengerUiState())
     val uiState: StateFlow<MessengerUiState> = _uiState.asStateFlow()
+    var paginationState by mutableStateOf(PaginationState())
 
+    private val paginator = DefaultPaginator(
+        initialKey = paginationState.page,
+        onLoadUpdated = {
+            paginationState = paginationState.copy(isLoading = it)
+        },
+        onRequest = { nextPage ->
+            repository.retrieveMessages(nextPage, 3)
+        },
+        getNextKey = {
+            paginationState.page + 1
+        },
+        onError = {
+            paginationState = paginationState.copy(error = it?.localizedMessage)
+        },
+        onSuccess = { messages, newKey ->
+            paginationState = paginationState.copy(
+                page = newKey,
+                endReached = messages.isEmpty()
+            )
+            _uiState.update { currentState ->
+                currentState.copy(messages = currentState.messages + messages)
+            }
+        }
+    )
+
+    fun setSelectedMessage(message: Message?) {
+        _uiState.update { currentState ->
+            currentState.copy(selectedMessage = message)
+        }
+        Log.e(LOG_TAG, "Selected message: $message")
+    }
 
     fun setFullscreenImage(url: String?, caption: String?, messageId: String) {
         _uiState.update { currentState ->
@@ -41,12 +73,6 @@ class ChatViewModel : ViewModel() {
     fun setPickedImage(uri: Uri?) {
         _uiState.update { currentState ->
             currentState.copy(pickedImageUri = uri, pickedImageCaption = "")
-        }
-    }
-
-    fun updatePickedImageCaption(caption: String) {
-        _uiState.update { currentState ->
-            currentState.copy(pickedImageCaption = caption)
         }
     }
 
@@ -75,41 +101,9 @@ class ChatViewModel : ViewModel() {
         setRecipient(repository.getRecipient())
     }
 
-    private fun loadMessages() {
-        Log.e(LOG_TAG, "Loading messages...")
-        val retrievedMessages = repository.retrieveMessages()
-        _uiState.update { currentState ->
-            currentState.copy(messages = retrievedMessages)
-        }
-        Log.e(LOG_TAG, "Messages loaded: ${retrievedMessages.size}")
-    }
-
-    private fun loadInitialMessages() {
-        currentPage = 0
-        loadMessagesPaginated(currentPage)
-    }
-
-    fun loadMoreMessages() {
-        currentPage++
-        loadMessagesPaginated(currentPage)
-    }
-
-    private fun loadMessagesPaginated(page: Int) {
+    fun loadMessages() {
         viewModelScope.launch {
-            if (isLoading || !hasMoreMessages) return@launch
-
-            isLoading = true
-            Log.d(LOG_TAG, "Loading messages for page: $page")
-
-            val retrievedMessages = repository.retrieveMessagesPaginated(page, PAGE_SIZE)
-            hasMoreMessages = retrievedMessages.size >= PAGE_SIZE
-
-            _uiState.update { currentState ->
-                currentState.copy(messages = retrievedMessages)
-            }
-
-            isLoading = false
-            Log.d(LOG_TAG, "Messages loaded for page $page: ${retrievedMessages.size}")
+            paginator.loadNextItems()
         }
     }
 
@@ -143,7 +137,6 @@ class ChatViewModel : ViewModel() {
         Log.d(LOG_TAG, "Deleting message with ID: $messageId")
         repository.deleteMessage(messageId)
         Log.d(LOG_TAG, "Message deleted")
-        loadMessagesPaginated(currentPage)
     }
 
     fun getUserReaction(messageId: String, userId: String): Reaction? {
@@ -188,10 +181,6 @@ class ChatViewModel : ViewModel() {
 
     fun getUserNameById(userId: String): String {
         return repository.getUserNameById(userId)
-    }
-
-    fun getMessageById(messageId: String): Message? {
-        return repository.getMessageById(messageId)
     }
 
     fun updateMessageCaption(messageId: String, newCaption: String) {

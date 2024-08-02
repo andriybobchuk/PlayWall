@@ -38,11 +38,16 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
 import com.andriybobchuk.messenger.Constants.BACKGROUND_ALPHA
 import com.andriybobchuk.messenger.Constants.BACKGROUND_COLOR
 import com.andriybobchuk.messenger.Constants.DRAG_ALPHA_FACTOR
 import com.andriybobchuk.messenger.Constants.DRAG_DISMISS_THRESHOLD
 import com.andriybobchuk.messenger.Constants.TOP_BAR_BACKGROUND_COLOR
+import com.andriybobchuk.messenger.model.Message
+import com.andriybobchuk.messenger.presentation.overlays.FullscreenPopup
+import com.andriybobchuk.messenger.presentation.timestampAsDate
+import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import kotlinx.coroutines.CoroutineScope
@@ -61,12 +66,10 @@ import kotlin.math.roundToInt
  */
 @Composable
 fun FullscreenImageViewer(
-    imageUrl: String,
-    caption: String,
-    sender: String,
-    dateTime: String,
+    message: Message,
+    viewModel: ChatViewModel,
     onDismiss: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDelete: () -> Unit
 ) {
     val offsetY = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
@@ -74,7 +77,7 @@ fun FullscreenImageViewer(
     val alpha = remember { Animatable(BACKGROUND_ALPHA) }
     val dragAmount = remember { mutableFloatStateOf(0f) }
 
-    Box(
+    FullscreenPopup(
         modifier = Modifier
             .fillMaxSize()
             .background(BACKGROUND_COLOR.copy(alpha = alpha.value))
@@ -87,27 +90,29 @@ fun FullscreenImageViewer(
                 onDismiss = onDismiss
             )
     ) {
-        FullscreenImageContent(
-            imageUrl = imageUrl,
-            offsetY = offsetY,
-            onTap = { topBarVisible.value = !topBarVisible.value }
-        )
+        Box(modifier = Modifier.fillMaxSize()){
+            FullscreenImageContent(
+                imageUrl = message.imageUrl,
+                offsetY = offsetY,
+                onTap = { topBarVisible.value = !topBarVisible.value }
+            )
 
-        TopAppBarContent(
-            visible = topBarVisible.value,
-            sender = sender,
-            dateTime = dateTime,
-            onDismiss = onDismiss,
-            onDeleteClick = onDeleteClick
-        )
+            TopAppBarContent(
+                visible = topBarVisible.value,
+                sender = viewModel.getUserNameById(message.senderId),
+                dateTime = timestampAsDate(message.timestamp),
+                onDismiss = onDismiss,
+                onDeleteClick = onDelete
+            )
 
-        CaptionContent(
-            visible = topBarVisible.value,
-            caption = caption,
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .fillMaxWidth()
-        )
+            CaptionContent(
+                visible = topBarVisible.value,
+                caption = message.caption,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth()
+            )
+        }
     }
 }
 

@@ -41,9 +41,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
 import com.andriybobchuk.messenger.presentation.components.DateHeader
 import com.andriybobchuk.messenger.presentation.components.rememberRequestPermissionAndPickImage
-import com.andriybobchuk.messenger.presentation.components.showOverlays
 import com.andriybobchuk.messenger.model.User
 import com.andriybobchuk.messenger.presentation.overlays.FullscreenPopup
+import com.andriybobchuk.messenger.presentation.overlays.ImagePickerScreen
+import com.andriybobchuk.messenger.presentation.overlays.image_detail.FullscreenImageViewer
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel.Companion
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
 import com.andriybobchuk.messenger.ui.theme.LightGrey
@@ -71,6 +72,7 @@ fun MessengerScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var replyingToMessage by remember { mutableStateOf<Message?>(null) }
+
     val requestPermissionAndPickImage = rememberRequestPermissionAndPickImage(
         context = LocalContext.current,
         onImagePicked = { uri ->
@@ -87,59 +89,81 @@ fun MessengerScreen(
             lastVisibleItem?.index == lastIndex
         }
     }
-    FullscreenPopup {
-        Text("Hello World")
+
+    val selectedMessage = uiState.selectedMessage
+    val pickedImageUri = uiState.pickedImageUri
+    if (selectedMessage != null) {
+        FullscreenImageViewer(
+            message = selectedMessage,
+            viewModel = viewModel,
+            onDismiss = { viewModel.setSelectedMessage(null) },
+            onDelete = {
+                viewModel.deleteMessage(selectedMessage.id)
+                viewModel.setSelectedMessage(null)
+            }
+        )
+    } else if (pickedImageUri != null) {
+        ImagePickerScreen(
+            imageUri = uiState.pickedImageUri,
+            caption = uiState.pickedImageCaption,
+            onSendClick = { uri, caption ->
+                viewModel.sendImage(uri, caption)
+                viewModel.setPickedImage(null)
+            },
+            onDismiss = {
+                viewModel.setPickedImage(null)
+            }
+        )
     }
+
     Column(modifier = modifier.fillMaxSize()) {
-        if (!showOverlays(uiState = uiState, viewModel = viewModel)) {
-            MessengerScreenHeader(recipient = uiState.recipient!!, onBackClick = onBackClick)
-            Box(
+        MessengerScreenHeader(recipient = uiState.recipient!!, onBackClick = onBackClick)
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxSize()
+                .background(Color.Gray.copy(alpha = 0.1f))
+        ) {
+            MessagesList(
+                viewModel = viewModel,
+                uiState = uiState,
+                onMessageSwipe = {},
+                onSwipeComplete = { message ->
+                    replyingToMessage = message
+                },
+                scrollState = scrollState
+            )
+            Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxSize()
-                    .background(Color.Gray.copy(alpha = 0.1f))
+                    .align(Alignment.BottomCenter)
+                    .padding(8.dp)
             ) {
-                MessagesList(
-                    viewModel = viewModel,
-                    uiState = uiState,
-                    onMessageSwipe = {},
-                    onSwipeComplete = { message ->
-                        replyingToMessage = message
-                    },
-                    scrollState = scrollState
-                )
-                Row(
+                SendImageButton(
+                    onClick = { requestPermissionAndPickImage() },
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(8.dp)
-                ) {
-                    SendImageButton(
-                        onClick = { requestPermissionAndPickImage() },
-                        modifier = Modifier
-                            .padding(end = 8.dp)
-                    )
-                    if (!isAtBottom) {
-                        ScrollToBottomButton(
-                            onClick = {
-                                coroutineScope.launch {
-                                    scrollState.animateScrollToItem(scrollState.layoutInfo.totalItemsCount + 1)
-                                }
+                        .padding(end = 8.dp)
+                )
+                if (!isAtBottom) {
+                    ScrollToBottomButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                scrollState.animateScrollToItem(scrollState.layoutInfo.totalItemsCount + 1)
                             }
-                        )
-                    }
-                }
-                if (replyingToMessage != null) {
-                    triggerHapticFeedback(LocalContext.current)
-                    ReplyField(
-                        message = replyingToMessage!!,
-                        onCancel = { replyingToMessage = null },
-                        onComment = { newCaption ->
-                            viewModel.updateMessageCaption(replyingToMessage!!.id, newCaption)
-                            replyingToMessage = null
-                        },
-                        modifier = Modifier.align(Alignment.BottomCenter)
+                        }
                     )
                 }
+            }
+            if (replyingToMessage != null) {
+                triggerHapticFeedback(LocalContext.current)
+                ReplyField(
+                    message = replyingToMessage!!,
+                    onCancel = { replyingToMessage = null },
+                    onComment = { newCaption ->
+                        viewModel.updateMessageCaption(replyingToMessage!!.id, newCaption)
+                        replyingToMessage = null
+                    },
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
             }
         }
     }
@@ -160,15 +184,18 @@ fun MessagesList(
     onSwipeComplete: (Message) -> Unit,
     scrollState: LazyListState
 ) {
+//    val messages = uiState.messages
+//    if (messages.isEmpty()) return
+//
+//    val sortedMessages = messages.sortedBy { it.timestamp }
+//    Log.e(LOG_TAG, "Messages loaded: " + sortedMessages.size)
+//    Log.e(LOG_TAG, "Last message: " + sortedMessages.lastOrNull())
+
     val messages = uiState.messages
     if (messages.isEmpty()) return
 
-    val sortedMessages = messages.sortedBy { it.timestamp }
-    Log.e(LOG_TAG, "Messages loaded: " + sortedMessages.size)
-    Log.e(LOG_TAG, "Last message: " + sortedMessages.lastOrNull())
-
     LaunchedEffect(messages.size) {
-        scrollState.animateScrollToItem(sortedMessages.size)
+        scrollState.animateScrollToItem(messages.size-1)
     }
 
     LazyColumn(
@@ -177,36 +204,77 @@ fun MessagesList(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        var previousDate: String? = null
-        sortedMessages.forEach { message ->
-            val messageDate = timestampAsDate(message.timestamp)
-            if (messageDate != previousDate) {
-                item {
-                    DateHeader(date = messageDate)
-                }
-                previousDate = messageDate
-            }
-            item {
-                val isLastMessage = message.id == sortedMessages.lastOrNull()?.id
+
+        item {
+            if (viewModel.paginationState.isLoading) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    MessageItem(
-                        viewModel = viewModel,
-                        message = message,
-                        uiState = uiState,
-                        isLastMessage = isLastMessage,
-                        onMessageSwipe = onMessageSwipe,
-                        onSwipeComplete = { onSwipeComplete(message) }
-                    )
+                    CircularProgressIndicator()
                 }
-                Spacer(modifier = Modifier.height(6.dp))
             }
         }
+
+
+        items(messages.size) { i ->
+            val message = messages[i]
+            Log.e(LOG_TAG, "sortedMessages.size : " + messages.size )
+            if (i <= 0 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
+                viewModel.loadMessages()
+            }
+            val isLastMessage = message.id == messages.lastOrNull()?.id
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                MessageItem(
+                    viewModel = viewModel,
+                    message = message,
+                    uiState = uiState,
+                    isLastMessage = isLastMessage,
+                    onMessageSwipe = onMessageSwipe,
+                    onSwipeComplete = { onSwipeComplete(message) }
+                )
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+        }
+
+
+
+//        var previousDate: String? = null
+//        sortedMessages.forEach { message ->
+//            val messageDate = timestampAsDate(message.timestamp)
+//            if (messageDate != previousDate) {
+//                item {
+//                    DateHeader(date = messageDate)
+//                }
+//                previousDate = messageDate
+//            }
+//            item {
+//                val isLastMessage = message.id == sortedMessages.lastOrNull()?.id
+//                Row(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    horizontalArrangement = Arrangement.End
+//                ) {
+//                    MessageItem(
+//                        viewModel = viewModel,
+//                        message = message,
+//                        uiState = uiState,
+//                        isLastMessage = isLastMessage,
+//                        onMessageSwipe = onMessageSwipe,
+//                        onSwipeComplete = { onSwipeComplete(message) }
+//                    )
+//                }
+//                Spacer(modifier = Modifier.height(6.dp))
+//            }
+//        }
 //        item {
 //            Spacer(modifier = Modifier.height(84.dp))
 //        }
+
     }
 }
 

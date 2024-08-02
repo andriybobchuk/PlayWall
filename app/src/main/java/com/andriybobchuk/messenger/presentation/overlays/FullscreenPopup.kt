@@ -21,12 +21,12 @@ import com.andriybobchuk.messenger.ui.theme.LightGrey
 fun FullscreenPopup(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit = {},
-    topBar: @Composable () -> Unit,
     content: @Composable () -> Unit,
-    bottomBar: @Composable () -> Unit,
 ) {
     Popup(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            onDismiss
+        },
         properties = PopupProperties(
             focusable = true,
             dismissOnBackPress = true,
@@ -38,28 +38,11 @@ fun FullscreenPopup(
         ) {
             Canvas(Modifier.fillMaxSize()) {
                 drawRect(
-                    color = Color(0xCC7D7D7D),
+                    color = Color(0x007D7D7D),
                     size = size,
                 )
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .background(color = LightGrey)
-                    .align(Alignment.TopCenter)
-            ) {
-                content()
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
-                    .background(color = LightGrey)
-                    .align(Alignment.Center)
-            ) {
-                content()
-            }
+            content()
         }
     }
 }

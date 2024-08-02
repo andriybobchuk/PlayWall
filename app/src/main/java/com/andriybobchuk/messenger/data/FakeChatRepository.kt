@@ -4,6 +4,7 @@ import com.andriybobchuk.messenger.model.Message
 import com.andriybobchuk.messenger.model.MessageStatus
 import com.andriybobchuk.messenger.model.Reaction
 import com.andriybobchuk.messenger.model.User
+import kotlinx.coroutines.delay
 import java.util.UUID
 
 class FakeChatRepository {
@@ -222,18 +223,15 @@ class FakeChatRepository {
         )
     }
 
-    fun retrieveMessages(): List<Message> {
-        return _messages
-    }
-
-    fun retrieveMessagesPaginated(page: Int, pageSize: Int): List<Message> {
-        val startIndex = page * pageSize
-        val endIndex = (startIndex + pageSize).coerceAtMost(_messages.size)
-        return if (startIndex < _messages.size) {
-            _messages.subList(startIndex, endIndex).sortedBy { it.timestamp }
-        } else {
-            emptyList()
-        }
+    suspend fun retrieveMessages(page: Int, pageSize: Int): Result<List<Message>> {
+        delay(3000L)
+        val startingIndex = page * pageSize
+        val sortedMessages = _messages.sortedByDescending { it.timestamp }
+        return if (startingIndex + pageSize <= _messages.size) {
+            Result.success(
+                sortedMessages.slice(startingIndex until startingIndex + pageSize)
+            )
+        } else Result.success(emptyList())
     }
 
     fun addMessage(message: Message) {

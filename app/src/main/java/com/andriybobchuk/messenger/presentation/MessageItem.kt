@@ -1,8 +1,11 @@
 import android.annotation.SuppressLint
+import android.graphics.drawable.Drawable
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +54,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.andriybobchuk.messenger.Constants.HORIZONTAL_SCREEN_PERCENTAGE
 import com.andriybobchuk.messenger.Constants.MESSAGE_CORNER_RADIUS
 import com.andriybobchuk.messenger.presentation.components.EmojiPanel
@@ -62,17 +66,25 @@ import com.andriybobchuk.messenger.presentation.calculateImageDimensions
 import com.andriybobchuk.messenger.presentation.components.FetchImageAspectRatio
 import com.andriybobchuk.messenger.presentation.components.MessageReactionBox
 import com.andriybobchuk.messenger.presentation.components.ReactionBottomSheet
-import com.andriybobchuk.messenger.presentation.components.gestureModifier
 import com.andriybobchuk.messenger.presentation.components.getMaxMessageDimensions
+import com.andriybobchuk.messenger.presentation.overlays.image_detail.FullscreenImageViewer
+import com.andriybobchuk.messenger.presentation.timestampAsDate
 import com.andriybobchuk.messenger.presentation.triggerHapticFeedback
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
+import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel.Companion
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
 import com.andriybobchuk.messenger.ui.theme.LightBlue
 import com.andriybobchuk.messenger.ui.theme.LightGrey
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+
+import com.bumptech.glide.integration.compose.GlideImage
 
 private const val LOG_TAG = "MessageItem"
 
@@ -101,6 +113,7 @@ fun MessageItem(
     val currentUserId = uiState.currentUser!!.id
     val isCurrentUser = message.senderId == currentUserId
     val dismissState = swipeToDismissBoxState(isCurrentUser, onMessageSwipe, message, onSwipeComplete)
+
 
     if (isCurrentUser) {
         MessageContent(
@@ -184,7 +197,6 @@ fun MessageContent(
             }
 
             if (!isCurrentUser) {
-
                 ReplyButton { onSwipeComplete() }
                 Spacer(modifier = Modifier.weight(1 - HORIZONTAL_SCREEN_PERCENTAGE+0.05f)) // Adjust space between bubble and button
             }
@@ -256,7 +268,6 @@ private fun MessageBubble(
     val (maxWidth, maxHeight) = getMaxMessageDimensions()
     var aspectRatio by remember { mutableFloatStateOf(1f) }
     var dimensionsLoaded by remember { mutableStateOf(false) }
-    val gestureModifier = gestureModifier(viewModel, message, showEmojiPanel)
     val isCurrentUser = message.senderId == currentUserId
     val (imageWidth, imageHeight) = if (dimensionsLoaded) {
         calculateImageDimensions(aspectRatio, maxWidth, maxHeight)
@@ -281,10 +292,11 @@ private fun MessageBubble(
         ) {
             Column(bubbleModifier(isCurrentUser)) {
                 ImageBox(
+                    viewModel = viewModel,
                     message = message,
                     imageWidth = imageWidth,
                     imageHeight = imageHeight,
-                    gestureModifier = gestureModifier
+                    showEmojiPanel = showEmojiPanel
                 )
 
                 CaptionAndTimestamp(
@@ -396,19 +408,39 @@ fun DismissBackground(dismissState: SwipeToDismissBoxState) {
  * Displays an image within a chat message bubble, including the image's dimensions and gesture handling.
  * Shows a timestamp on the image if there is no caption.
  */
-@OptIn(ExperimentalGlideComposeApi::class)
+@SuppressLint("StateFlowValueCalledInComposition")
+@OptIn(ExperimentalGlideComposeApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun ImageBox(
+    viewModel: ChatViewModel,
     message: Message,
     imageWidth: Dp,
     imageHeight: Dp,
-    gestureModifier: Modifier
+    showEmojiPanel: MutableState<Boolean>
 ) {
+    //Log.e(LOG_TAG, viewModel.uiState.value.selectedMessage.toString())
+
     Box(
-        modifier = gestureModifier
+        modifier = Modifier
             .width(imageWidth)
             .height(imageHeight)
+            .combinedClickable(
+                onClick = { viewModel.setSelectedMessage(message) },
+                onLongClick = {
+                    showEmojiPanel.value = !showEmojiPanel.value
+                }
+            )
     ) {
+//        GlideImage(
+//            model = message.imageUrl,
+//            contentDescription = "Message Image",
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .fillMaxHeight()
+//                .background(Color.Gray),
+//            contentScale = ContentScale.Crop,
+//
+//        )
         GlideImage(
             model = message.imageUrl,
             contentDescription = "Message Image",
@@ -417,7 +449,53 @@ fun ImageBox(
                 .fillMaxHeight()
                 .background(Color.Gray),
             contentScale = ContentScale.Crop,
+            requestBuilderTransform = { requestBuilder ->
+                requestBuilder.addListener(object : RequestListener<Drawable> {
+                    override fun onLoadFailed(
+                        e: GlideException?,
+                        model: Any?,
+                        target: Target<Drawable>,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        Log.e(LOG_TAG, "Image load failed", e)
+                        e?.logRootCauses(LOG_TAG)
+                        e?.causes?.forEach { cause ->
+                            Log.e(LOG_TAG, "Cause: ${cause.message}", cause)
+                        }
+                        return false
+                    }
 
+                    override fun onResourceReady(
+                        resource: Drawable,
+                        model: Any,
+                        target: Target<Drawable>?,
+                        dataSource: DataSource,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        Log.d(LOG_TAG, "Image loaded successfully")
+                        return false
+                    }
+
+//                    override fun onLoadFailed(
+//                        e: GlideException?,
+//                        model: Any?,
+//                        target: Target<Drawable>,
+//                        isFirstResource: Boolean
+//                    ): Boolean {
+//                        TODO("Not yet implemented")
+//                    }
+//
+//                    override fun onResourceReady(
+//                        resource: Drawable,
+//                        model: Any,
+//                        target: Target<Drawable>?,
+//                        dataSource: DataSource,
+//                        isFirstResource: Boolean
+//                    ): Boolean {
+//                        TODO("Not yet implemented")
+//                    }
+                })
+            }
         )
         if (message.caption.isEmpty()) {
             Text(

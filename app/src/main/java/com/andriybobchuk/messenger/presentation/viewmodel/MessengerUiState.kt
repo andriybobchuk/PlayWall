@@ -12,5 +12,13 @@ data class MessengerUiState(
     val fullscreenCaption: String? = null,
     val pickedImageUri: Uri? = null,
     val pickedImageCaption: String = "",
-    val currentMessageId: String = ""
+    val currentMessageId: String = "",
+    val selectedMessage: Message? = null
+)
+
+data class PaginationState(
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val endReached: Boolean = false,
+    val page: Int = 0
 )
