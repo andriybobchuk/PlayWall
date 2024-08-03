@@ -200,23 +200,7 @@ fun FetchImageAspectRatio(imageUrl: String, onAspectRatioReady: (Float) -> Unit)
 //    return false
 //}
 
-/**
- * Displays the date header tag to separate messages grouped by date.
- */
-@Composable
-fun DateHeader(date: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = date,
-            style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
-        )
-    }
-}
+
 
 /**
  * Calculates the maximum dimensions that a message can take up on the screen.

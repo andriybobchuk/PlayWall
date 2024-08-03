@@ -48,6 +48,7 @@ import com.andriybobchuk.messenger.model.Message
 import com.andriybobchuk.messenger.presentation.overlays.FullscreenPopup
 import com.andriybobchuk.messenger.presentation.timestampAsDate
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
+import com.andriybobchuk.messenger.ui.theme.LightGrey
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import kotlinx.coroutines.CoroutineScope
@@ -66,11 +67,14 @@ import kotlin.math.roundToInt
  */
 @Composable
 fun FullscreenImageViewer(
+    currentUserId: String,
     message: Message,
     viewModel: ChatViewModel,
     onDismiss: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val isCurrentUser = message.senderId == currentUserId
+
     val offsetY = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
     val topBarVisible = remember { mutableStateOf(true) }
@@ -98,6 +102,7 @@ fun FullscreenImageViewer(
             )
 
             TopAppBarContent(
+                isMyMessage = isCurrentUser,
                 visible = topBarVisible.value,
                 sender = viewModel.getUserNameById(message.senderId),
                 dateTime = timestampAsDate(message.timestamp),
@@ -191,6 +196,7 @@ private fun FullscreenImageContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopAppBarContent(
+    isMyMessage: Boolean,
     visible: Boolean,
     sender: String,
     dateTime: String,
@@ -209,7 +215,7 @@ private fun TopAppBarContent(
                     Text(text = sender, style = MaterialTheme.typography.titleMedium)
                     Text(
                         text = dateTime,
-                        style = MaterialTheme.typography.bodyMedium.copy(Color.Gray)
+                        style = MaterialTheme.typography.bodySmall.copy(Color.LightGray)
                     )
                 }
             },
@@ -219,8 +225,10 @@ private fun TopAppBarContent(
                 }
             },
             actions = {
-                IconButton(onClick = onDeleteClick) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
+                if (isMyMessage) {
+                    IconButton(onClick = onDeleteClick) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
+                    }
                 }
             },
             colors = TopAppBarDefaults.smallTopAppBarColors(
@@ -241,6 +249,7 @@ private fun CaptionContent(
     caption: String,
     modifier: Modifier
 ) {
+    if (caption.isEmpty()) return
     AnimatedVisibility(
         visible = visible,
         enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
@@ -250,12 +259,12 @@ private fun CaptionContent(
         Box(
             modifier = Modifier
                 .background(TOP_BAR_BACKGROUND_COLOR)
-                .padding(bottom = 16.dp, start = 8.dp, end = 8.dp, top = 16.dp)
+                .padding(bottom = 24.dp, start = 16.dp, end = 8.dp, top = 16.dp)
         ) {
             Text(
                 text = caption,
                 color = Color.White,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyMedium
             )
         }
     }

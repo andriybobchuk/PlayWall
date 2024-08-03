@@ -99,7 +99,7 @@ class FakeChatRepository {
                     caption = "Message #12",
                     timestamp = System.currentTimeMillis() - 86400000 * 9,
                     status = MessageStatus.SENT,
-                    reactions = listOf(Reaction("user3", "❤️")),
+                    reactions = listOf(Reaction("user2", "❤️")),
                     senderId = _currentUser.id,
                     recipientId = _recipient.id
                 ),
@@ -109,7 +109,7 @@ class FakeChatRepository {
                     caption = "Message #11",
                     timestamp = System.currentTimeMillis() - 86400000 * 10,
                     status = MessageStatus.SENT,
-                    reactions = listOf(Reaction("user4", "😍")),
+                    reactions = listOf(Reaction("user2", "😍")),
                     senderId = _recipient.id,
                     recipientId = _currentUser.id
                 ),
@@ -185,7 +185,7 @@ class FakeChatRepository {
                     caption = "Message #4",
                     timestamp = System.currentTimeMillis() - 86400000 * 17,
                     status = MessageStatus.DELIVERED,
-                    reactions = listOf(Reaction("user3", "😂")),
+                    reactions = listOf(Reaction("user1", "😂")),
                     senderId = _recipient.id,
                     recipientId = _currentUser.id
                 ),
@@ -215,7 +215,7 @@ class FakeChatRepository {
                     caption = "Message #1, oldest one",
                     timestamp = System.currentTimeMillis() - 86400000 * 20,
                     status = MessageStatus.DELIVERED,
-                    reactions = listOf(Reaction("user4", "👍")),
+                    reactions = listOf(Reaction("user1", "👍")),
                     senderId = _recipient.id,
                     recipientId = _currentUser.id
                 )

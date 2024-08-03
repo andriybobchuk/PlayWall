@@ -125,4 +125,5 @@ dependencies {
 
     implementation ("androidx.compose.ui:ui-graphics:1.0.5")
 
+    implementation("androidx.compose.foundation:foundation:1.6.0-alpha04")
 }

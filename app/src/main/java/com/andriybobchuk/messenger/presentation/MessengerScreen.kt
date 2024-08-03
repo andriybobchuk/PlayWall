@@ -39,7 +39,6 @@ import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
-import com.andriybobchuk.messenger.presentation.components.DateHeader
 import com.andriybobchuk.messenger.presentation.components.rememberRequestPermissionAndPickImage
 import com.andriybobchuk.messenger.model.User
 import com.andriybobchuk.messenger.presentation.overlays.FullscreenPopup
@@ -49,10 +48,8 @@ import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel.Companio
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
 import com.andriybobchuk.messenger.ui.theme.LightGrey
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.SortedMap
+import java.util.Calendar
+
 
 private const val LOG_TAG = "MessengerScreen"
 
@@ -71,7 +68,9 @@ fun MessengerScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var replyingToMessage by remember { mutableStateOf<Message?>(null) }
+    //var replyingToMessage by remember { mutableStateOf<Message?>(null) }
+    val replyingToMessage = uiState.replyingToMessage
+    val currentUserId = uiState.currentUser!!.id
 
     val requestPermissionAndPickImage = rememberRequestPermissionAndPickImage(
         context = LocalContext.current,
@@ -94,6 +93,7 @@ fun MessengerScreen(
     val pickedImageUri = uiState.pickedImageUri
     if (selectedMessage != null) {
         FullscreenImageViewer(
+            currentUserId = currentUserId,
             message = selectedMessage,
             viewModel = viewModel,
             onDismiss = { viewModel.setSelectedMessage(null) },
@@ -127,9 +127,8 @@ fun MessengerScreen(
             MessagesList(
                 viewModel = viewModel,
                 uiState = uiState,
-                onMessageSwipe = {},
                 onSwipeComplete = { message ->
-                    replyingToMessage = message
+                    viewModel.setReplyingToMessage(message)
                 },
                 scrollState = scrollState
             )
@@ -154,13 +153,13 @@ fun MessengerScreen(
                 }
             }
             if (replyingToMessage != null) {
-                triggerHapticFeedback(LocalContext.current)
+               // triggerHapticFeedback(LocalContext.current)
                 ReplyField(
-                    message = replyingToMessage!!,
-                    onCancel = { replyingToMessage = null },
+                    message = replyingToMessage,
+                    onCancel = { viewModel.setReplyingToMessage(null) },
                     onComment = { newCaption ->
-                        viewModel.updateMessageCaption(replyingToMessage!!, newCaption)
-                        replyingToMessage = null
+                        viewModel.updateMessageCaption(replyingToMessage, newCaption)
+                        viewModel.setReplyingToMessage(null)
                     },
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
@@ -176,93 +175,10 @@ fun MessengerScreen(
  *
  * @see DateHeader
  */
-
-// Using lazy column and my pagination mechanism you should display here the message item items
-// in a way that it firstly loads the most recent 5 messages and they appewar on the list with
-//the very most recent one being on the bottom of the list and the older the messege the higher
-// it is in the list. also the lazy list should have a default scroll staet at the very
-// bottom of the list like in all messengers. Pagination mechanins should be edited too i think
-// So once again, it should begave exactly like any other messenger:
-// it loads the first 5 messages with the most recent being on the bottom of teh screen
-// and to see older ones you hace to scroll up because the default scroll state is
-/// the bottom of the list where the most recent message is. as the user scrolls up and riches
-// the last message there shoiuld be a circular progress bar indicating loading more messages
-// paginator mechanism send 5 more messages and we display it the same way
-//
-//@Composable
-//fun MessagesList(
-//    viewModel: ChatViewModel,
-//    uiState: MessengerUiState,
-//    onMessageSwipe: (Message) -> Unit,
-//    onSwipeComplete: (Message) -> Unit
-//) {
-//    val scrollState = rememberLazyListState()
-//    val coroutineScope = rememberCoroutineScope()
-//    val paginationState = viewModel.paginationState
-//    val messages = uiState.messages
-//
-//    LaunchedEffect(messages.size) {
-//        // Scroll to the bottom when the list initially loads
-//        if (messages.isNotEmpty()) {
-//            coroutineScope.launch {
-//                scrollState.scrollToItem(messages.size - 1)
-//            }
-//        }
-//    }
-//
-//    LazyColumn(
-//        state = scrollState,
-//        reverseLayout = true,
-//        modifier = Modifier.fillMaxSize()
-//    ) {
-//        if (paginationState.isLoading) {
-//            item {
-//                Row(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(8.dp),
-//                    horizontalArrangement = Arrangement.Center
-//                ) {
-//                    CircularProgressIndicator()
-//                }
-//            }
-//        }
-//
-//        items(messages) { message ->
-//            val isLastMessage = message.id == messages.firstOrNull()?.id
-//            MessageItem(
-//                viewModel = viewModel,
-//                message = message,
-//                uiState = uiState,
-//                isLastMessage = isLastMessage,
-//                onMessageSwipe = onMessageSwipe,
-//                onSwipeComplete = { onSwipeComplete(message) }
-//            )
-//        }
-//
-//        // Trigger pagination when scrolled to the top
-//        if (!paginationState.endReached) {
-//            Log.e(LOG_TAG, "paginationState.endReached ")
-//
-//            item {
-//                LaunchedEffect(Unit) {
-//                    coroutineScope.launch {
-//                        if (scrollState.firstVisibleItemIndex == 0) {
-//                            viewModel.loadMessages()
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-
-
 @Composable
 fun MessagesList(
     viewModel: ChatViewModel,
     uiState: MessengerUiState,
-    onMessageSwipe: (Message) -> Unit,
     onSwipeComplete: (Message) -> Unit,
     scrollState: LazyListState
 ) {
@@ -286,6 +202,7 @@ fun MessagesList(
             if (i >= messages.size - 1 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
                 viewModel.loadMessages()
             }
+
             val isLastMessage = message.id == viewModel.getLastMessageId()
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -296,11 +213,21 @@ fun MessagesList(
                     message = message,
                     uiState = uiState,
                     isLastMessage = isLastMessage,
-                    onMessageSwipe = onMessageSwipe,
                     onSwipeComplete = { onSwipeComplete(message) }
                 )
             }
             Spacer(modifier = Modifier.height(6.dp))
+
+            // Determine if a date header should be shown before this message
+            val showDateHeader = if (i == messages.size - 1) {
+                true
+            } else {
+                !isSameDay(message.timestamp, messages[i + 1].timestamp)
+            }
+
+            if (showDateHeader) {
+                DateHeader(date = timestampAsDate(message.timestamp))
+            }
         }
 
         item {
@@ -316,6 +243,32 @@ fun MessagesList(
             }
         }
 
+    }
+}
+
+fun isSameDay(timestamp1: Long, timestamp2: Long): Boolean {
+    val calendar1 = Calendar.getInstance().apply { timeInMillis = timestamp1 }
+    val calendar2 = Calendar.getInstance().apply { timeInMillis = timestamp2 }
+    return calendar1.get(Calendar.YEAR) == calendar2.get(Calendar.YEAR) &&
+            calendar1.get(Calendar.DAY_OF_YEAR) == calendar2.get(Calendar.DAY_OF_YEAR)
+}
+
+
+/**
+ * Displays the date header tag to separate messages grouped by date.
+ */
+@Composable
+fun DateHeader(date: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = date,
+            style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
+        )
     }
 }
 
@@ -463,14 +416,14 @@ fun MessengerScreenHeader(
                         Text(
                             text = recipient.name,
                             color = Color.Black,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleSmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = "Last online " + timestampAsDate(recipient.lastOnline),
                             color = Color.Gray,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )

@@ -77,6 +77,19 @@ class ChatViewModel : ViewModel() {
         Log.e(LOG_TAG, "Selected message: $message")
     }
 
+    fun setReplyingToMessage(message: Message?) {
+        _uiState.update { currentState ->
+            currentState.copy(replyingToMessage = message)
+        }
+    }
+
+    fun clearReplyingToMessage() {
+        _uiState.update { currentState ->
+            currentState.copy(replyingToMessage = null)
+        }
+    }
+
+
     fun setFullscreenImage(url: String?, caption: String?, messageId: String) {
         _uiState.update { currentState ->
             currentState.copy(fullscreenImageUrl = url, fullscreenCaption = caption, currentMessageId = messageId)

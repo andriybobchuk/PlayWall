@@ -7,11 +7,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
@@ -176,6 +184,103 @@ fun ReactionBottomSheet(
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EmojiBottomSheet(
+    viewModel: ChatViewModel,
+    message: Message,
+    currentUserId: String,
+    sheetState: SheetState,
+    isSheetOpen: MutableState<Boolean>,
+    coroutineScope: CoroutineScope
+) {
+    if (isSheetOpen.value) {
+        ModalBottomSheet(
+            containerColor = Color.White,
+            sheetState = sheetState,
+            onDismissRequest = {
+                coroutineScope.launch {
+                    isSheetOpen.value = false
+                }
+            }
+        ) {
+            val selectedEmoji = viewModel.getUserReaction(message.id, currentUserId)?.emoji
+            val isCurrentUser = message.senderId == currentUserId
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Select Emoji",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(LightGrey)
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    EMOJI_LIST.forEach { emoji ->
+                        val isSelected = emoji == selectedEmoji
+                        Text(
+                            text = emoji,
+                            fontSize = 24.sp,
+                            color = if (isSelected) Color.Black else Color.Unspecified,
+                            modifier = Modifier
+                                .background(
+                                    if (isSelected) Color.DarkGray.copy(alpha = 0.2f) else Color.Transparent,
+                                    shape = CircleShape
+                                )
+                                .clickable {
+                                    if (selectedEmoji == emoji) {
+                                        viewModel.removeReaction(message.id, currentUserId)
+                                    } else {
+                                        val reaction = Reaction(userName = currentUserId, emoji = emoji)
+                                        viewModel.addOrUpdateReaction(message.id, reaction)
+                                    }
+                                    isSheetOpen.value = false
+                                }
+                                .padding(6.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = {
+                        if (isCurrentUser) {
+                            viewModel.deleteMessage(message.id)
+                        } else {
+                            viewModel.setReplyingToMessage(message)
+                        }
+                        isSheetOpen.value = false
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(LightGrey)
+                        .padding(8.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isCurrentUser) Icons.Default.Delete else Icons.Default.Send,
+                        contentDescription = if (isCurrentUser) "Delete" else "Reply"
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (isCurrentUser) "Delete" else "Reply",
+                        color = Color.Black
+                    )
                 }
             }
         }
