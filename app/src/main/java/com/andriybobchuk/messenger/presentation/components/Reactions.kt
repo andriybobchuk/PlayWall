@@ -18,6 +18,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +31,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.andriybobchuk.messenger.Constants.EMOJI_LIST
@@ -36,69 +39,71 @@ import com.andriybobchuk.messenger.model.Message
 import com.andriybobchuk.messenger.model.Reaction
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
-import com.andriybobchuk.messenger.ui.theme.LightGrey
+import com.andriybobchuk.messenger.ui.theme.NAVY200
+import com.andriybobchuk.messenger.ui.theme.NAVY300
+import com.andriybobchuk.messenger.ui.theme.NAVY400
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-
-/**
- * Displays a panel of emojis for the user to select as reactions to a message.
- * Highlights the currently selected emoji, if any.
- *
- * @param selectedEmoji The currently selected emoji.
- * @param onEmojiClick A callback function that is invoked when an emoji is clicked,
- *                     passing the clicked emoji as a parameter.
- */
-@Composable
-fun EmojiPanel(
-    showEmojiPanel: MutableState<Boolean>,
-    viewModel: ChatViewModel,
-    message: Message,
-    currentUserId: String,
-    horizontalArrangement: Arrangement.Horizontal
-) {
-    val selectedEmoji = viewModel.getUserReaction(message.id, currentUserId)?.emoji
-    Row(
-        modifier = Modifier
-            .padding(top = 8.dp, end = 8.dp)
-            .fillMaxWidth(),
-        horizontalArrangement = horizontalArrangement
-    ) {
-        if (showEmojiPanel.value) {
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(32.dp))
-                    .background(LightGrey)
-                    .padding(3.dp),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                val emojis = EMOJI_LIST
-                emojis.forEach { emoji ->
-                    val isSelected = emoji == selectedEmoji
-                    Text(
-                        text = emoji,
-                        fontSize = 18.sp,
-                        color = if (isSelected) Color.Black else Color.Unspecified,
-                        modifier = Modifier
-                            .background(
-                                if (isSelected) Color.DarkGray.copy(alpha = 0.2f) else Color.Transparent,
-                                shape = CircleShape
-                            )
-                            .clickable {
-                                if (selectedEmoji == emoji) {
-                                    viewModel.removeReaction(message.id, currentUserId)
-                                } else {
-                                    val reaction = Reaction(userName = currentUserId, emoji = emoji)
-                                    viewModel.addOrUpdateReaction(message.id, reaction)
-                                }
-                                showEmojiPanel.value = false
-                            }
-                            .padding(6.dp)
-                    )
-                }
-            }
-        }
-    }
-}
+//
+///**
+// * Displays a panel of emojis for the user to select as reactions to a message.
+// * Highlights the currently selected emoji, if any.
+// *
+// * @param selectedEmoji The currently selected emoji.
+// * @param onEmojiClick A callback function that is invoked when an emoji is clicked,
+// *                     passing the clicked emoji as a parameter.
+// */
+//@Composable
+//fun EmojiPanel(
+//    showEmojiPanel: MutableState<Boolean>,
+//    viewModel: ChatViewModel,
+//    message: Message,
+//    currentUserId: String,
+//    horizontalArrangement: Arrangement.Horizontal
+//) {
+//    val selectedEmoji = viewModel.getUserReaction(message.id, currentUserId)?.emoji
+//    Row(
+//        modifier = Modifier
+//            .padding(top = 8.dp, end = 8.dp)
+//            .fillMaxWidth(),
+//        horizontalArrangement = horizontalArrangement
+//    ) {
+//        if (showEmojiPanel.value) {
+//            Row(
+//                modifier = Modifier
+//                    .clip(RoundedCornerShape(32.dp))
+//                    .background(LightGrey)
+//                    .padding(3.dp),
+//                horizontalArrangement = Arrangement.SpaceAround
+//            ) {
+//                val emojis = EMOJI_LIST
+//                emojis.forEach { emoji ->
+//                    val isSelected = emoji == selectedEmoji
+//                    Text(
+//                        text = emoji,
+//                        fontSize = 18.sp,
+//                        color = if (isSelected) Color.Black else Color.Unspecified,
+//                        modifier = Modifier
+//                            .background(
+//                                if (isSelected) Color.DarkGray.copy(alpha = 0.2f) else Color.Transparent,
+//                                shape = CircleShape
+//                            )
+//                            .clickable {
+//                                if (selectedEmoji == emoji) {
+//                                    viewModel.removeReaction(message.id, currentUserId)
+//                                } else {
+//                                    val reaction = Reaction(userName = currentUserId, emoji = emoji)
+//                                    viewModel.addOrUpdateReaction(message.id, reaction)
+//                                }
+//                                showEmojiPanel.value = false
+//                            }
+//                            .padding(6.dp)
+//                    )
+//                }
+//            }
+//        }
+//    }
+//}
 
 /**
  * Displays the emoji reactions for a message in a small box that can be clicked to open
@@ -114,8 +119,8 @@ fun MessageReactionBox(
         Box(
             modifier = modifier
                 .clip(RoundedCornerShape(18.dp))
-                .background(LightGrey)
-                .border(1.dp, Color.White, RoundedCornerShape(18.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer)
+                .border(1.dp, MaterialTheme.colorScheme.background, RoundedCornerShape(18.dp))
                 .clickable(onClick = onReactionClick)
                 .padding(4.dp)
         ) {
@@ -153,6 +158,7 @@ fun ReactionBottomSheet(
     if (isSheetOpen.value) {
         ModalBottomSheet(
             sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.background,
             onDismissRequest = {
                 coroutineScope.launch {
                 isSheetOpen.value = false
@@ -165,24 +171,32 @@ fun ReactionBottomSheet(
             ) {
                 Text(
                     text = "Reactions",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                reactions.forEach { reaction ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = viewModel.getUserNameById(reaction.userName),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            text = reaction.emoji,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                        .padding(8.dp),
+                ) {
+                    reactions.forEach { reaction ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = viewModel.getUserNameById(reaction.userName),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = reaction.emoji,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
                     }
                 }
             }
@@ -202,8 +216,8 @@ fun EmojiBottomSheet(
 ) {
     if (isSheetOpen.value) {
         ModalBottomSheet(
-            containerColor = Color.White,
             sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.background,
             onDismissRequest = {
                 coroutineScope.launch {
                     isSheetOpen.value = false
@@ -227,7 +241,7 @@ fun EmojiBottomSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(LightGrey)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
                         .padding(8.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
@@ -239,7 +253,7 @@ fun EmojiBottomSheet(
                             color = if (isSelected) Color.Black else Color.Unspecified,
                             modifier = Modifier
                                 .background(
-                                    if (isSelected) Color.DarkGray.copy(alpha = 0.2f) else Color.Transparent,
+                                    if (isSelected) NAVY200 else Color.Transparent,
                                     shape = CircleShape
                                 )
                                 .clickable {
@@ -267,19 +281,18 @@ fun EmojiBottomSheet(
                         isSheetOpen.value = false
                     },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(LightGrey)
-                        .padding(8.dp)
+                        .fillMaxWidth(),
+                    colors = ButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.primary, disabledContentColor = MaterialTheme.colorScheme.tertiary, disabledContainerColor = Color.Black),
+                    shape = RoundedCornerShape(14.dp)
                 ) {
                     Icon(
                         imageVector = if (isCurrentUser) Icons.Default.Delete else Icons.Default.Send,
-                        contentDescription = if (isCurrentUser) "Delete" else "Reply"
+                        contentDescription = if (isCurrentUser) "Delete this message" else "Reply to message"
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (isCurrentUser) "Delete" else "Reply",
-                        color = Color.Black
+                        text = if (isCurrentUser) "Delete this message" else "Reply to message",
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }

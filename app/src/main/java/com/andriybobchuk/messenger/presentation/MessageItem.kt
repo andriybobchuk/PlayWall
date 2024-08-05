@@ -74,7 +74,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.andriybobchuk.messenger.Constants.HORIZONTAL_SCREEN_PERCENTAGE
 import com.andriybobchuk.messenger.Constants.MESSAGE_CORNER_RADIUS
-import com.andriybobchuk.messenger.presentation.components.EmojiPanel
 import com.andriybobchuk.messenger.presentation.formatStatus
 import com.andriybobchuk.messenger.presentation.timestampAsTime
 import com.andriybobchuk.messenger.model.Message
@@ -91,8 +90,6 @@ import com.andriybobchuk.messenger.presentation.triggerHapticFeedback
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel.Companion
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
-import com.andriybobchuk.messenger.ui.theme.LightBlue
-import com.andriybobchuk.messenger.ui.theme.LightGrey
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.load.DataSource
@@ -103,6 +100,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 import com.bumptech.glide.integration.compose.GlideImage
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 private const val LOG_TAG = "MessageItem"
@@ -141,6 +139,7 @@ fun MessageItem(
             onSwipeComplete = onSwipeComplete
         )
     } else {
+        Log.e(LOG_TAG, "Their message harvested: $message")
         // Gesture detection for swipe-to-reply
         val offsetX = remember { mutableStateOf(0f) }
         val swipeThreshold = with(LocalDensity.current) { 20.dp.toPx() } // Smaller threshold
@@ -185,15 +184,12 @@ fun MessageContent(
     val sheetState = rememberModalBottomSheetState()
     val emojiSheetState = rememberModalBottomSheetState()
     val isSheetOpen = remember { mutableStateOf(false) }
-    //val showEmojiPanel = remember { mutableStateOf(false) }
     val isEmojiSheetOpen = remember { mutableStateOf(false) }
     val isCurrentUser = message.senderId == currentUserId
 
     Column(
         modifier = modifier
     ) {
-       // EmojiPanel(showEmojiPanel, viewModel, message, currentUserId, horizontalArrangement)
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = if (isCurrentUser) Arrangement.End else Arrangement.Start,
@@ -201,19 +197,13 @@ fun MessageContent(
         ) {
             Row(
                 modifier = Modifier
-                    .weight(1f) // Take up available space
+                    .weight(1f)
             ) {
                 MessageBubble(
                     viewModel = viewModel,
                     message = message,
                     currentUserId = currentUserId,
-                    //showEmojiPanel = showEmojiPanel,
                     coroutineScope = coroutineScope,
-                    //isSheetOpen = isSheetOpen,
-                    //isSheetOpen = isSheetOpen,
-                    //isSheetOpen = isSheetOpen,
-                    //isSheetOpen = isSheetOpen,
-                    //isSheetOpen = isSheetOpen,
                     isSheetOpen = isSheetOpen,
                     isEmojiSheetOpen = isEmojiSheetOpen,
                     horizontalArrangement = horizontalArrangement
@@ -221,14 +211,17 @@ fun MessageContent(
             }
 
             if (!isCurrentUser) {
-                ReplyButton { onSwipeComplete() }
+                ReplyButton {
+                    Log.e(LOG_TAG, "onSwipeComplete")
+                    onSwipeComplete()
+                }
                 Spacer(modifier = Modifier.weight(1 - HORIZONTAL_SCREEN_PERCENTAGE + 0.05f)) // Adjust space between bubble and button
             }
         }
         if (isLastMessage && isCurrentUser) {
             Text(
                 text = formatStatus(message.status),
-                style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
+                color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier
                     .align(Alignment.End)
                     .padding(end = 16.dp)
@@ -269,6 +262,7 @@ private fun swipeModifier(
                 }
                 if (offsetX.value > swipeThreshold) {
                     onSwipeComplete()
+                    Log.e(LOG_TAG, "onSwipeComplete")
                     offsetX.value = 0f
                 }
                 change.consume()
@@ -276,6 +270,7 @@ private fun swipeModifier(
             onDragEnd = {
                 if (offsetX.value > swipeThreshold) {
                     onSwipeComplete()
+                    Log.e(LOG_TAG, "onSwipeComplete")
                 }
                 offsetX.value = 0f // Reset offset to snap back the bubble
             },
@@ -385,14 +380,14 @@ fun ReplyButton(onClick: () -> Unit) {
         modifier = Modifier
             .size(32.dp)
             .clip(CircleShape)
-            .background(LightGrey)
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Filled.Send,
             contentDescription = "Reply",
-            tint = Color.Black,
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(16.dp)
         )
     }
@@ -409,7 +404,7 @@ private fun bubbleModifier(isCurrentUser: Boolean) = Modifier
         )
     )
     .background(
-        color = if (isCurrentUser) LightGrey else LightBlue,
+        color = if (isCurrentUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
     )
     .wrapContentWidth(align = Alignment.End)
 
@@ -513,15 +508,14 @@ fun CaptionAndTimestamp(
                 .widthIn(max = imageWidth - 4.dp)
                 .wrapContentWidth()
         )
-        Spacer(modifier = Modifier.height(4.dp))
         Row(
             modifier = modifier,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = timestampAsTime(message.timestamp),
-                style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray),
-                modifier = Modifier.padding(8.dp)
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.padding(bottom = 8.dp, start = 8.dp, end = 8.dp)
             )
         }
     }

@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import com.andriybobchuk.messenger.ui.theme.LightGrey
 
 @Composable
 fun FullscreenPopup(

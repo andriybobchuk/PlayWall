@@ -78,6 +78,7 @@ class ChatViewModel : ViewModel() {
     }
 
     fun setReplyingToMessage(message: Message?) {
+        Log.e(LOG_TAG, "eplyingToMessage = $message")
         _uiState.update { currentState ->
             currentState.copy(replyingToMessage = message)
         }

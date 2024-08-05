@@ -50,7 +50,7 @@ class FakeChatRepository {
                     timestamp = System.currentTimeMillis() - 5000000,
                     status = MessageStatus.SENT,
                     reactions = listOf(
-                        Reaction("user1", "🎉"),
+                        Reaction("user1", "❤️"),
                         Reaction("user2", "👍")
                     ),
                     senderId = _currentUser.id,
@@ -64,7 +64,7 @@ class FakeChatRepository {
                     status = MessageStatus.SENT,
                     reactions = listOf(
                         Reaction("user1", "😍"),
-                        Reaction("user2", "👌")
+                        Reaction("user2", "❤️")
                     ),
                     senderId = _currentUser.id,
                     recipientId = _recipient.id
@@ -76,7 +76,7 @@ class FakeChatRepository {
                     timestamp = System.currentTimeMillis() - 86400000 * 7,
                     status = MessageStatus.DELIVERED,
                     reactions = listOf(
-                        Reaction("user2", "👏")
+                        Reaction("user2", "❤️")
                     ),
                     senderId = _currentUser.id,
                     recipientId = _recipient.id
@@ -88,7 +88,7 @@ class FakeChatRepository {
                     timestamp = System.currentTimeMillis() - 86400000 * 8,
                     status = MessageStatus.SENT,
                     reactions = listOf(
-                        Reaction("user2", "😎")
+                        Reaction("user2", "❤️")
                     ),
                     senderId = _recipient.id,
                     recipientId = _currentUser.id
@@ -134,7 +134,7 @@ class FakeChatRepository {
                     status = MessageStatus.SENT,
                     reactions = listOf(
                         Reaction("user1", "👍"),
-                        Reaction("user2", "🔥")
+                        Reaction("user2", "❤️")
                     ),
                     senderId = _currentUser.id,
                     recipientId = _recipient.id
@@ -145,7 +145,7 @@ class FakeChatRepository {
                     caption = "Message #8",
                     timestamp = System.currentTimeMillis() - 86400000 * 13,
                     status = MessageStatus.READ,
-                    reactions = listOf(Reaction("user1", "😮")),
+                    reactions = listOf(Reaction("user1", "❤️")),
                     senderId = _currentUser.id,
                     recipientId = _recipient.id
                 ),

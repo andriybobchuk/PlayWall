@@ -25,7 +25,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,8 +34,6 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color.Companion.Black
-import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
 import com.andriybobchuk.messenger.presentation.components.rememberRequestPermissionAndPickImage
@@ -46,7 +43,6 @@ import com.andriybobchuk.messenger.presentation.overlays.ImagePickerScreen
 import com.andriybobchuk.messenger.presentation.overlays.image_detail.FullscreenImageViewer
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel.Companion
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
-import com.andriybobchuk.messenger.ui.theme.LightGrey
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -68,7 +64,6 @@ fun MessengerScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    //var replyingToMessage by remember { mutableStateOf<Message?>(null) }
     val replyingToMessage = uiState.replyingToMessage
     val currentUserId = uiState.currentUser!!.id
 
@@ -122,12 +117,13 @@ fun MessengerScreen(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxSize()
-                .background(Color.Gray.copy(alpha = 0.1f))
+                //.background(Color.Gray.copy(alpha = 0.1f))
         ) {
             MessagesList(
                 viewModel = viewModel,
                 uiState = uiState,
                 onSwipeComplete = { message ->
+                    Log.e(LOG_TAG, "viewModel.setReplyingToMessage(message) = $message")
                     viewModel.setReplyingToMessage(message)
                 },
                 scrollState = scrollState
@@ -190,7 +186,7 @@ fun MessagesList(
         reverseLayout = true,
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         item {
             Spacer(modifier = Modifier.height(64.dp))
@@ -204,6 +200,11 @@ fun MessagesList(
             }
 
             val isLastMessage = message.id == viewModel.getLastMessageId()
+
+            if(isLastMessage) {
+                Log.e(LOG_TAG, "UISTATE: " + uiState.messages[i].caption)
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
@@ -213,7 +214,7 @@ fun MessagesList(
                     message = message,
                     uiState = uiState,
                     isLastMessage = isLastMessage,
-                    onSwipeComplete = { onSwipeComplete(message) }
+                    onSwipeComplete = { onSwipeComplete(uiState.messages[i]) }
                 )
             }
             Spacer(modifier = Modifier.height(6.dp))
@@ -267,7 +268,7 @@ fun DateHeader(date: String) {
     ) {
         Text(
             text = date,
-            style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
+            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.secondary)
         )
     }
 }
@@ -281,13 +282,13 @@ fun ScrollToBottomButton(
             .clip(CircleShape)
             .clickable(onClick = onClick)
             .size(40.dp)
-            .background(LightGrey, shape = CircleShape),
+            .background(MaterialTheme.colorScheme.primaryContainer, shape = CircleShape),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Filled.KeyboardArrowDown,
             contentDescription = "Scroll to Bottom",
-            tint = Black
+            tint = MaterialTheme.colorScheme.primary
         )
     }
 }
@@ -302,11 +303,13 @@ fun ReplyField(
     var text by remember { mutableStateOf(message.caption ?: "") }
     val roundedShape = RoundedCornerShape(48.dp)
 
+    Log.e(LOG_TAG, "text: " + text)
+
     Column(
         modifier = modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .background(LightGrey, shape = roundedShape)
+            .background(MaterialTheme.colorScheme.primaryContainer, shape = roundedShape)
             .padding(5.dp)
     ) {
         Row(
@@ -320,14 +323,14 @@ fun ReplyField(
                 onClick = onCancel,
                 modifier = Modifier
                     .size(32.dp)
-                    .background(Color.White, shape = CircleShape),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    .background(MaterialTheme.colorScheme.background, shape = CircleShape),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background),
                 contentPadding = PaddingValues(0.dp) // No extra padding inside the button
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Cancel",
-                    tint = Color.Black,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -338,22 +341,22 @@ fun ReplyField(
                 label = { Text("Your comment...") },
                 modifier = Modifier
                     .weight(1f) // Allows the TextField to take remaining space
-                    .background(LightGrey, shape = roundedShape),
+                    .background(MaterialTheme.colorScheme.primaryContainer, shape = roundedShape),
                 colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = LightGrey,
-                    focusedContainerColor = LightGrey,
-                    focusedIndicatorColor = LightGrey,
-                    unfocusedIndicatorColor = LightGrey
+                    unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.primaryContainer
                 ),
                 singleLine = true,
-                textStyle = TextStyle(color = Black, fontSize = 16.sp),
+                textStyle = TextStyle(fontSize = 16.sp),
                 shape = roundedShape
             )
             Button(
                 onClick = { onComment(text) },
-                colors = ButtonDefaults.buttonColors(containerColor = Black)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Comment", color = Color.White)
+                Text("Comment", color = MaterialTheme.colorScheme.background)
             }
         }
     }
@@ -372,7 +375,7 @@ fun MessengerScreenHeader(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Box(
             modifier = Modifier
@@ -386,7 +389,7 @@ fun MessengerScreenHeader(
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.Black
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
             Row(
@@ -406,7 +409,7 @@ fun MessengerScreenHeader(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(Color.Gray, shape = CircleShape),
+                            .background(MaterialTheme.colorScheme.primary, shape = CircleShape),
                         contentScale = ContentScale.Crop
                     )
 
@@ -415,14 +418,13 @@ fun MessengerScreenHeader(
                     Column {
                         Text(
                             text = recipient.name,
-                            color = Color.Black,
                             style = MaterialTheme.typography.titleSmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = "Last online " + timestampAsDate(recipient.lastOnline),
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.secondary,
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -433,7 +435,7 @@ fun MessengerScreenHeader(
                 }
             }
         }
-        HorizontalDivider(thickness = 1.dp, color = Color.LightGray)
+        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.primaryContainer)
     }
 }
 
@@ -455,19 +457,19 @@ fun SendImageButton(onClick: () -> Unit, modifier: Modifier) {
         modifier = modifier
             .padding(horizontal = 18.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Black
+            containerColor = MaterialTheme.colorScheme.primary
         )
     ) {
         Text(
             text = "Pick Image",
-            color = Color.White,
+            color = MaterialTheme.colorScheme.background,
             fontSize = 16.sp
         )
         Spacer(modifier = Modifier.width(8.dp))
         Icon(
             imageVector = Icons.AutoMirrored.Filled.Send, // Your message icon resource
             contentDescription = "Send Image",
-            tint = Color.White
+            tint = MaterialTheme.colorScheme.background
         )
     }
 }

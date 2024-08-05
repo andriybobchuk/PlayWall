@@ -48,7 +48,6 @@ import com.andriybobchuk.messenger.model.Message
 import com.andriybobchuk.messenger.presentation.overlays.FullscreenPopup
 import com.andriybobchuk.messenger.presentation.timestampAsDate
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
-import com.andriybobchuk.messenger.ui.theme.LightGrey
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import kotlinx.coroutines.CoroutineScope

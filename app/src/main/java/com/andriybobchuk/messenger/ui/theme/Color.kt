@@ -2,12 +2,15 @@ package com.andriybobchuk.messenger.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Light theme
+val GRAY200 = Color(0xFFEEEFF4) // Backgrounds
+val GRAY600 = Color.Gray // Grey texts
+val GRAY800 = Color.Black // Black texts
+val BLUE200 = Color(0xFFCEF0F8)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
-val LightGrey = Color(0xFFEEEFF4)
-val LightBlue = Color(0xFFCEF0F8)
+// Dark theme
+val NAVY800 = Color(0xFF070F2B)
+val NAVY600 = Color(0xFF1B1A55)
+val NAVY300 = Color(0xFF1a1969)
+val NAVY400 = Color(0xFF535C91)
+val NAVY200 = Color(0xFF9290C3)
