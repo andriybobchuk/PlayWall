@@ -6,6 +6,10 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -21,7 +25,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -215,26 +222,31 @@ fun getMaxMessageDimensions(): Pair<Dp, Dp> {
     return Pair(maxWidth, maxHeight)
 }
 
-/**
- * Creates a gesture modifier for a chat message, enabling interactions such as opening the
- * image in fullscreen on click and showing the emoji panel on long click.
- */
-//@Composable
-//@SuppressLint("ModifierFactoryUnreferencedReceiver")
-//@OptIn(ExperimentalFoundationApi::class)
-//fun imageGestureModifier(
-//    viewModel: ChatViewModel,
-//    message: Message,
-//    showEmojiPanel: MutableState<Boolean>,
-//): Modifier {
-//    val context = LocalContext.current
-//    return Modifier.combinedClickable(
-//        onClick = { viewModel.setSelectedMessage(message) },
-//        onLongClick = {
-//            showEmojiPanel.value = !showEmojiPanel.value
-//            triggerHapticFeedback(context)
-//        },
-//        onLongClickLabel = "React!"
-//    )
-//}
+@Composable
+fun ConnectivityStatus(): Boolean {
+    val context = LocalContext.current
+    var isConnected by remember { mutableStateOf(false) }
+
+    LaunchedEffect(context) {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkCallback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                isConnected = true
+            }
+
+            override fun onLost(network: Network) {
+                isConnected = false
+            }
+        }
+
+        val request = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+
+        connectivityManager.registerNetworkCallback(request, networkCallback)
+        isConnected = connectivityManager.activeNetworkInfo?.isConnected == true
+    }
+
+    return isConnected
+}
 

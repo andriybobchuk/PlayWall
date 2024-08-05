@@ -32,6 +32,25 @@ class ChatViewModel : ViewModel() {
     val uiState: StateFlow<MessengerUiState> = _uiState.asStateFlow()
     var paginationState by mutableStateOf(PaginationState())
 
+    private val _isConnected = MutableStateFlow(false)
+    val isConnected: StateFlow<Boolean> = _isConnected
+    fun setConnectivityStatus(status: Boolean) {
+        _isConnected.value = status
+        if (status) {
+            reloadMessagesWithImages()
+        }
+    }
+
+    fun reloadMessagesWithImages() {
+        _uiState.update { currentState ->
+            val updatedMessages = currentState.messages.map { message ->
+                // Update the message to trigger image reloading
+                message.copy()
+            }
+            currentState.copy(messages = updatedMessages)
+        }
+    }
+
     private val paginator = DefaultPaginator(
         initialKey = paginationState.page,
         onLoadUpdated = {

@@ -38,6 +38,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
 import com.andriybobchuk.messenger.presentation.components.rememberRequestPermissionAndPickImage
 import com.andriybobchuk.messenger.model.User
+import com.andriybobchuk.messenger.presentation.components.ConnectivityStatus
 import com.andriybobchuk.messenger.presentation.overlays.FullscreenPopup
 import com.andriybobchuk.messenger.presentation.overlays.ImagePickerScreen
 import com.andriybobchuk.messenger.presentation.overlays.image_detail.FullscreenImageViewer
@@ -109,6 +110,12 @@ fun MessengerScreen(
                 viewModel.setPickedImage(null)
             }
         )
+    }
+
+    val isConnected = ConnectivityStatus()
+
+    LaunchedEffect(isConnected) {
+        viewModel.setConnectivityStatus(isConnected)
     }
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -409,7 +416,7 @@ fun MessengerScreenHeader(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary, shape = CircleShape),
+                            .background(MaterialTheme.colorScheme.outline, shape = CircleShape),
                         contentScale = ContentScale.Crop
                     )
 

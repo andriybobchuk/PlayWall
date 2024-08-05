@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,17 +30,13 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.andriybobchuk.messenger.Constants.EMOJI_LIST
 import com.andriybobchuk.messenger.model.Message
 import com.andriybobchuk.messenger.model.Reaction
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
-import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
 import com.andriybobchuk.messenger.ui.theme.NAVY200
-import com.andriybobchuk.messenger.ui.theme.NAVY300
-import com.andriybobchuk.messenger.ui.theme.NAVY400
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 //

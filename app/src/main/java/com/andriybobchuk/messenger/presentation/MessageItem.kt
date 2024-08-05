@@ -440,7 +440,7 @@ fun ImageBox(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .background(Color.LightGray),
+                .background(MaterialTheme.colorScheme.outline),
             contentScale = ContentScale.Crop,
             requestBuilderTransform = { requestBuilder ->
                 requestBuilder.addListener(object : RequestListener<Drawable> {
@@ -514,6 +514,7 @@ fun CaptionAndTimestamp(
         ) {
             Text(
                 text = timestampAsTime(message.timestamp),
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(bottom = 8.dp, start = 8.dp, end = 8.dp)
             )
