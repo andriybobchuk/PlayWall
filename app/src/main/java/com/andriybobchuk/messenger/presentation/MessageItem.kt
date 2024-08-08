@@ -31,7 +31,6 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -53,10 +52,10 @@ import com.andriybobchuk.messenger.util.formatStatus
 import com.andriybobchuk.messenger.util.timestampAsTime
 import com.andriybobchuk.messenger.model.Message
 import com.andriybobchuk.messenger.util.calculateImageDimensions
-import com.andriybobchuk.messenger.presentation.components.EmojiBottomSheet
+import com.andriybobchuk.messenger.presentation.components.ReactSheet
 import com.andriybobchuk.messenger.presentation.components.FetchImageAspectRatio
-import com.andriybobchuk.messenger.presentation.components.MessageReactionBox
-import com.andriybobchuk.messenger.presentation.components.ReactionBottomSheet
+import com.andriybobchuk.messenger.presentation.components.MessageReactionIndicator
+import com.andriybobchuk.messenger.presentation.components.Reactions
 import com.andriybobchuk.messenger.presentation.components.getMaxMessageDimensions
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
@@ -66,8 +65,6 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 private const val LOG_TAG = "MessageItem"
 
@@ -83,6 +80,7 @@ private const val LOG_TAG = "MessageItem"
  *
  * @see SwipeToDismissBox - This is my swipe-to-reply functionality
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessageItem(
     viewModel: ChatViewModel,
@@ -90,13 +88,13 @@ fun MessageItem(
     message: Message,
     isLastMessage: Boolean
 ) {
-    var updatedMessage = message
-    val onComment = {
-//        viewModel.setReplyingToMessage(null) // To close previous panels
-//        updatedMessage = viewModel.getUpdatedMessageById(message.id)!!
-//        Log.e(LOG_TAG, "AAA surr mesg: " + updatedMessage)
-        viewModel.setReplyingToMessage(viewModel.getUpdatedMessageById(message.id)!!)
-    }
+    val coroutineScope = rememberCoroutineScope()
+    val reactSheet = rememberModalBottomSheetState()
+    val isReactSheetOpen = remember { mutableStateOf(false) }
+    val reactionsSheet = rememberModalBottomSheetState()
+    val isReactionsSheetOpen = remember { mutableStateOf(false) }
+    val onReact = { isReactSheetOpen.value = true }
+    val onCheckReactions = { isReactionsSheetOpen.value = true }
 
     val currentUserId = uiState.currentUser!!.id
     if (message.senderId == currentUserId) {
@@ -106,23 +104,36 @@ fun MessageItem(
             currentUserId = currentUserId,
             isLastMessage = isLastMessage,
             horizontalArrangement = Arrangement.End,
-            onSwipeComplete = {}
+            onReact = onReact,
+            onCheckReactions = onCheckReactions
         )
     } else {
-        // Gesture detection for swipe-to-reply
-        val offsetX = remember { mutableStateOf(0f) }
-        val swipeThreshold = with(LocalDensity.current) { 20.dp.toPx() } // Smaller threshold
-        val swipeSpeedFactor = 0.2f // Slower swipe speed
         MessageContent(
-            modifier = swipeModifier(offsetX, swipeSpeedFactor, swipeThreshold, onComment),
+            modifier = swipeModifier(onReact),
             viewModel = viewModel,
             message = message,
             currentUserId = currentUserId,
             isLastMessage = isLastMessage,
             horizontalArrangement = Arrangement.End,
-            onSwipeComplete = onComment
+            onReact = onReact,
+            onCheckReactions = onCheckReactions
         )
     }
+    ReactSheet(
+        viewModel = viewModel,
+        message = message,
+        currentUserId = currentUserId,
+        sheetState = reactSheet,
+        isSheetOpen = isReactSheetOpen,
+        coroutineScope = coroutineScope
+    )
+    Reactions(
+        viewModel = viewModel,
+        reactions = message.reactions,
+        sheetState = reactionsSheet,
+        isSheetOpen = isReactionsSheetOpen,
+        coroutineScope = coroutineScope
+    )
 }
 
 /**
@@ -135,9 +146,8 @@ fun MessageItem(
  *
  * @see EmojiPanel
  * @see MessageBubble
- * @see ReactionBottomSheet
+ * @see Reactions
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessageContent(
     modifier: Modifier = Modifier,
@@ -146,15 +156,10 @@ fun MessageContent(
     currentUserId: String,
     isLastMessage: Boolean,
     horizontalArrangement: Arrangement.Horizontal,
-    onSwipeComplete: () -> Unit
+    onReact: () -> Unit,
+    onCheckReactions: () -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState()
-    val emojiSheetState = rememberModalBottomSheetState()
-    val isSheetOpen = remember { mutableStateOf(false) }
-    val isEmojiSheetOpen = remember { mutableStateOf(false) }
     val isCurrentUser = message.senderId == currentUserId
-
     Column(
         modifier = modifier
     ) {
@@ -171,17 +176,13 @@ fun MessageContent(
                     viewModel = viewModel,
                     message = message,
                     currentUserId = currentUserId,
-                    coroutineScope = coroutineScope,
-                    isSheetOpen = isSheetOpen,
-                    isEmojiSheetOpen = isEmojiSheetOpen,
+                    onReact = onReact,
+                    onCheckReactions = onCheckReactions,
                     horizontalArrangement = horizontalArrangement
                 )
             }
-
             if (!isCurrentUser) {
-                ReplyButton {
-                    onSwipeComplete()
-                }
+                ReplyButton { onReact() }
                 Spacer(modifier = Modifier.weight(1 - HORIZONTAL_SCREEN_PERCENTAGE + 0.05f)) // Adjust space between bubble and button
             }
         }
@@ -196,58 +197,46 @@ fun MessageContent(
             )
         }
     }
-
-    EmojiBottomSheet(
-        viewModel = viewModel,
-        message = message,
-        currentUserId = currentUserId,
-        sheetState = emojiSheetState,
-        isSheetOpen = isEmojiSheetOpen,
-        coroutineScope = coroutineScope
-    )
-
-    ReactionBottomSheet(
-        viewModel = viewModel,
-        reactions = message.reactions,
-        sheetState = sheetState,
-        isSheetOpen = isSheetOpen,
-        coroutineScope = coroutineScope
-    )
 }
 
 @Composable
 private fun swipeModifier(
-    offsetX: MutableState<Float>,
-    swipeSpeedFactor: Float,
-    swipeThreshold: Float,
     onSwipeComplete: () -> Unit
-) = Modifier
-    .pointerInput(Unit) {
-        detectHorizontalDragGestures(
-            onHorizontalDrag = { change, dragAmount ->
-                if (dragAmount > 0) { // Only allow right swipe
-                    offsetX.value += dragAmount * swipeSpeedFactor
+): Modifier {
+    val offsetX = remember { mutableStateOf(0f) }
+    val swipeThreshold = with(LocalDensity.current) { 20.dp.toPx() }
+    val swipeSpeedFactor = 0.2f
+
+    return Modifier
+        .pointerInput(Unit) {
+            detectHorizontalDragGestures(
+                onHorizontalDrag = { change, dragAmount ->
+                    if (dragAmount > 0) { // Only allow right swipe
+                        offsetX.value += dragAmount * swipeSpeedFactor
+                    }
+                    if (offsetX.value > swipeThreshold) {
+                        onSwipeComplete()
+                        Log.e(LOG_TAG, "onSwipeComplete - Swipe Threshold Passed")
+                        offsetX.value = 0f
+                    }
+                    change.consume()
+                },
+                onDragEnd = {
+                    if (offsetX.value > swipeThreshold) {
+                        onSwipeComplete()
+                        Log.e(LOG_TAG, "onSwipeComplete - Drag End")
+                    }
+                    offsetX.value = 0f // Reset offset to snap back the bubble
+                },
+                onDragCancel = {
+                    offsetX.value = 0f // Reset offset to snap back the bubble
                 }
-                if (offsetX.value > swipeThreshold) {
-                    onSwipeComplete()
-                    Log.e(LOG_TAG, "onSwipeComplete - Swipe Threshold Passed")
-                    offsetX.value = 0f
-                }
-                change.consume()
-            },
-            onDragEnd = {
-                if (offsetX.value > swipeThreshold) {
-                    onSwipeComplete()
-                    Log.e(LOG_TAG, "onSwipeComplete - Drag End")
-                }
-                offsetX.value = 0f // Reset offset to snap back the bubble
-            },
-            onDragCancel = {
-                offsetX.value = 0f // Reset offset to snap back the bubble
-            }
-        )
-    }
-    .offset(x = offsetX.value.dp)
+            )
+        }
+        .offset(x = offsetX.value.dp)
+}
+
+
 
 /**
  * Represents the visual bubble for a chat message, including the image, caption,
@@ -259,7 +248,7 @@ private fun swipeModifier(
  *
  * @see ImageBox
  * @see CaptionAndTimestamp
- * @see MessageReactionBox
+ * @see MessageReactionIndicator
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -267,9 +256,8 @@ private fun MessageBubble(
     viewModel: ChatViewModel,
     message: Message,
     currentUserId: String,
-    coroutineScope: CoroutineScope,
-    isSheetOpen: MutableState<Boolean>,
-    isEmojiSheetOpen: MutableState<Boolean>,
+    onReact: () -> Unit,
+    onCheckReactions: () -> Unit,
     horizontalArrangement: Arrangement.Horizontal,
 ) {
     val (maxWidth, maxHeight) = getMaxMessageDimensions()
@@ -286,7 +274,6 @@ private fun MessageBubble(
         dimensionsLoaded = true
         Log.d(LOG_TAG, "Fetched aspect ratio for image: $ratio")
     }
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -301,11 +288,7 @@ private fun MessageBubble(
                 bubbleModifier(isCurrentUser)
                     .combinedClickable(
                         onClick = {},
-                        onLongClick = {
-                            coroutineScope.launch {
-                                isEmojiSheetOpen.value = true
-                            }
-                        }
+                        onLongClick = { onReact() }
                     )
             ) {
                 ImageBox(
@@ -313,13 +296,8 @@ private fun MessageBubble(
                     message = message,
                     imageWidth = imageWidth,
                     imageHeight = imageHeight,
-                    onReactionClick = {
-                        coroutineScope.launch {
-                            isEmojiSheetOpen.value = true
-                        }
-                    }
+                    onReactionClick = { onReact() }
                 )
-
                 CaptionAndTimestamp(
                     message = message,
                     imageWidth = imageWidth,
@@ -327,13 +305,9 @@ private fun MessageBubble(
                         .align(Alignment.End)
                 )
             }
-            MessageReactionBox(
+            MessageReactionIndicator(
                 reactions = message.reactions,
-                onReactionClick = {
-                    coroutineScope.launch {
-                        isSheetOpen.value = true
-                    }
-                },
+                onReactionClick = { onCheckReactions() },
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .offset(x = (-8).dp, y = 8.dp)
@@ -375,8 +349,6 @@ private fun bubbleModifier(isCurrentUser: Boolean) = Modifier
         color = if (isCurrentUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
     )
     .wrapContentWidth(align = Alignment.End)
-
-
 
 
 /**

@@ -14,7 +14,7 @@ data class MessengerUiState(
     val pickedImageCaption: String = "",
     val currentMessageId: String = "",
     val selectedMessage: Message? = null,
-    val replyingToMessage: Message? = null
+   // val replyingToMessage: Message? = null
 )
 
 data class PaginationState(

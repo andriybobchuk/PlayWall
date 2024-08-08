@@ -61,7 +61,7 @@ fun MessengerScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val replyingToMessage = uiState.replyingToMessage
+    //val replyingToMessage = uiState.replyingToMessage
     val currentUserId = uiState.currentUser!!.id
     val requestPermissionAndPickImage = rememberRequestPermissionAndPickImage(
         context = LocalContext.current,
@@ -143,18 +143,18 @@ fun MessengerScreen(
                     )
                 }
             }
-            if (replyingToMessage != null) {
-                Log.e(LOG_TAG, "MessengerScreen replyingToMessage = : ${replyingToMessage.caption}")
-                ReplyField(
-                    message = replyingToMessage,
-                    onCancel = { viewModel.setReplyingToMessage(null) },
-                    onComment = { newCaption ->
-                        viewModel.updateMessageCaption(replyingToMessage, newCaption)
-                        viewModel.setReplyingToMessage(null)
-                    },
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                )
-            }
+//            if (replyingToMessage != null) {
+//                Log.e(LOG_TAG, "MessengerScreen replyingToMessage = : ${replyingToMessage.caption}")
+//                ReplyField(
+//                    message = replyingToMessage,
+//                    onCancel = { viewModel.setReplyingToMessage(null) },
+//                    onComment = { newCaption ->
+//                        viewModel.updateMessageCaption(replyingToMessage, newCaption)
+//                        viewModel.setReplyingToMessage(null)
+//                    },
+//                    modifier = Modifier.align(Alignment.BottomCenter)
+//                )
+//            }
         }
     }
 }
@@ -236,11 +236,11 @@ fun MessengerScreen(
 //}
 
 
-fun onComment(message: Message, viewModel: ChatViewModel) {
-    viewModel.setReplyingToMessage(null) // To close previous panels
-    val updatedMessage = viewModel.getUpdatedMessageById(message.id)!!
-    viewModel.setReplyingToMessage(updatedMessage)
-}
+//fun onComment(message: Message, viewModel: ChatViewModel) {
+//    viewModel.setReplyingToMessage(null) // To close previous panels
+//    val updatedMessage = viewModel.getUpdatedMessageById(message.id)!!
+//    viewModel.setReplyingToMessage(updatedMessage)
+//}
 @Composable
 fun MessagesList(
     viewModel: ChatViewModel,
@@ -346,74 +346,74 @@ fun ScrollToBottomButton(
     }
 }
 
-@Composable
-fun ReplyField(
-    message: Message,
-    onCancel: () -> Unit,
-    onComment: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var text by remember { mutableStateOf(message.caption ?: "") }
-    val roundedShape = RoundedCornerShape(48.dp)
-
-    Log.e(LOG_TAG, "text: " + text)
-
-    Column(
-        modifier = modifier
-            .padding(8.dp)
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer, shape = roundedShape)
-            .padding(5.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp), // To create space for buttons
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp) // Spacing between items
-        ) {
-            Button(
-                onClick = onCancel,
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(MaterialTheme.colorScheme.background, shape = CircleShape),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background),
-                contentPadding = PaddingValues(0.dp) // No extra padding inside the button
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Cancel",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-
-            TextField(
-                value = text,
-                onValueChange = { text = it },
-                label = { Text("Your comment...") },
-                modifier = Modifier
-                    .weight(1f) // Allows the TextField to take remaining space
-                    .background(MaterialTheme.colorScheme.primaryContainer, shape = roundedShape),
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    focusedIndicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                    unfocusedIndicatorColor = MaterialTheme.colorScheme.primaryContainer
-                ),
-                singleLine = true,
-                textStyle = TextStyle(fontSize = 16.sp),
-                shape = roundedShape
-            )
-            Button(
-                onClick = { onComment(text) },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-            ) {
-                Text("Comment", color = MaterialTheme.colorScheme.background)
-            }
-        }
-    }
-}
+//@Composable
+//fun ReplyField(
+//    message: Message,
+//    onCancel: () -> Unit,
+//    onComment: (String) -> Unit,
+//    modifier: Modifier = Modifier
+//) {
+//    var text by remember { mutableStateOf(message.caption ?: "") }
+//    val roundedShape = RoundedCornerShape(48.dp)
+//
+//    Log.e(LOG_TAG, "text: " + text)
+//
+//    Column(
+//        modifier = modifier
+//            .padding(8.dp)
+//            .fillMaxWidth()
+//            .background(MaterialTheme.colorScheme.primaryContainer, shape = roundedShape)
+//            .padding(5.dp)
+//    ) {
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(horizontal = 10.dp), // To create space for buttons
+//            verticalAlignment = Alignment.CenterVertically,
+//            horizontalArrangement = Arrangement.spacedBy(8.dp) // Spacing between items
+//        ) {
+//            Button(
+//                onClick = onCancel,
+//                modifier = Modifier
+//                    .size(32.dp)
+//                    .background(MaterialTheme.colorScheme.background, shape = CircleShape),
+//                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background),
+//                contentPadding = PaddingValues(0.dp) // No extra padding inside the button
+//            ) {
+//                Icon(
+//                    imageVector = Icons.Default.Close,
+//                    contentDescription = "Cancel",
+//                    tint = MaterialTheme.colorScheme.primary,
+//                    modifier = Modifier.size(24.dp)
+//                )
+//            }
+//
+//            TextField(
+//                value = text,
+//                onValueChange = { text = it },
+//                label = { Text("Your comment...") },
+//                modifier = Modifier
+//                    .weight(1f) // Allows the TextField to take remaining space
+//                    .background(MaterialTheme.colorScheme.primaryContainer, shape = roundedShape),
+//                colors = TextFieldDefaults.colors(
+//                    unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+//                    focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+//                    focusedIndicatorColor = MaterialTheme.colorScheme.primaryContainer,
+//                    unfocusedIndicatorColor = MaterialTheme.colorScheme.primaryContainer
+//                ),
+//                singleLine = true,
+//                textStyle = TextStyle(fontSize = 16.sp),
+//                shape = roundedShape
+//            )
+//            Button(
+//                onClick = { onComment(text) },
+//                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+//            ) {
+//                Text("Comment", color = MaterialTheme.colorScheme.background)
+//            }
+//        }
+//    }
+//}
 
 /**
  * Displays the header of the messenger screen with recipient's information

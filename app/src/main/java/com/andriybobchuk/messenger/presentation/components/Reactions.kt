@@ -16,20 +16,28 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.andriybobchuk.messenger.util.Constants.EMOJI_LIST
@@ -39,14 +47,13 @@ import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
 import com.andriybobchuk.messenger.ui.theme.NAVY200
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.util.Calendar
 
 /**
  * Displays the emoji reactions for a message in a small box that can be clicked to open
  * a larger reaction panel. Handles click events to manage reactions.
  */
 @Composable
-fun MessageReactionBox(
+fun MessageReactionIndicator(
     reactions: List<Reaction>,
     onReactionClick: () -> Unit,
     modifier: Modifier
@@ -84,7 +91,7 @@ fun MessageReactionBox(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReactionBottomSheet(
+fun Reactions(
     viewModel: ChatViewModel,
     reactions: List<Reaction>,
     sheetState: SheetState,
@@ -142,7 +149,7 @@ fun ReactionBottomSheet(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EmojiBottomSheet(
+fun ReactSheet(
     viewModel: ChatViewModel,
     message: Message,
     currentUserId: String,
@@ -166,13 +173,8 @@ fun EmojiBottomSheet(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp)
             ) {
-                Text(
-                    text = "Select Emoji",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -205,32 +207,91 @@ fun EmojiBottomSheet(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-                Button(
-                    onClick = {
-                        if (isCurrentUser) {
+                if (isCurrentUser) {
+                    Button(
+                        onClick = {
                             viewModel.deleteMessage(message.id)
-                        } else {
-                            viewModel.setReplyingToMessage(message)
-                        }
-                        isSheetOpen.value = false
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    colors = ButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.primary, disabledContentColor = MaterialTheme.colorScheme.tertiary, disabledContainerColor = Color.Black),
-                    shape = RoundedCornerShape(14.dp)
-                ) {
-                    Icon(
-                        imageVector = if (isCurrentUser) Icons.Default.Delete else Icons.Default.Send,
-                        contentDescription = if (isCurrentUser) "Delete this message" else "Reply to message"
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (isCurrentUser) "Delete this message" else "Reply to message",
-                        color = MaterialTheme.colorScheme.primary
+                            isSheetOpen.value = false
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        colors = ButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.primary, disabledContentColor = MaterialTheme.colorScheme.tertiary, disabledContainerColor = Color.Black),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete this message"
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Delete this message",
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                } else {
+                    ReplyField(
+                        message = message,
+                        viewModel = viewModel,
+                        isSheetOpen = isSheetOpen
                     )
                 }
+
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun ReplyField(
+    message: Message,
+    viewModel: ChatViewModel,
+    isSheetOpen: MutableState<Boolean>,
+) {
+    var text by remember { mutableStateOf(message.caption ?: "") }
+    val roundedShape = RoundedCornerShape(14.dp)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primaryContainer, shape = roundedShape)
+            .padding(5.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TextField(
+                value = text,
+                onValueChange = { text = it },
+                label = { Text("Your comment...") },
+                modifier = Modifier
+                    .weight(1f)
+                    .background(MaterialTheme.colorScheme.primaryContainer, shape = roundedShape),
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.primaryContainer
+                ),
+                singleLine = true,
+                textStyle = TextStyle(fontSize = 16.sp),
+                shape = roundedShape
+            )
+            Button(
+                onClick = {
+                    viewModel.updateMessageCaption(message, text)
+                    isSheetOpen.value = false
+                          },
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text("Comment", color = MaterialTheme.colorScheme.background)
             }
         }
     }
