@@ -1,30 +1,17 @@
 import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
 import android.util.Log
-import android.widget.Toast
-import androidx.compose.animation.animateColor
-import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.core.animateDp
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -36,20 +23,13 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxState
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -57,38 +37,28 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.andriybobchuk.messenger.Constants.HORIZONTAL_SCREEN_PERCENTAGE
-import com.andriybobchuk.messenger.Constants.MESSAGE_CORNER_RADIUS
-import com.andriybobchuk.messenger.presentation.formatStatus
-import com.andriybobchuk.messenger.presentation.timestampAsTime
+import com.andriybobchuk.messenger.util.Constants.HORIZONTAL_SCREEN_PERCENTAGE
+import com.andriybobchuk.messenger.util.Constants.MESSAGE_CORNER_RADIUS
+import com.andriybobchuk.messenger.util.formatStatus
+import com.andriybobchuk.messenger.util.timestampAsTime
 import com.andriybobchuk.messenger.model.Message
-import com.andriybobchuk.messenger.model.Reaction
-import com.andriybobchuk.messenger.presentation.calculateImageDimensions
+import com.andriybobchuk.messenger.util.calculateImageDimensions
 import com.andriybobchuk.messenger.presentation.components.EmojiBottomSheet
 import com.andriybobchuk.messenger.presentation.components.FetchImageAspectRatio
 import com.andriybobchuk.messenger.presentation.components.MessageReactionBox
 import com.andriybobchuk.messenger.presentation.components.ReactionBottomSheet
 import com.andriybobchuk.messenger.presentation.components.getMaxMessageDimensions
-import com.andriybobchuk.messenger.presentation.overlays.image_detail.FullscreenImageViewer
-import com.andriybobchuk.messenger.presentation.timestampAsDate
-import com.andriybobchuk.messenger.presentation.triggerHapticFeedback
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
-import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel.Companion
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
@@ -99,13 +69,7 @@ import com.bumptech.glide.request.target.Target
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-import com.bumptech.glide.integration.compose.GlideImage
-import kotlinx.coroutines.delay
-import kotlin.math.roundToInt
-
 private const val LOG_TAG = "MessageItem"
-const val ANIMATION_DURATION = 500
-const val MIN_DRAG_AMOUNT = 6
 
 /**
  * Main MessageItem function.
@@ -119,15 +83,21 @@ const val MIN_DRAG_AMOUNT = 6
  *
  * @see SwipeToDismissBox - This is my swipe-to-reply functionality
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessageItem(
     viewModel: ChatViewModel,
     uiState: MessengerUiState,
     message: Message,
-    isLastMessage: Boolean,
-    onSwipeComplete: () -> Unit
+    isLastMessage: Boolean
 ) {
+    var updatedMessage = message
+    val onComment = {
+//        viewModel.setReplyingToMessage(null) // To close previous panels
+//        updatedMessage = viewModel.getUpdatedMessageById(message.id)!!
+//        Log.e(LOG_TAG, "AAA surr mesg: " + updatedMessage)
+        viewModel.setReplyingToMessage(viewModel.getUpdatedMessageById(message.id)!!)
+    }
+
     val currentUserId = uiState.currentUser!!.id
     if (message.senderId == currentUserId) {
         MessageContent(
@@ -136,25 +106,23 @@ fun MessageItem(
             currentUserId = currentUserId,
             isLastMessage = isLastMessage,
             horizontalArrangement = Arrangement.End,
-            onSwipeComplete = onSwipeComplete
+            onSwipeComplete = {}
         )
     } else {
-        Log.e(LOG_TAG, "Their message harvested: $message")
         // Gesture detection for swipe-to-reply
         val offsetX = remember { mutableStateOf(0f) }
         val swipeThreshold = with(LocalDensity.current) { 20.dp.toPx() } // Smaller threshold
         val swipeSpeedFactor = 0.2f // Slower swipe speed
         MessageContent(
-            modifier = swipeModifier(offsetX, swipeSpeedFactor, swipeThreshold, onSwipeComplete),
+            modifier = swipeModifier(offsetX, swipeSpeedFactor, swipeThreshold, onComment),
             viewModel = viewModel,
             message = message,
             currentUserId = currentUserId,
             isLastMessage = isLastMessage,
             horizontalArrangement = Arrangement.End,
-            onSwipeComplete = onSwipeComplete
+            onSwipeComplete = onComment
         )
     }
-
 }
 
 /**
@@ -212,7 +180,6 @@ fun MessageContent(
 
             if (!isCurrentUser) {
                 ReplyButton {
-                    Log.e(LOG_TAG, "onSwipeComplete")
                     onSwipeComplete()
                 }
                 Spacer(modifier = Modifier.weight(1 - HORIZONTAL_SCREEN_PERCENTAGE + 0.05f)) // Adjust space between bubble and button
@@ -222,6 +189,7 @@ fun MessageContent(
             Text(
                 text = formatStatus(message.status),
                 color = MaterialTheme.colorScheme.secondary,
+                style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier
                     .align(Alignment.End)
                     .padding(end = 16.dp)
@@ -262,7 +230,7 @@ private fun swipeModifier(
                 }
                 if (offsetX.value > swipeThreshold) {
                     onSwipeComplete()
-                    Log.e(LOG_TAG, "onSwipeComplete")
+                    Log.e(LOG_TAG, "onSwipeComplete - Swipe Threshold Passed")
                     offsetX.value = 0f
                 }
                 change.consume()
@@ -270,7 +238,7 @@ private fun swipeModifier(
             onDragEnd = {
                 if (offsetX.value > swipeThreshold) {
                     onSwipeComplete()
-                    Log.e(LOG_TAG, "onSwipeComplete")
+                    Log.e(LOG_TAG, "onSwipeComplete - Drag End")
                 }
                 offsetX.value = 0f // Reset offset to snap back the bubble
             },

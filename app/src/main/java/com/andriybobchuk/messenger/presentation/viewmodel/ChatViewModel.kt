@@ -12,7 +12,7 @@ import com.andriybobchuk.messenger.model.Message
 import com.andriybobchuk.messenger.model.MessageStatus
 import com.andriybobchuk.messenger.model.Reaction
 import com.andriybobchuk.messenger.model.User
-import com.andriybobchuk.messenger.presentation.DefaultPaginator
+import com.andriybobchuk.messenger.presentation.pagination.DefaultPaginator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -97,7 +97,8 @@ class ChatViewModel : ViewModel() {
     }
 
     fun setReplyingToMessage(message: Message?) {
-        Log.e(LOG_TAG, "eplyingToMessage = $message")
+        clearReplyingToMessage()
+        Log.e(LOG_TAG, "setReplyingToMessage with message: ${message?.caption}")
         _uiState.update { currentState ->
             currentState.copy(replyingToMessage = message)
         }
@@ -230,6 +231,8 @@ class ChatViewModel : ViewModel() {
         val updatedMessage = message.copy(caption = newCaption)
         repository.updateMessage(updatedMessage)
 
+        Log.e(LOG_TAG, "updateMessageCaption with newCaption: ${newCaption}")
+
         // Update the message in the UI state
         _uiState.update { currentState ->
             val updatedMessages = currentState.messages.map {
@@ -249,5 +252,9 @@ class ChatViewModel : ViewModel() {
             return ""
         }
         return ""
+    }
+
+    fun getUpdatedMessageById(messageId: String): Message? {
+        return _uiState.value.messages.find { it.id == messageId }
     }
 }

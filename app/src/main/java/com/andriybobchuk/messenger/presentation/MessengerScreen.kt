@@ -2,9 +2,7 @@ package com.andriybobchuk.messenger.presentation
 
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
 import MessageItem
-import android.content.Context
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,7 +17,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,15 +35,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
 import com.andriybobchuk.messenger.presentation.components.rememberRequestPermissionAndPickImage
 import com.andriybobchuk.messenger.model.User
+import com.andriybobchuk.messenger.presentation.components.BuildCounterDisplay
 import com.andriybobchuk.messenger.presentation.components.ConnectivityStatus
-import com.andriybobchuk.messenger.presentation.overlays.FullscreenPopup
-import com.andriybobchuk.messenger.presentation.overlays.ImagePickerScreen
-import com.andriybobchuk.messenger.presentation.overlays.image_detail.FullscreenImageViewer
-import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel.Companion
+import com.andriybobchuk.messenger.presentation.overlays.ImagePicker
+import com.andriybobchuk.messenger.presentation.overlays.ImageViewer
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
+import com.andriybobchuk.messenger.util.isSameDay
+import com.andriybobchuk.messenger.util.timestampAsDate
 import kotlinx.coroutines.launch
-import java.util.Calendar
-
 
 private const val LOG_TAG = "MessengerScreen"
 
@@ -67,7 +63,6 @@ fun MessengerScreen(
     val uiState by viewModel.uiState.collectAsState()
     val replyingToMessage = uiState.replyingToMessage
     val currentUserId = uiState.currentUser!!.id
-
     val requestPermissionAndPickImage = rememberRequestPermissionAndPickImage(
         context = LocalContext.current,
         onImagePicked = { uri ->
@@ -76,7 +71,6 @@ fun MessengerScreen(
     )
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-
     val isAtBottom by remember {
         derivedStateOf {
             val lastIndex = 0
@@ -88,7 +82,7 @@ fun MessengerScreen(
     val selectedMessage = uiState.selectedMessage
     val pickedImageUri = uiState.pickedImageUri
     if (selectedMessage != null) {
-        FullscreenImageViewer(
+        ImageViewer(
             currentUserId = currentUserId,
             message = selectedMessage,
             viewModel = viewModel,
@@ -99,7 +93,7 @@ fun MessengerScreen(
             }
         )
     } else if (pickedImageUri != null) {
-        ImagePickerScreen(
+        ImagePicker(
             imageUri = uiState.pickedImageUri,
             caption = uiState.pickedImageCaption,
             onSendClick = { uri, caption ->
@@ -113,7 +107,6 @@ fun MessengerScreen(
     }
 
     val isConnected = ConnectivityStatus()
-
     LaunchedEffect(isConnected) {
         viewModel.setConnectivityStatus(isConnected)
     }
@@ -124,15 +117,10 @@ fun MessengerScreen(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxSize()
-                //.background(Color.Gray.copy(alpha = 0.1f))
         ) {
             MessagesList(
                 viewModel = viewModel,
                 uiState = uiState,
-                onSwipeComplete = { message ->
-                    Log.e(LOG_TAG, "viewModel.setReplyingToMessage(message) = $message")
-                    viewModel.setReplyingToMessage(message)
-                },
                 scrollState = scrollState
             )
             Row(
@@ -156,7 +144,7 @@ fun MessengerScreen(
                 }
             }
             if (replyingToMessage != null) {
-               // triggerHapticFeedback(LocalContext.current)
+                Log.e(LOG_TAG, "MessengerScreen replyingToMessage = : ${replyingToMessage.caption}")
                 ReplyField(
                     message = replyingToMessage,
                     onCancel = { viewModel.setReplyingToMessage(null) },
@@ -171,18 +159,92 @@ fun MessengerScreen(
     }
 }
 
-
 /**
  * Displays a list of messages grouped by date separated by DateHeader tags.
  * Provides functionality to handle image click events and auto-scrolls to the latest message.
  *
  * @see DateHeader
  */
+//@Composable
+//fun MessagesList(
+//    viewModel: ChatViewModel,
+//    uiState: MessengerUiState,
+//    onSwipeComplete: (Message) -> Unit,
+//    scrollState: LazyListState
+//) {
+//    val messages = uiState.messages
+//    if (messages.isEmpty()) return
+//
+//    LazyColumn(
+//        state = scrollState,
+//        reverseLayout = true,
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .background(MaterialTheme.colorScheme.background)
+//    ) {
+//        item {
+//            Spacer(modifier = Modifier.height(64.dp))
+//        }
+//
+//        items(messages.size) { i ->
+//            val message = messages[i]
+//            Log.e(LOG_TAG, "sortedMessages.size : " + messages.size)
+//            if (i >= messages.size - 1 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
+//                viewModel.loadMessages()
+//            }
+//
+//            val isLastMessage = message.id == viewModel.getLastMessageId()
+//            Row(
+//                modifier = Modifier.fillMaxWidth(),
+//                horizontalArrangement = Arrangement.End
+//            ) {
+//                MessageItem(
+//                    viewModel = viewModel,
+//                    message = message,
+//                    uiState = uiState,
+//                    isLastMessage = isLastMessage,
+//                    onSwipeComplete = { onSwipeComplete(message) }
+//                )
+//            }
+//            Spacer(modifier = Modifier.height(6.dp))
+//
+//            // Determine if a date header should be shown before this message
+//            val showDateHeader = if (i == messages.size - 1) {
+//                true
+//            } else {
+//                !isSameDay(message.timestamp, messages[i + 1].timestamp)
+//            }
+//
+//            if (showDateHeader) {
+//                DateHeader(date = timestampAsDate(message.timestamp))
+//            }
+//        }
+//
+//        item {
+//            if (viewModel.paginationState.isLoading) {
+//                Row(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(8.dp),
+//                    horizontalArrangement = Arrangement.Center
+//                ) {
+//                    CircularProgressIndicator()
+//                }
+//            }
+//        }
+//    }
+//}
+
+
+fun onComment(message: Message, viewModel: ChatViewModel) {
+    viewModel.setReplyingToMessage(null) // To close previous panels
+    val updatedMessage = viewModel.getUpdatedMessageById(message.id)!!
+    viewModel.setReplyingToMessage(updatedMessage)
+}
 @Composable
 fun MessagesList(
     viewModel: ChatViewModel,
     uiState: MessengerUiState,
-    onSwipeComplete: (Message) -> Unit,
     scrollState: LazyListState
 ) {
     val messages = uiState.messages
@@ -199,19 +261,13 @@ fun MessagesList(
             Spacer(modifier = Modifier.height(64.dp))
         }
 
-        items(messages.size) { i ->
-            val message = messages[i]
+        items(messages, key = { it.id }) { message ->
             Log.e(LOG_TAG, "sortedMessages.size : " + messages.size)
-            if (i >= messages.size - 1 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
+            if (messages.indexOf(message) >= messages.size - 1 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
                 viewModel.loadMessages()
             }
 
             val isLastMessage = message.id == viewModel.getLastMessageId()
-
-            if(isLastMessage) {
-                Log.e(LOG_TAG, "UISTATE: " + uiState.messages[i].caption)
-            }
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
@@ -220,17 +276,16 @@ fun MessagesList(
                     viewModel = viewModel,
                     message = message,
                     uiState = uiState,
-                    isLastMessage = isLastMessage,
-                    onSwipeComplete = { onSwipeComplete(uiState.messages[i]) }
+                    isLastMessage = isLastMessage
                 )
             }
             Spacer(modifier = Modifier.height(6.dp))
 
             // Determine if a date header should be shown before this message
-            val showDateHeader = if (i == messages.size - 1) {
+            val showDateHeader = if (messages.indexOf(message) == messages.size - 1) {
                 true
             } else {
-                !isSameDay(message.timestamp, messages[i + 1].timestamp)
+                !isSameDay(message.timestamp, messages[messages.indexOf(message) + 1].timestamp)
             }
 
             if (showDateHeader) {
@@ -250,17 +305,8 @@ fun MessagesList(
                 }
             }
         }
-
     }
 }
-
-fun isSameDay(timestamp1: Long, timestamp2: Long): Boolean {
-    val calendar1 = Calendar.getInstance().apply { timeInMillis = timestamp1 }
-    val calendar2 = Calendar.getInstance().apply { timeInMillis = timestamp2 }
-    return calendar1.get(Calendar.YEAR) == calendar2.get(Calendar.YEAR) &&
-            calendar1.get(Calendar.DAY_OF_YEAR) == calendar2.get(Calendar.DAY_OF_YEAR)
-}
-
 
 /**
  * Displays the date header tag to separate messages grouped by date.
@@ -437,21 +483,12 @@ fun MessengerScreenHeader(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-
                     BuildCounterDisplay()
                 }
             }
         }
         HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.primaryContainer)
     }
-}
-
-@Composable
-fun BuildCounterDisplay() {
-    val context = LocalContext.current
-    val buildCounter = remember { getBuildCounter(context) }
-
-    Text(text = "Build #$buildCounter", fontSize = 14.sp, modifier = Modifier.padding(16.dp))
 }
 
 /**

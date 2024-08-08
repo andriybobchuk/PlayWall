@@ -32,73 +32,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.andriybobchuk.messenger.Constants.EMOJI_LIST
+import com.andriybobchuk.messenger.util.Constants.EMOJI_LIST
 import com.andriybobchuk.messenger.model.Message
 import com.andriybobchuk.messenger.model.Reaction
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
 import com.andriybobchuk.messenger.ui.theme.NAVY200
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-//
-///**
-// * Displays a panel of emojis for the user to select as reactions to a message.
-// * Highlights the currently selected emoji, if any.
-// *
-// * @param selectedEmoji The currently selected emoji.
-// * @param onEmojiClick A callback function that is invoked when an emoji is clicked,
-// *                     passing the clicked emoji as a parameter.
-// */
-//@Composable
-//fun EmojiPanel(
-//    showEmojiPanel: MutableState<Boolean>,
-//    viewModel: ChatViewModel,
-//    message: Message,
-//    currentUserId: String,
-//    horizontalArrangement: Arrangement.Horizontal
-//) {
-//    val selectedEmoji = viewModel.getUserReaction(message.id, currentUserId)?.emoji
-//    Row(
-//        modifier = Modifier
-//            .padding(top = 8.dp, end = 8.dp)
-//            .fillMaxWidth(),
-//        horizontalArrangement = horizontalArrangement
-//    ) {
-//        if (showEmojiPanel.value) {
-//            Row(
-//                modifier = Modifier
-//                    .clip(RoundedCornerShape(32.dp))
-//                    .background(LightGrey)
-//                    .padding(3.dp),
-//                horizontalArrangement = Arrangement.SpaceAround
-//            ) {
-//                val emojis = EMOJI_LIST
-//                emojis.forEach { emoji ->
-//                    val isSelected = emoji == selectedEmoji
-//                    Text(
-//                        text = emoji,
-//                        fontSize = 18.sp,
-//                        color = if (isSelected) Color.Black else Color.Unspecified,
-//                        modifier = Modifier
-//                            .background(
-//                                if (isSelected) Color.DarkGray.copy(alpha = 0.2f) else Color.Transparent,
-//                                shape = CircleShape
-//                            )
-//                            .clickable {
-//                                if (selectedEmoji == emoji) {
-//                                    viewModel.removeReaction(message.id, currentUserId)
-//                                } else {
-//                                    val reaction = Reaction(userName = currentUserId, emoji = emoji)
-//                                    viewModel.addOrUpdateReaction(message.id, reaction)
-//                                }
-//                                showEmojiPanel.value = false
-//                            }
-//                            .padding(6.dp)
-//                    )
-//                }
-//            }
-//        }
-//    }
-//}
+import java.util.Calendar
 
 /**
  * Displays the emoji reactions for a message in a small box that can be clicked to open
@@ -294,3 +235,4 @@ fun EmojiBottomSheet(
         }
     }
 }
+
