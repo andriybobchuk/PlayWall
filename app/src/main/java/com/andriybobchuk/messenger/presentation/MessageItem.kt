@@ -44,8 +44,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.andriybobchuk.messenger.R
 import com.andriybobchuk.messenger.util.Constants.HORIZONTAL_SCREEN_PERCENTAGE
 import com.andriybobchuk.messenger.util.Constants.MESSAGE_CORNER_RADIUS
 import com.andriybobchuk.messenger.util.formatStatus
@@ -72,13 +74,11 @@ private const val LOG_TAG = "MessageItem"
  * Main MessageItem function.
  * - Represents a single message item in the chat UI.
  * - Decides if this message belongs to us or the other person and applies appropriate parameters.
- * - Handles the display of the message content and applies swipe-to-dismiss(reply) behavior for
+ * - Handles the display of the message content and applies swipe-to-react behavior for
  * received messages.
  *
  * Splitting this functionality into different functions helps to maintain a clear separation of concerns,
  * making the code more modular and easier to maintain.
- *
- * @see SwipeToDismissBox - This is my swipe-to-reply functionality
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -137,14 +137,9 @@ fun MessageItem(
 }
 
 /**
- * Displays the main content of a chat message, including emoji panel, message bubble,
- * and reactions bottom sheet. This function focuses on structuring the message layout
- * and managing state for interactions like emoji reactions and bottom sheet visibility.
+ * Displays the main content of a chat message.
+ * This function focuses on structuring the message layout.
  *
- * This separation allows for focused management of message display logic while keeping the
- * swipe-to-dismiss(reply) and other behaviors modular.
- *
- * @see EmojiPanel
  * @see MessageBubble
  * @see Reactions
  */
@@ -216,7 +211,7 @@ private fun swipeModifier(
                     }
                     if (offsetX.value > swipeThreshold) {
                         onSwipeComplete()
-                        Log.e(LOG_TAG, "onSwipeComplete - Swipe Threshold Passed")
+                        Log.d(LOG_TAG, "onSwipeComplete - Swipe Threshold Passed")
                         offsetX.value = 0f
                     }
                     change.consume()
@@ -224,19 +219,17 @@ private fun swipeModifier(
                 onDragEnd = {
                     if (offsetX.value > swipeThreshold) {
                         onSwipeComplete()
-                        Log.e(LOG_TAG, "onSwipeComplete - Drag End")
+                        Log.d(LOG_TAG, "onSwipeComplete - Drag End")
                     }
                     offsetX.value = 0f // Reset offset to snap back the bubble
                 },
                 onDragCancel = {
-                    offsetX.value = 0f // Reset offset to snap back the bubble
+                    offsetX.value = 0f
                 }
             )
         }
         .offset(x = offsetX.value.dp)
 }
-
-
 
 /**
  * Represents the visual bubble for a chat message, including the image, caption,
@@ -272,7 +265,6 @@ private fun MessageBubble(
     FetchImageAspectRatio(message.imageUrl) { ratio ->
         aspectRatio = ratio
         dimensionsLoaded = true
-        Log.d(LOG_TAG, "Fetched aspect ratio for image: $ratio")
     }
     Row(
         modifier = Modifier
@@ -328,7 +320,7 @@ fun ReplyButton(onClick: () -> Unit) {
     ) {
         Icon(
             imageVector = Icons.Filled.Send,
-            contentDescription = "Reply",
+            contentDescription = stringResource(R.string.reply),
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(16.dp)
         )
@@ -376,7 +368,7 @@ fun ImageBox(
     ) {
         GlideImage(
             model = message.imageUrl,
-            contentDescription = "Message Image",
+            contentDescription = stringResource(R.string.message_image),
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
@@ -405,7 +397,7 @@ fun ImageBox(
                         dataSource: DataSource,
                         isFirstResource: Boolean
                     ): Boolean {
-                        Log.d(LOG_TAG, "Image loaded successfully")
+                        Log.i(LOG_TAG, "Image loaded successfully")
                         return false
                     }
                 })

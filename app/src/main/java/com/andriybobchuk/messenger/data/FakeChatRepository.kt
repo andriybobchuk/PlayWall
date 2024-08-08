@@ -13,7 +13,6 @@ class FakeChatRepository {
         private const val LOG_TAG = "FakeChatRepository"
     }
 
-    // Fake in-memory storage
     private val _messages = mutableListOf<Message>()
     private val _currentUser = User(
         id = "user1",
@@ -297,9 +296,5 @@ class FakeChatRepository {
             return "Tom Sawyer"
         }
         return "Unknown"
-    }
-
-    fun getMessageById(messageId: String): Message? {
-        return _messages.find { it.id == messageId }
     }
 }

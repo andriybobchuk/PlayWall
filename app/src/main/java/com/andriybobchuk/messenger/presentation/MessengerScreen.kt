@@ -31,8 +31,10 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
+import com.andriybobchuk.messenger.R
 import com.andriybobchuk.messenger.presentation.components.rememberRequestPermissionAndPickImage
 import com.andriybobchuk.messenger.model.User
 import com.andriybobchuk.messenger.presentation.components.BuildCounterDisplay
@@ -44,15 +46,11 @@ import com.andriybobchuk.messenger.util.isSameDay
 import com.andriybobchuk.messenger.util.timestampAsDate
 import kotlinx.coroutines.launch
 
-private const val LOG_TAG = "MessengerScreen"
-
 /**
  * Main screen for the messenger feature, displaying the header, messages list,
  * and send image button. Also, if any overlays are enabled like fullscreen view of a specific
  * picture or image picker, it shows it.
  * Heavily relies on viewmodel for state management.
- *
- * @see showOverlays
  */
 @Composable
 fun MessengerScreen(
@@ -61,10 +59,8 @@ fun MessengerScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    //val replyingToMessage = uiState.replyingToMessage
     val currentUserId = uiState.currentUser!!.id
     val requestPermissionAndPickImage = rememberRequestPermissionAndPickImage(
-        context = LocalContext.current,
         onImagePicked = { uri ->
             viewModel.setPickedImage(uri)
         }
@@ -78,38 +74,12 @@ fun MessengerScreen(
             lastVisibleItem?.index == lastIndex
         }
     }
-
-    val selectedMessage = uiState.selectedMessage
-    val pickedImageUri = uiState.pickedImageUri
-    if (selectedMessage != null) {
-        ImageViewer(
-            currentUserId = currentUserId,
-            message = selectedMessage,
-            viewModel = viewModel,
-            onDismiss = { viewModel.setSelectedMessage(null) },
-            onDelete = {
-                viewModel.deleteMessage(selectedMessage.id)
-                viewModel.setSelectedMessage(null)
-            }
-        )
-    } else if (pickedImageUri != null) {
-        ImagePicker(
-            imageUri = uiState.pickedImageUri,
-            caption = uiState.pickedImageCaption,
-            onSendClick = { uri, caption ->
-                viewModel.sendImage(uri, caption)
-                viewModel.setPickedImage(null)
-            },
-            onDismiss = {
-                viewModel.setPickedImage(null)
-            }
-        )
-    }
-
     val isConnected = ConnectivityStatus()
     LaunchedEffect(isConnected) {
         viewModel.setConnectivityStatus(isConnected)
     }
+
+    FullscreenOverlays(uiState, currentUserId, viewModel)
 
     Column(modifier = modifier.fillMaxSize()) {
         MessengerScreenHeader(recipient = uiState.recipient!!, onBackClick = onBackClick)
@@ -143,19 +113,41 @@ fun MessengerScreen(
                     )
                 }
             }
-//            if (replyingToMessage != null) {
-//                Log.e(LOG_TAG, "MessengerScreen replyingToMessage = : ${replyingToMessage.caption}")
-//                ReplyField(
-//                    message = replyingToMessage,
-//                    onCancel = { viewModel.setReplyingToMessage(null) },
-//                    onComment = { newCaption ->
-//                        viewModel.updateMessageCaption(replyingToMessage, newCaption)
-//                        viewModel.setReplyingToMessage(null)
-//                    },
-//                    modifier = Modifier.align(Alignment.BottomCenter)
-//                )
-//            }
         }
+    }
+}
+
+@Composable
+private fun FullscreenOverlays(
+    uiState: MessengerUiState,
+    currentUserId: String,
+    viewModel: ChatViewModel
+) {
+    val selectedMessage = uiState.selectedMessage
+    val pickedImageUri = uiState.pickedImageUri
+    if (selectedMessage != null) {
+        ImageViewer(
+            currentUserId = currentUserId,
+            message = selectedMessage,
+            viewModel = viewModel,
+            onDismiss = { viewModel.setSelectedMessage(null) },
+            onDelete = {
+                viewModel.deleteMessage(selectedMessage.id)
+                viewModel.setSelectedMessage(null)
+            }
+        )
+    } else if (pickedImageUri != null) {
+        ImagePicker(
+            imageUri = uiState.pickedImageUri,
+            caption = uiState.pickedImageCaption,
+            onSendClick = { uri, caption ->
+                viewModel.sendImage(uri, caption)
+                viewModel.setPickedImage(null)
+            },
+            onDismiss = {
+                viewModel.setPickedImage(null)
+            }
+        )
     }
 }
 
@@ -165,82 +157,6 @@ fun MessengerScreen(
  *
  * @see DateHeader
  */
-//@Composable
-//fun MessagesList(
-//    viewModel: ChatViewModel,
-//    uiState: MessengerUiState,
-//    onSwipeComplete: (Message) -> Unit,
-//    scrollState: LazyListState
-//) {
-//    val messages = uiState.messages
-//    if (messages.isEmpty()) return
-//
-//    LazyColumn(
-//        state = scrollState,
-//        reverseLayout = true,
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .background(MaterialTheme.colorScheme.background)
-//    ) {
-//        item {
-//            Spacer(modifier = Modifier.height(64.dp))
-//        }
-//
-//        items(messages.size) { i ->
-//            val message = messages[i]
-//            Log.e(LOG_TAG, "sortedMessages.size : " + messages.size)
-//            if (i >= messages.size - 1 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
-//                viewModel.loadMessages()
-//            }
-//
-//            val isLastMessage = message.id == viewModel.getLastMessageId()
-//            Row(
-//                modifier = Modifier.fillMaxWidth(),
-//                horizontalArrangement = Arrangement.End
-//            ) {
-//                MessageItem(
-//                    viewModel = viewModel,
-//                    message = message,
-//                    uiState = uiState,
-//                    isLastMessage = isLastMessage,
-//                    onSwipeComplete = { onSwipeComplete(message) }
-//                )
-//            }
-//            Spacer(modifier = Modifier.height(6.dp))
-//
-//            // Determine if a date header should be shown before this message
-//            val showDateHeader = if (i == messages.size - 1) {
-//                true
-//            } else {
-//                !isSameDay(message.timestamp, messages[i + 1].timestamp)
-//            }
-//
-//            if (showDateHeader) {
-//                DateHeader(date = timestampAsDate(message.timestamp))
-//            }
-//        }
-//
-//        item {
-//            if (viewModel.paginationState.isLoading) {
-//                Row(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(8.dp),
-//                    horizontalArrangement = Arrangement.Center
-//                ) {
-//                    CircularProgressIndicator()
-//                }
-//            }
-//        }
-//    }
-//}
-
-
-//fun onComment(message: Message, viewModel: ChatViewModel) {
-//    viewModel.setReplyingToMessage(null) // To close previous panels
-//    val updatedMessage = viewModel.getUpdatedMessageById(message.id)!!
-//    viewModel.setReplyingToMessage(updatedMessage)
-//}
 @Composable
 fun MessagesList(
     viewModel: ChatViewModel,
@@ -260,13 +176,10 @@ fun MessagesList(
         item {
             Spacer(modifier = Modifier.height(64.dp))
         }
-
         items(messages, key = { it.id }) { message ->
-            Log.e(LOG_TAG, "sortedMessages.size : " + messages.size)
             if (messages.indexOf(message) >= messages.size - 1 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
                 viewModel.loadMessages()
             }
-
             val isLastMessage = message.id == viewModel.getLastMessageId()
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -340,80 +253,11 @@ fun ScrollToBottomButton(
     ) {
         Icon(
             imageVector = Icons.Filled.KeyboardArrowDown,
-            contentDescription = "Scroll to Bottom",
+            contentDescription = stringResource(R.string.down),
             tint = MaterialTheme.colorScheme.primary
         )
     }
 }
-
-//@Composable
-//fun ReplyField(
-//    message: Message,
-//    onCancel: () -> Unit,
-//    onComment: (String) -> Unit,
-//    modifier: Modifier = Modifier
-//) {
-//    var text by remember { mutableStateOf(message.caption ?: "") }
-//    val roundedShape = RoundedCornerShape(48.dp)
-//
-//    Log.e(LOG_TAG, "text: " + text)
-//
-//    Column(
-//        modifier = modifier
-//            .padding(8.dp)
-//            .fillMaxWidth()
-//            .background(MaterialTheme.colorScheme.primaryContainer, shape = roundedShape)
-//            .padding(5.dp)
-//    ) {
-//        Row(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(horizontal = 10.dp), // To create space for buttons
-//            verticalAlignment = Alignment.CenterVertically,
-//            horizontalArrangement = Arrangement.spacedBy(8.dp) // Spacing between items
-//        ) {
-//            Button(
-//                onClick = onCancel,
-//                modifier = Modifier
-//                    .size(32.dp)
-//                    .background(MaterialTheme.colorScheme.background, shape = CircleShape),
-//                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background),
-//                contentPadding = PaddingValues(0.dp) // No extra padding inside the button
-//            ) {
-//                Icon(
-//                    imageVector = Icons.Default.Close,
-//                    contentDescription = "Cancel",
-//                    tint = MaterialTheme.colorScheme.primary,
-//                    modifier = Modifier.size(24.dp)
-//                )
-//            }
-//
-//            TextField(
-//                value = text,
-//                onValueChange = { text = it },
-//                label = { Text("Your comment...") },
-//                modifier = Modifier
-//                    .weight(1f) // Allows the TextField to take remaining space
-//                    .background(MaterialTheme.colorScheme.primaryContainer, shape = roundedShape),
-//                colors = TextFieldDefaults.colors(
-//                    unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-//                    focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-//                    focusedIndicatorColor = MaterialTheme.colorScheme.primaryContainer,
-//                    unfocusedIndicatorColor = MaterialTheme.colorScheme.primaryContainer
-//                ),
-//                singleLine = true,
-//                textStyle = TextStyle(fontSize = 16.sp),
-//                shape = roundedShape
-//            )
-//            Button(
-//                onClick = { onComment(text) },
-//                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-//            ) {
-//                Text("Comment", color = MaterialTheme.colorScheme.background)
-//            }
-//        }
-//    }
-//}
 
 /**
  * Displays the header of the messenger screen with recipient's information
@@ -433,7 +277,7 @@ fun MessengerScreenHeader(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(60.dp) // Set the height of the top bar
+                .height(60.dp)
         ) {
             IconButton(
                 onClick = onBackClick,
@@ -441,7 +285,7 @@ fun MessengerScreenHeader(
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.back),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
@@ -458,7 +302,7 @@ fun MessengerScreenHeader(
                 ) {
                     GlideImage(
                         model = recipient.profilePictureUrl,
-                        contentDescription = "Recipient Profile Picture",
+                        contentDescription = stringResource(R.string.recipient_profile_picture),
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
@@ -476,7 +320,7 @@ fun MessengerScreenHeader(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "Last online " + timestampAsDate(recipient.lastOnline),
+                            text = stringResource(R.string.last_online) + timestampAsDate(recipient.lastOnline),
                             color = MaterialTheme.colorScheme.secondary,
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
@@ -505,14 +349,14 @@ fun SendImageButton(onClick: () -> Unit, modifier: Modifier) {
         )
     ) {
         Text(
-            text = "Pick Image",
+            text = stringResource(R.string.pick_image),
             color = MaterialTheme.colorScheme.background,
             fontSize = 16.sp
         )
         Spacer(modifier = Modifier.width(8.dp))
         Icon(
-            imageVector = Icons.AutoMirrored.Filled.Send, // Your message icon resource
-            contentDescription = "Send Image",
+            imageVector = Icons.AutoMirrored.Filled.Send,
+            contentDescription = stringResource(R.string.send_image),
             tint = MaterialTheme.colorScheme.background
         )
     }

@@ -37,9 +37,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.andriybobchuk.messenger.R
 import com.andriybobchuk.messenger.util.Constants.EMOJI_LIST
 import com.andriybobchuk.messenger.model.Message
 import com.andriybobchuk.messenger.model.Reaction
@@ -87,7 +89,6 @@ fun MessageReactionIndicator(
  * @param viewModel The ChatViewModel used to retrieve user information.
  * @param reactions A list of Reaction objects to display.
  * @param sheetState The state of the bottom sheet, controlling its visibility.
- * @param onDismiss A callback function invoked when the bottom sheet is dismissed.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -113,7 +114,7 @@ fun Reactions(
                     .padding(16.dp)
             ) {
                 Text(
-                    text = "Reactions",
+                    text = stringResource(R.string.reactions),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -198,7 +199,8 @@ fun ReactSheet(
                                     if (selectedEmoji == emoji) {
                                         viewModel.removeReaction(message.id, currentUserId)
                                     } else {
-                                        val reaction = Reaction(userName = currentUserId, emoji = emoji)
+                                        val reaction =
+                                            Reaction(userName = currentUserId, emoji = emoji)
                                         viewModel.addOrUpdateReaction(message.id, reaction)
                                     }
                                     isSheetOpen.value = false
@@ -222,11 +224,11 @@ fun ReactSheet(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete this message"
+                            contentDescription = stringResource(R.string.delete_this_message)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Delete this message",
+                            text = stringResource(R.string.delete_this_message),
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -237,7 +239,6 @@ fun ReactSheet(
                         isSheetOpen = isSheetOpen
                     )
                 }
-
                 Spacer(modifier = Modifier.height(10.dp))
             }
         }
@@ -269,7 +270,7 @@ fun ReplyField(
             TextField(
                 value = text,
                 onValueChange = { text = it },
-                label = { Text("Your comment...") },
+                label = { Text(stringResource(R.string.your_comment)) },
                 modifier = Modifier
                     .weight(1f)
                     .background(MaterialTheme.colorScheme.primaryContainer, shape = roundedShape),
@@ -291,9 +292,8 @@ fun ReplyField(
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Comment", color = MaterialTheme.colorScheme.background)
+                Text(stringResource(R.string.comment), color = MaterialTheme.colorScheme.background)
             }
         }
     }
 }
-

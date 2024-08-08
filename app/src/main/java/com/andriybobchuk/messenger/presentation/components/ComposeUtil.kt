@@ -24,10 +24,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.andriybobchuk.messenger.R
 import com.andriybobchuk.messenger.util.Constants.HORIZONTAL_SCREEN_PERCENTAGE
 import com.andriybobchuk.messenger.util.Constants.VERTICAL_SCREEN_PERCENTAGE
 import com.andriybobchuk.messenger.util.getBuildCounter
@@ -57,9 +59,10 @@ private const val LOG_TAG = "ComposeUtil"
  */
 @Composable
 fun rememberRequestPermissionAndPickImage(
-    context: Context,
     onImagePicked: (Uri) -> Unit
 ): () -> Unit {
+    val context = LocalContext.current
+
     val getContentLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let {
@@ -88,7 +91,7 @@ fun rememberRequestPermissionAndPickImage(
                             Log.e(LOG_TAG, "Permission denied")
                             Toast.makeText(
                                 context,
-                                "Permission denied. Cannot pick images.",
+                                context.getString(R.string.permission_denied_cannot_pick_images),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -155,45 +158,6 @@ fun FetchImageAspectRatio(imageUrl: String, onAspectRatioReady: (Float) -> Unit)
             .submit()
     }
 }
-//
-//@Composable
-//fun showOverlays(uiState: MessengerUiState, viewModel: ChatViewModel): Boolean {
-//    if (uiState.fullscreenImageUrl != null) {
-//        FullscreenImageViewer(
-//            imageUrl = uiState.fullscreenImageUrl,
-//            caption = uiState.fullscreenCaption ?: "",
-//            sender = uiState.currentUser!!.name,
-//            dateTime = timestampAsDate(viewModel.getMessageById(uiState.currentMessageId)!!.timestamp),
-//            onDismiss = {
-//                viewModel.setFullscreenImage(null, null, "")
-//            },
-//            onDeleteClick = {
-//                viewModel.deleteMessage(uiState.currentMessageId)
-//                viewModel.setFullscreenImage(null, null, "")
-//            }
-//        )
-//        return true
-//    } else if (uiState.pickedImageUri != null) {
-//        ImagePickerScreen(
-//            imageUri = uiState.pickedImageUri,
-//            caption = uiState.pickedImageCaption,
-//            onSendClick = { uri, caption ->
-//                viewModel.sendImage(uri, caption)
-//                viewModel.setPickedImage(null)
-//            },
-//            onDismiss = {
-//                viewModel.setPickedImage(null)
-//            },
-//            onCaptionChange = { newCaption ->
-//                viewModel.updatePickedImageCaption(newCaption)
-//            }
-//        )
-//        return true
-//    }
-//    return false
-//}
-
-
 
 /**
  * Calculates the maximum dimensions that a message can take up on the screen.
@@ -236,6 +200,6 @@ fun ConnectivityStatus(): Boolean {
 fun BuildCounterDisplay() {
     val context = LocalContext.current
     val buildCounter = remember { getBuildCounter(context) }
-    Text(text = "Build #$buildCounter", fontSize = 14.sp, modifier = Modifier.padding(16.dp))
+    Text(text = stringResource(R.string.build, buildCounter), fontSize = 14.sp, modifier = Modifier.padding(16.dp))
 }
 

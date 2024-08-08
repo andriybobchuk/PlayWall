@@ -12,8 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -23,7 +23,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.andriybobchuk.messenger.R
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 
@@ -49,7 +51,7 @@ fun ImagePicker(
             imageUri?.let {
                 GlideImage(
                     model = it,
-                    contentDescription = "Selected Image",
+                    contentDescription = stringResource(R.string.selected_image),
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(bottom = 80.dp)
@@ -70,14 +72,14 @@ fun ImagePicker(
                     IconButton(onClick = { onDismiss() }) {
                         Icon(
                             imageVector = Icons.Default.Clear,
-                            contentDescription = "Cancel",
+                            contentDescription = stringResource(R.string.cancel),
                             tint = Color.White
                         )
                     }
                     IconButton(onClick = { onSendClick(imageUri, captionState) }) {
                         Icon(
-                            imageVector = Icons.Default.Send,
-                            contentDescription = "Send",
+                            imageVector = Icons.AutoMirrored.Filled.Send,
+                            contentDescription = stringResource(R.string.send),
                             tint = Color.White
                         )
                     }

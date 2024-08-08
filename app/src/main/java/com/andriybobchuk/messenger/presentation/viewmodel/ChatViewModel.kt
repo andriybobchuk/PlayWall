@@ -33,7 +33,6 @@ class ChatViewModel : ViewModel() {
     var paginationState by mutableStateOf(PaginationState())
 
     private val _isConnected = MutableStateFlow(false)
-    val isConnected: StateFlow<Boolean> = _isConnected
     fun setConnectivityStatus(status: Boolean) {
         _isConnected.value = status
         if (status) {
@@ -44,7 +43,6 @@ class ChatViewModel : ViewModel() {
     fun reloadMessagesWithImages() {
         _uiState.update { currentState ->
             val updatedMessages = currentState.messages.map { message ->
-                // Update the message to trigger image reloading
                 message.copy()
             }
             currentState.copy(messages = updatedMessages)
@@ -93,28 +91,7 @@ class ChatViewModel : ViewModel() {
         _uiState.update { currentState ->
             currentState.copy(selectedMessage = message)
         }
-        Log.e(LOG_TAG, "Selected message: $message")
-    }
-
-//    fun setReplyingToMessage(message: Message?) {
-//        clearReplyingToMessage()
-//        Log.e(LOG_TAG, "setReplyingToMessage with message: ${message?.caption}")
-//        _uiState.update { currentState ->
-//            currentState.copy(replyingToMessage = message)
-//        }
-//    }
-//
-//    fun clearReplyingToMessage() {
-//        _uiState.update { currentState ->
-//            currentState.copy(replyingToMessage = null)
-//        }
-//    }
-
-
-    fun setFullscreenImage(url: String?, caption: String?, messageId: String) {
-        _uiState.update { currentState ->
-            currentState.copy(fullscreenImageUrl = url, fullscreenCaption = caption, currentMessageId = messageId)
-        }
+        Log.d(LOG_TAG, "Selected message: $message")
     }
 
     fun setPickedImage(uri: Uri?) {
@@ -134,14 +111,6 @@ class ChatViewModel : ViewModel() {
             currentState.copy(recipient = user)
         }
     }
-
-    fun setMessages(messages: List<Message>) {
-        _uiState.update { currentState ->
-            currentState.copy(messages = messages)
-        }
-    }
-
-
 
     fun sendImage(imageUri: Uri?, caption: String) {
         viewModelScope.launch {
@@ -168,7 +137,7 @@ class ChatViewModel : ViewModel() {
                 _uiState.update { currentState ->
                     currentState.copy(messages = listOf(message) + currentState.messages)
                 }
-            } ?: Log.d(LOG_TAG, "No image URI provided")
+            } ?: Log.e(LOG_TAG, "No image URI provided")
         }
     }
 
@@ -231,7 +200,7 @@ class ChatViewModel : ViewModel() {
         val updatedMessage = message.copy(caption = newCaption)
         repository.updateMessage(updatedMessage)
 
-        Log.e(LOG_TAG, "updateMessageCaption with newCaption: ${newCaption}")
+        Log.d(LOG_TAG, "updateMessageCaption with newCaption: ${newCaption}")
 
         // Update the message in the UI state
         _uiState.update { currentState ->
@@ -252,9 +221,5 @@ class ChatViewModel : ViewModel() {
             return ""
         }
         return ""
-    }
-
-    fun getUpdatedMessageById(messageId: String): Message? {
-        return _uiState.value.messages.find { it.id == messageId }
     }
 }

@@ -13,7 +13,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.Properties
-
+//TODO("Extract string recourses")
 fun timestampAsDate(timestamp: Long): String {
     val now = Calendar.getInstance()
     val calendar = Calendar.getInstance().apply {

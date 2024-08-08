@@ -1,3 +1,22 @@
 <resources>
     <string name="app_name">Messenger</string>
+    <string name="back">Back</string>
+    <string name="recipient_profile_picture">Recipient Profile Picture</string>
+    <string name="last_online">"Last online "</string>
+    <string name="pick_image">Pick Image</string>
+    <string name="send_image">Send Image</string>
+    <string name="down">Down</string>
+    <string name="reply">Reply</string>
+    <string name="message_image">Message Image</string>
+    <string name="fullscreen_image">Fullscreen Image</string>
+    <string name="delete">Delete</string>
+    <string name="selected_image">Selected Image</string>
+    <string name="cancel">Cancel</string>
+    <string name="send">Send</string>
+    <string name="reactions">Reactions</string>
+    <string name="delete_this_message">Delete this message</string>
+    <string name="your_comment">Your comment...</string>
+    <string name="comment">Comment</string>
+    <string name="permission_denied_cannot_pick_images">Permission denied. Cannot pick images.</string>
+    <string name="build">Build #%1$s</string>
 </resources>

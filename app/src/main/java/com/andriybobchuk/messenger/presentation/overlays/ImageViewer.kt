@@ -36,8 +36,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.andriybobchuk.messenger.R
 import com.andriybobchuk.messenger.util.Constants.BACKGROUND_ALPHA
 import com.andriybobchuk.messenger.util.Constants.BACKGROUND_COLOR
 import com.andriybobchuk.messenger.util.Constants.DRAG_ALPHA_FACTOR
@@ -178,7 +180,7 @@ private fun FullscreenImageContent(
 ) {
     GlideImage(
         model = imageUrl,
-        contentDescription = "Fullscreen Image",
+        contentDescription = stringResource(R.string.fullscreen_image),
         modifier = Modifier
             .fillMaxSize()
             .offset { IntOffset(0, offsetY.value.roundToInt()) }
@@ -218,13 +220,13 @@ private fun TopAppBarContent(
             },
             navigationIcon = {
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    Icon(Icons.Default.ArrowBack, contentDescription = stringResource(id = R.string.back), tint = Color.White)
                 }
             },
             actions = {
                 if (isMyMessage) {
                     IconButton(onClick = onDeleteClick) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
+                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete), tint = Color.White)
                     }
                 }
             },

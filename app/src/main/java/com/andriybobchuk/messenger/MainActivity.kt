@@ -33,9 +33,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                 ) { innerPadding ->
                     MessengerScreen(
-                        onBackClick = {
-                            // Handle back navigation
-                        },
+                        onBackClick = {},
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
