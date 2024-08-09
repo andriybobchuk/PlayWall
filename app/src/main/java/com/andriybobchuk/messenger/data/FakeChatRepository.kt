@@ -8,7 +8,7 @@ import com.andriybobchuk.messenger.model.User
 import kotlinx.coroutines.delay
 import java.util.UUID
 
-class FakeChatRepository {
+class FakeChatRepository : ChatRepository {
     companion object {
         private const val LOG_TAG = "FakeChatRepository"
     }
@@ -222,7 +222,7 @@ class FakeChatRepository {
         )
     }
 
-    suspend fun retrieveMessages(page: Int, pageSize: Int): Result<List<Message>> {
+    override suspend fun retrieveMessages(page: Int, pageSize: Int): Result<List<Message>> {
         Log.d(LOG_TAG, "retrieveMessages called with page: $page, pageSize: $pageSize")
 
         if (page != 0) {
@@ -250,7 +250,7 @@ class FakeChatRepository {
         }
     }
 
-    fun getLastMessageId(): Result<String> {
+    override fun getLastMessageId(): Result<String> {
         return if (_messages.isNotEmpty()) {
             val lastMessage = _messages.maxByOrNull { it.timestamp }
             lastMessage?.let {
@@ -266,30 +266,30 @@ class FakeChatRepository {
         }
     }
 
-    fun addMessage(message: Message) {
+    override fun addMessage(message: Message) {
         _messages.add(message)
     }
 
-    fun deleteMessage(messageId: String) {
+    override fun deleteMessage(messageId: String) {
         _messages.removeAll { it.id == messageId }
     }
 
-    fun updateMessage(message: Message) {
+    override fun updateMessage(message: Message) {
         val index = _messages.indexOfFirst { it.id == message.id }
         if (index != -1) {
             _messages[index] = message
         }
     }
 
-    fun getCurrentUser(): User {
+    override fun getCurrentUser(): User {
         return _currentUser
     }
 
-    fun getRecipient(): User {
+    override fun getRecipient(): User {
         return _recipient
     }
 
-    fun getUserNameById(userId: String): String {
+    override fun getUserNameById(userId: String): String {
         if (userId == "user1") {
             return "Andrii Bobchuk"
         } else if (userId == "user2") {

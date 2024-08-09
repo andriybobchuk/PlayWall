@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.andriybobchuk.messenger.data.ChatRepository
 import com.andriybobchuk.messenger.data.FakeChatRepository
 import com.andriybobchuk.messenger.model.Message
 import com.andriybobchuk.messenger.model.MessageStatus
@@ -26,7 +27,7 @@ class ChatViewModel : ViewModel() {
         private const val PAGE_SIZE = 5
     }
 
-    private val repository = FakeChatRepository()
+    private val repository: ChatRepository = FakeChatRepository()
 
     private val _uiState = MutableStateFlow(MessengerUiState())
     val uiState: StateFlow<MessengerUiState> = _uiState.asStateFlow()
@@ -77,7 +78,6 @@ class ChatViewModel : ViewModel() {
                 currentState.copy(messages = currentMessages + newMessages)
             }
         }
-
     )
 
     init {
