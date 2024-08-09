@@ -30,7 +30,6 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 //private val LightAndroidBackgroundTheme = BackgroundTheme(color = Color.White)
-//
 //private val DarkAndroidBackgroundTheme = BackgroundTheme(color = DARK_GREEN300)
 
 @Composable

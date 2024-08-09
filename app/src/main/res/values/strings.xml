@@ -19,4 +19,9 @@
     <string name="comment">Comment</string>
     <string name="permission_denied_cannot_pick_images">Permission denied. Cannot pick images.</string>
     <string name="build">Build #%1$s</string>
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="sent">Sent</string>
+    <string name="delivered">Delivered</string>
+    <string name="read">Read</string>
 </resources>

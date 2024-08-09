@@ -1,5 +1,6 @@
 package com.andriybobchuk.messenger.presentation.components
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -58,13 +61,14 @@ import kotlinx.coroutines.launch
 fun MessageReactionIndicator(
     reactions: List<Reaction>,
     onReactionClick: () -> Unit,
+    isCurrentUser: Boolean,
     modifier: Modifier
 ) {
     if (reactions.isNotEmpty()) {
         Box(
             modifier = modifier
                 .clip(RoundedCornerShape(18.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer)
+                .background(if (isCurrentUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer)
                 .border(1.dp, MaterialTheme.colorScheme.background, RoundedCornerShape(18.dp))
                 .clickable(onClick = onReactionClick)
                 .padding(4.dp)
@@ -192,7 +196,7 @@ fun ReactSheet(
                             color = if (isSelected) Color.Black else Color.Unspecified,
                             modifier = Modifier
                                 .background(
-                                    if (isSelected) NAVY200 else Color.Transparent,
+                                    if (isSelected) MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f) else Color.Transparent,
                                     shape = CircleShape
                                 )
                                 .clickable {
@@ -253,6 +257,11 @@ fun ReplyField(
 ) {
     var text by remember { mutableStateOf(message.caption ?: "") }
     val roundedShape = RoundedCornerShape(14.dp)
+    val maxCharacters = 200
+    val context = LocalContext.current
+
+    // Track whether the character limit has been exceeded
+    var showLimitExceededToast by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -269,7 +278,14 @@ fun ReplyField(
         ) {
             TextField(
                 value = text,
-                onValueChange = { text = it },
+                onValueChange = {
+                    if (it.length <= maxCharacters) {
+                        text = it
+                        showLimitExceededToast = false
+                    } else {
+                        showLimitExceededToast = true
+                    }
+                },
                 label = { Text(stringResource(R.string.your_comment)) },
                 modifier = Modifier
                     .weight(1f)
@@ -286,9 +302,10 @@ fun ReplyField(
             )
             Button(
                 onClick = {
-                    viewModel.updateMessageCaption(message, text)
+                    val trimmedText = text.trimEnd() // Trim trailing spaces before sending
+                    viewModel.updateMessageCaption(message, trimmedText)
                     isSheetOpen.value = false
-                          },
+                },
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
@@ -296,4 +313,17 @@ fun ReplyField(
             }
         }
     }
+
+    // Show a toast if the character limit is exceeded
+    if (showLimitExceededToast) {
+        LaunchedEffect(Unit) {
+            Toast.makeText(
+                context,
+                "Character limit is $maxCharacters",
+                Toast.LENGTH_SHORT
+            ).show()
+            showLimitExceededToast = false
+        }
+    }
 }
+

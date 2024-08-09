@@ -43,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -60,6 +61,7 @@ import com.andriybobchuk.messenger.presentation.components.MessageReactionIndica
 import com.andriybobchuk.messenger.presentation.components.Reactions
 import com.andriybobchuk.messenger.presentation.components.getMaxMessageDimensions
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
+import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel.Companion
 import com.andriybobchuk.messenger.presentation.viewmodel.MessengerUiState
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
@@ -88,6 +90,7 @@ fun MessageItem(
     message: Message,
     isLastMessage: Boolean
 ) {
+    Log.e("Hey", "existing msg ID: ${message.id}")
     val coroutineScope = rememberCoroutineScope()
     val reactSheet = rememberModalBottomSheetState()
     val isReactSheetOpen = remember { mutableStateOf(false) }
@@ -183,7 +186,7 @@ fun MessageContent(
         }
         if (isLastMessage && isCurrentUser) {
             Text(
-                text = formatStatus(message.status),
+                text = formatStatus(message.status, LocalContext.current),
                 color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier
@@ -300,6 +303,7 @@ private fun MessageBubble(
             MessageReactionIndicator(
                 reactions = message.reactions,
                 onReactionClick = { onCheckReactions() },
+                isCurrentUser = isCurrentUser,
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .offset(x = (-8).dp, y = 8.dp)

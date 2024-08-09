@@ -7,14 +7,15 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import android.util.Log
 import androidx.compose.ui.unit.Dp
+import com.andriybobchuk.messenger.R
 import com.andriybobchuk.messenger.model.MessageStatus
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.Properties
-//TODO("Extract string recourses")
-fun timestampAsDate(timestamp: Long): String {
+
+fun timestampAsDate(timestamp: Long, context: Context): String {
     val now = Calendar.getInstance()
     val calendar = Calendar.getInstance().apply {
         timeInMillis = timestamp
@@ -27,8 +28,10 @@ fun timestampAsDate(timestamp: Long): String {
     return when {
         calendar[Calendar.YEAR] == now[Calendar.YEAR] -> {
             when {
-                calendar[Calendar.DAY_OF_YEAR] == today[Calendar.DAY_OF_YEAR] -> "Today"
-                calendar[Calendar.DAY_OF_YEAR] == yesterday[Calendar.DAY_OF_YEAR] -> "Yesterday"
+                calendar[Calendar.DAY_OF_YEAR] == today[Calendar.DAY_OF_YEAR] -> context.getString(R.string.today)
+                calendar[Calendar.DAY_OF_YEAR] == yesterday[Calendar.DAY_OF_YEAR] -> context.getString(
+                    R.string.yesterday
+                )
                 calendar[Calendar.MONTH] == today[Calendar.MONTH] -> dateFormatCurrentYear.format(calendar.time)
                 else -> dateFormatCurrentYear.format(calendar.time)
             }
@@ -43,11 +46,11 @@ fun timestampAsTime(timestamp: Long): String {
     return timeFormat.format(date)
 }
 
-fun formatStatus(status: MessageStatus): String {
+fun formatStatus(status: MessageStatus, context: Context): String {
     return when (status) {
-        MessageStatus.SENT -> "Sent"
-        MessageStatus.DELIVERED -> "Delivered"
-        MessageStatus.READ -> "Read"
+        MessageStatus.SENT -> context.getString(R.string.sent)
+        MessageStatus.DELIVERED -> context.getString(R.string.delivered)
+        MessageStatus.READ -> context.getString(R.string.read)
     }
 }
 

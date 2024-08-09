@@ -125,6 +125,7 @@ private fun FullscreenOverlays(
 ) {
     val selectedMessage = uiState.selectedMessage
     val pickedImageUri = uiState.pickedImageUri
+
     if (selectedMessage != null) {
         ImageViewer(
             currentUserId = currentUserId,
@@ -202,7 +203,7 @@ fun MessagesList(
             }
 
             if (showDateHeader) {
-                DateHeader(date = timestampAsDate(message.timestamp))
+                DateHeader(date = timestampAsDate(message.timestamp, LocalContext.current))
             }
         }
 
@@ -320,7 +321,7 @@ fun MessengerScreenHeader(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = stringResource(R.string.last_online) + timestampAsDate(recipient.lastOnline),
+                            text = stringResource(R.string.last_online) + timestampAsDate(recipient.lastOnline, LocalContext.current),
                             color = MaterialTheme.colorScheme.secondary,
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,

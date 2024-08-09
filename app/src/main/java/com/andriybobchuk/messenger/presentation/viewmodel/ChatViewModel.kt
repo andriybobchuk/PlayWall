@@ -69,9 +69,15 @@ class ChatViewModel : ViewModel() {
                 endReached = messages.isEmpty()
             )
             _uiState.update { currentState ->
-                currentState.copy(messages = currentState.messages + messages)
+                // Filter out any duplicates
+                val currentMessages = currentState.messages
+                val newMessages = messages.filterNot { newMessage ->
+                    currentMessages.any { it.id == newMessage.id }
+                }
+                currentState.copy(messages = currentMessages + newMessages)
             }
         }
+
     )
 
     init {
@@ -117,6 +123,7 @@ class ChatViewModel : ViewModel() {
             Log.d(LOG_TAG, "Sending image with URI: $imageUri and caption: $caption")
 
             val messageId = UUID.randomUUID().toString()
+            Log.e(LOG_TAG, "new ID: $messageId")
             val timestamp = System.currentTimeMillis()
 
             imageUri?.let { uri ->

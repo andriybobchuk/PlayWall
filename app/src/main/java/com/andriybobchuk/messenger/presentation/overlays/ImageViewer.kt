@@ -36,15 +36,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowInsetsControllerCompat
 import com.andriybobchuk.messenger.R
 import com.andriybobchuk.messenger.util.Constants.BACKGROUND_ALPHA
-import com.andriybobchuk.messenger.util.Constants.BACKGROUND_COLOR
 import com.andriybobchuk.messenger.util.Constants.DRAG_ALPHA_FACTOR
 import com.andriybobchuk.messenger.util.Constants.DRAG_DISMISS_THRESHOLD
-import com.andriybobchuk.messenger.util.Constants.TOP_BAR_BACKGROUND_COLOR
 import com.andriybobchuk.messenger.model.Message
 import com.andriybobchuk.messenger.util.timestampAsDate
 import com.andriybobchuk.messenger.presentation.viewmodel.ChatViewModel
@@ -83,7 +83,7 @@ fun ImageViewer(
     FullscreenPopup(
         modifier = Modifier
             .fillMaxSize()
-            .background(BACKGROUND_COLOR.copy(alpha = alpha.value))
+            .background(MaterialTheme.colorScheme.background.copy(alpha = alpha.value))
             .handleVerticalDrag(
                 offsetY = offsetY,
                 alpha = alpha,
@@ -104,7 +104,7 @@ fun ImageViewer(
                 isMyMessage = isCurrentUser,
                 visible = topBarVisible.value,
                 sender = viewModel.getUserNameById(message.senderId),
-                dateTime = timestampAsDate(message.timestamp),
+                dateTime = timestampAsDate(message.timestamp, LocalContext.current),
                 onDismiss = onDismiss,
                 onDeleteClick = onDelete
             )
@@ -214,26 +214,26 @@ private fun TopAppBarContent(
                     Text(text = sender, style = MaterialTheme.typography.titleMedium)
                     Text(
                         text = dateTime,
-                        style = MaterialTheme.typography.bodySmall.copy(Color.LightGray)
+                        style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.secondary)
                     )
                 }
             },
             navigationIcon = {
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = stringResource(id = R.string.back), tint = Color.White)
+                    Icon(Icons.Default.ArrowBack, contentDescription = stringResource(id = R.string.back), tint = MaterialTheme.colorScheme.primary)
                 }
             },
             actions = {
                 if (isMyMessage) {
                     IconButton(onClick = onDeleteClick) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete), tint = Color.White)
+                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete), tint = MaterialTheme.colorScheme.primary)
                     }
                 }
             },
             colors = TopAppBarDefaults.smallTopAppBarColors(
-                containerColor = TOP_BAR_BACKGROUND_COLOR,
-                titleContentColor = Color.White,
-                actionIconContentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.background,
+                titleContentColor = MaterialTheme.colorScheme.primary,
+                actionIconContentColor = MaterialTheme.colorScheme.primary
             )
         )
     }
@@ -257,12 +257,12 @@ private fun CaptionContent(
     ) {
         Box(
             modifier = Modifier
-                .background(TOP_BAR_BACKGROUND_COLOR)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(bottom = 24.dp, start = 16.dp, end = 8.dp, top = 16.dp)
         ) {
             Text(
                 text = caption,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.bodyMedium
             )
         }
