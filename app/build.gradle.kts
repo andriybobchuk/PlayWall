@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     kotlin("kapt")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -86,6 +87,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -139,4 +141,8 @@ dependencies {
     testImplementation ("androidx.test.ext:junit:1.1.5")
     testImplementation ("androidx.test:core:1.5.0")
     testImplementation ("androidx.test.espresso:espresso-core:3.5.1")
+
+    // For the new type-safe navigation:
+    implementation(libs.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
 }

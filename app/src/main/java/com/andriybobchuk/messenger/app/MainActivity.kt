@@ -8,12 +8,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
-import com.andriybobchuk.messenger.feature.chat.presentation.MessengerScreen
+import androidx.navigation.compose.rememberNavController
 import com.andriybobchuk.messenger.core.ui.theme.MessengerTheme
+import com.andriybobchuk.messenger.navigation.BottomNavigationBar
+import com.andriybobchuk.messenger.navigation.NavigationHost
 
 class MainActivity : ComponentActivity() {
 
@@ -28,14 +29,15 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MessengerTheme {
+                val navController = rememberNavController()
+
                 Scaffold(
-                    modifier = Modifier
-                        .fillMaxSize()
+                    bottomBar = {
+                        BottomNavigationBar(navController)
+                    },
+                    modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
-                    MessengerScreen(
-                        onBackClick = {},
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    NavigationHost(navController, innerPadding)
                 }
             }
         }
