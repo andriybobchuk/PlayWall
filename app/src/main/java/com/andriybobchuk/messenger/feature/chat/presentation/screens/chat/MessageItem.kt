@@ -1,3 +1,5 @@
+package com.andriybobchuk.messenger.feature.chat.presentation.screens.chat
+
 import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
 import android.util.Log
@@ -54,13 +56,10 @@ import com.andriybobchuk.messenger.feature.chat.presentation.util.formatStatus
 import com.andriybobchuk.messenger.feature.chat.presentation.util.timestampAsTime
 import com.andriybobchuk.messenger.feature.chat.data.model.Message
 import com.andriybobchuk.messenger.feature.chat.presentation.util.calculateImageDimensions
-import com.andriybobchuk.messenger.feature.chat.presentation.components.ReactSheet
 import com.andriybobchuk.messenger.feature.chat.presentation.util.FetchImageAspectRatio
-import com.andriybobchuk.messenger.feature.chat.presentation.components.MessageReactionIndicator
-import com.andriybobchuk.messenger.feature.chat.presentation.components.Reactions
 import com.andriybobchuk.messenger.feature.chat.presentation.util.getMaxMessageDimensions
-import com.andriybobchuk.messenger.feature.chat.presentation.viewmodel.ChatViewModel
-import com.andriybobchuk.messenger.feature.chat.presentation.viewmodel.MessengerUiState
+import com.andriybobchuk.messenger.feature.chat.presentation.screens.chat.viewmodel.ChatViewModel
+import com.andriybobchuk.messenger.feature.chat.presentation.screens.chat.viewmodel.MessengerUiState
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.load.DataSource

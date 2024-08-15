@@ -14,3 +14,9 @@ sealed interface DataError: Error {
         DISK_FULL
     }
 }
+
+
+enum class Network: DataError {
+    WRONG_CREDENTIALS,
+    // write more here
+}

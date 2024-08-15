@@ -1,4 +1,8 @@
-package com.andriybobchuk.messenger.core.domain.error_handling
+package com.andriybobchuk.messenger.feature.auth.domain
+
+import com.andriybobchuk.messenger.core.domain.error_handling.Error
+import com.andriybobchuk.messenger.core.domain.error_handling.PasswordError
+import com.andriybobchuk.messenger.core.domain.error_handling.Result
 
 class UserDataValidator {
 
@@ -19,4 +23,5 @@ class UserDataValidator {
 
         return Result.Success(Unit)
     }
+
 }

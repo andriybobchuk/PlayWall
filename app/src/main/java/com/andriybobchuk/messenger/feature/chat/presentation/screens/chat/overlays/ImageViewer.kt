@@ -1,4 +1,4 @@
-package com.andriybobchuk.messenger.feature.chat.presentation.overlays
+package com.andriybobchuk.messenger.feature.chat.presentation.screens.chat.overlays
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -45,7 +45,7 @@ import com.andriybobchuk.messenger.feature.chat.presentation.util.Constants.DRAG
 import com.andriybobchuk.messenger.feature.chat.presentation.util.Constants.DRAG_DISMISS_THRESHOLD
 import com.andriybobchuk.messenger.feature.chat.data.model.Message
 import com.andriybobchuk.messenger.feature.chat.presentation.util.timestampAsDate
-import com.andriybobchuk.messenger.feature.chat.presentation.viewmodel.ChatViewModel
+import com.andriybobchuk.messenger.feature.chat.presentation.screens.chat.viewmodel.ChatViewModel
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import kotlinx.coroutines.CoroutineScope

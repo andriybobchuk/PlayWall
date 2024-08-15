@@ -1,7 +1,6 @@
-package com.andriybobchuk.messenger.feature.chat.presentation
+package com.andriybobchuk.messenger.feature.chat.presentation.screens.chat
 
-import com.andriybobchuk.messenger.feature.chat.presentation.viewmodel.ChatViewModel
-import MessageItem
+import com.andriybobchuk.messenger.feature.chat.presentation.screens.chat.viewmodel.ChatViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -25,20 +24,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
-import com.andriybobchuk.messenger.core.presentation.viewModelFactory
 import com.andriybobchuk.messenger.R
-import com.andriybobchuk.messenger.app.MyApp
 import com.andriybobchuk.messenger.feature.chat.presentation.util.rememberRequestPermissionAndPickImage
 import com.andriybobchuk.messenger.feature.chat.data.model.User
 import com.andriybobchuk.messenger.feature.chat.presentation.util.BuildCounterDisplay
 import com.andriybobchuk.messenger.feature.chat.presentation.util.ConnectivityStatus
-import com.andriybobchuk.messenger.feature.chat.presentation.overlays.ImagePicker
-import com.andriybobchuk.messenger.feature.chat.presentation.overlays.ImageViewer
-import com.andriybobchuk.messenger.feature.chat.presentation.viewmodel.MessengerUiState
+import com.andriybobchuk.messenger.feature.chat.presentation.screens.chat.overlays.ImagePicker
+import com.andriybobchuk.messenger.feature.chat.presentation.screens.chat.overlays.ImageViewer
+import com.andriybobchuk.messenger.feature.chat.presentation.screens.chat.viewmodel.MessengerUiState
 import com.andriybobchuk.messenger.feature.chat.presentation.util.isSameDay
 import com.andriybobchuk.messenger.feature.chat.presentation.util.timestampAsDate
 import kotlinx.coroutines.launch

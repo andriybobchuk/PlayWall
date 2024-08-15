@@ -15,8 +15,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.andriybobchuk.messenger.app.MyApp
 import com.andriybobchuk.messenger.core.presentation.viewModelFactory
-import com.andriybobchuk.messenger.feature.chat.presentation.MessengerScreen
-import com.andriybobchuk.messenger.feature.chat.presentation.viewmodel.ChatViewModel
+import com.andriybobchuk.messenger.feature.chat.presentation.screens.chat.MessengerScreen
+import com.andriybobchuk.messenger.feature.chat.presentation.screens.chat.viewmodel.ChatViewModel
 
 /**
  * Use this navigation host to define your app's screens and pass the ViewModel

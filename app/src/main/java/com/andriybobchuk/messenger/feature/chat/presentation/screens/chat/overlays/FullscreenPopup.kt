@@ -1,4 +1,4 @@
-package com.andriybobchuk.messenger.feature.chat.presentation.overlays
+package com.andriybobchuk.messenger.feature.chat.presentation.screens.chat.overlays
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box

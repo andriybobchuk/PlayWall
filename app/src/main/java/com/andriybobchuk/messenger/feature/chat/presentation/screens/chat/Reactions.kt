@@ -1,4 +1,4 @@
-package com.andriybobchuk.messenger.feature.chat.presentation.components
+package com.andriybobchuk.messenger.feature.chat.presentation.screens.chat
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -48,7 +48,7 @@ import com.andriybobchuk.messenger.R
 import com.andriybobchuk.messenger.feature.chat.presentation.util.Constants.EMOJI_LIST
 import com.andriybobchuk.messenger.feature.chat.data.model.Message
 import com.andriybobchuk.messenger.feature.chat.data.model.Reaction
-import com.andriybobchuk.messenger.feature.chat.presentation.viewmodel.ChatViewModel
+import com.andriybobchuk.messenger.feature.chat.presentation.screens.chat.viewmodel.ChatViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

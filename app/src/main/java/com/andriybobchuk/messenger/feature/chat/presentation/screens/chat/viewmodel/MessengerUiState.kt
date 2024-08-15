@@ -1,4 +1,4 @@
-package com.andriybobchuk.messenger.feature.chat.presentation.viewmodel
+package com.andriybobchuk.messenger.feature.chat.presentation.screens.chat.viewmodel
 
 import android.net.Uri
 import com.andriybobchuk.messenger.feature.chat.data.model.Message
