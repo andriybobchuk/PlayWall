@@ -21,13 +21,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-class ChatViewModel : ViewModel() {
+class ChatViewModel(
+    private val chatRepository: ChatRepository
+) : ViewModel() {
     companion object {
         private const val LOG_TAG = "ChatViewModel"
         private const val PAGE_SIZE = 5
     }
-
-    private val repository: ChatRepository = FakeChatRepository()
 
     private val _uiState = MutableStateFlow(MessengerUiState())
     val uiState: StateFlow<MessengerUiState> = _uiState.asStateFlow()
@@ -56,7 +56,7 @@ class ChatViewModel : ViewModel() {
             paginationState = paginationState.copy(isLoading = it)
         },
         onRequest = { nextPage ->
-            repository.retrieveMessages(nextPage, PAGE_SIZE)
+            chatRepository.retrieveMessages(nextPage, PAGE_SIZE)
         },
         getNextKey = {
             paginationState.page + 1
@@ -83,8 +83,8 @@ class ChatViewModel : ViewModel() {
     init {
         Log.d(LOG_TAG, "ViewModel initialized")
         loadMessages()
-        setCurrentUser(repository.getCurrentUser())
-        setRecipient(repository.getRecipient())
+        setCurrentUser(chatRepository.getCurrentUser())
+        setRecipient(chatRepository.getRecipient())
     }
 
     fun loadMessages() {
@@ -137,7 +137,7 @@ class ChatViewModel : ViewModel() {
                     senderId = _uiState.value.currentUser!!.id,
                     recipientId = _uiState.value.recipient!!.id
                 )
-                repository.addMessage(message)
+                chatRepository.addMessage(message)
                 Log.d(LOG_TAG, "Message added: $message")
                 // Add message to current UI state without reloading all messages and
                 // NOT to trigger recomposition!!
@@ -150,7 +150,7 @@ class ChatViewModel : ViewModel() {
 
     fun deleteMessage(messageId: String) {
         Log.d(LOG_TAG, "Deleting message with ID: $messageId")
-        repository.deleteMessage(messageId)
+        chatRepository.deleteMessage(messageId)
         // Remove message DIRECTLY from UI state NOT to trigger recomposition!!
         _uiState.update { currentState ->
             val updatedMessages = currentState.messages.filterNot { it.id == messageId }
@@ -200,12 +200,12 @@ class ChatViewModel : ViewModel() {
     }
 
     fun getUserNameById(userId: String): String {
-        return repository.getUserNameById(userId)
+        return chatRepository.getUserNameById(userId)
     }
 
     fun updateMessageCaption(message: Message, newCaption: String) {
         val updatedMessage = message.copy(caption = newCaption)
-        repository.updateMessage(updatedMessage)
+        chatRepository.updateMessage(updatedMessage)
 
         Log.d(LOG_TAG, "updateMessageCaption with newCaption: ${newCaption}")
 
@@ -218,7 +218,7 @@ class ChatViewModel : ViewModel() {
     }
 
     fun getLastMessageId(): String {
-        val result = repository.getLastMessageId()
+        val result = chatRepository.getLastMessageId()
         result.onSuccess { lastMessageId ->
             Log.d(LOG_TAG, "Last message ID: $lastMessageId")
             return lastMessageId

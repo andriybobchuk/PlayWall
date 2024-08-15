@@ -29,7 +29,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
+import com.andriybobchuk.messenger.core.presentation.viewModelFactory
 import com.andriybobchuk.messenger.R
+import com.andriybobchuk.messenger.app.MyApp
 import com.andriybobchuk.messenger.feature.chat.presentation.util.rememberRequestPermissionAndPickImage
 import com.andriybobchuk.messenger.feature.chat.model.User
 import com.andriybobchuk.messenger.feature.chat.presentation.util.BuildCounterDisplay
@@ -49,7 +51,7 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun MessengerScreen(
-    viewModel: ChatViewModel = viewModel(),
+    viewModel: ChatViewModel,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {

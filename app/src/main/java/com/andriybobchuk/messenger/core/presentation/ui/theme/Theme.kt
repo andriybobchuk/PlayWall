@@ -1,4 +1,4 @@
-package com.andriybobchuk.messenger.core.ui.theme
+package com.andriybobchuk.messenger.core.presentation.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

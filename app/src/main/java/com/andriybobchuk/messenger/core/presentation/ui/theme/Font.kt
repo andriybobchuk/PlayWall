@@ -1,4 +1,4 @@
-package com.andriybobchuk.messenger.core.ui.theme
+package com.andriybobchuk.messenger.core.presentation.ui.theme
 
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily

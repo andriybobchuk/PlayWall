@@ -9,11 +9,34 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.andriybobchuk.messenger.app.MyApp
+import com.andriybobchuk.messenger.core.presentation.viewModelFactory
 import com.andriybobchuk.messenger.feature.chat.presentation.MessengerScreen
+import com.andriybobchuk.messenger.feature.chat.presentation.viewmodel.ChatViewModel
 
+/**
+ * Use this navigation host to define your app's screens and pass the ViewModel
+ * using my custom [viewModelFactory] with the required dependencies. Add your screens
+ * and corresponding ViewModels as needed.
+ *
+ * Example of adding viewModel:
+ *
+ * ```
+ * MessengerScreen(
+ *       viewModel = viewModel<ChatViewModel>(
+ *           factory = viewModelFactory {
+ *               ChatViewModel(MyApp.appModule.chatRepository)
+ *           }
+ *       ),
+ *       onBackClick = {},
+ *       modifier = Modifier.padding(innerPadding)
+ * )
+ * ```
+ */
 @Composable
 fun NavigationHost(navController: NavHostController, innerPadding: PaddingValues) {
     NavHost(
@@ -25,6 +48,11 @@ fun NavigationHost(navController: NavHostController, innerPadding: PaddingValues
         }
         composable<Screens.ChatScreen> {
             MessengerScreen(
+                viewModel = viewModel<ChatViewModel>(
+                    factory = viewModelFactory {
+                        ChatViewModel(MyApp.appModule.chatRepository)
+                    }
+                ),
                 onBackClick = {},
                 modifier = Modifier.padding(innerPadding)
             )
