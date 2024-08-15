@@ -24,4 +24,12 @@
     <string name="sent">Sent</string>
     <string name="delivered">Delivered</string>
     <string name="read">Read</string>
+    <string name="the_request_timed_out">Request timed out</string>
+    <string name="youve_hit_your_rate_limit">You\'ve hit your rate limit</string>
+    <string name="no_internet">No internet!</string>
+    <string name="file_too_large">File is too large!</string>
+    <string name="server_error">Server error</string>
+    <string name="error_serialization">Error serialization</string>
+    <string name="unknown_error">Unknown error!</string>
+    <string name="error_disk_full">Disk is full!</string>
 </resources>

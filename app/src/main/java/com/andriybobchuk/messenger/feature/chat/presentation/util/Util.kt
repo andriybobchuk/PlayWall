@@ -8,7 +8,7 @@ import android.os.VibratorManager
 import android.util.Log
 import androidx.compose.ui.unit.Dp
 import com.andriybobchuk.messenger.R
-import com.andriybobchuk.messenger.feature.chat.model.MessageStatus
+import com.andriybobchuk.messenger.feature.chat.data.model.MessageStatus
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date

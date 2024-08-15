@@ -1,4 +1,4 @@
-package com.andriybobchuk.messenger.feature.chat.presentation.util
+package com.andriybobchuk.messenger.core.presentation
 
 import android.content.Context
 import androidx.annotation.StringRes
@@ -12,10 +12,12 @@ import androidx.compose.ui.res.stringResource
  * (if you pass a context)
  *
  * Usage example:
+ * ```kotlin
  * UiText.StringResource(
  *        resId = R.string.min_name_length_error,
  *        MIN_NAME_LENGTH
  *  )
+ *  ```
  */
 sealed class UiText {
     data class DynamicString(val value: String): UiText()

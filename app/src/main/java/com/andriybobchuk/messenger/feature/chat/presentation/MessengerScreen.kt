@@ -33,7 +33,7 @@ import com.andriybobchuk.messenger.core.presentation.viewModelFactory
 import com.andriybobchuk.messenger.R
 import com.andriybobchuk.messenger.app.MyApp
 import com.andriybobchuk.messenger.feature.chat.presentation.util.rememberRequestPermissionAndPickImage
-import com.andriybobchuk.messenger.feature.chat.model.User
+import com.andriybobchuk.messenger.feature.chat.data.model.User
 import com.andriybobchuk.messenger.feature.chat.presentation.util.BuildCounterDisplay
 import com.andriybobchuk.messenger.feature.chat.presentation.util.ConnectivityStatus
 import com.andriybobchuk.messenger.feature.chat.presentation.overlays.ImagePicker

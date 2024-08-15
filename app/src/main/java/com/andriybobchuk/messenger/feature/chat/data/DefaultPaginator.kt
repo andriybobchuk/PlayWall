@@ -1,4 +1,6 @@
-package com.andriybobchuk.messenger.feature.chat.presentation.pagination
+package com.andriybobchuk.messenger.feature.chat.data
+
+import com.andriybobchuk.messenger.feature.chat.domain.Paginator
 
 class DefaultPaginator<Key, Item>(
     private val initialKey: Key,

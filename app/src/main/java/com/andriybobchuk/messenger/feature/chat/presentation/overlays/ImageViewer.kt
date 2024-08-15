@@ -43,7 +43,7 @@ import com.andriybobchuk.messenger.R
 import com.andriybobchuk.messenger.feature.chat.presentation.util.Constants.BACKGROUND_ALPHA
 import com.andriybobchuk.messenger.feature.chat.presentation.util.Constants.DRAG_ALPHA_FACTOR
 import com.andriybobchuk.messenger.feature.chat.presentation.util.Constants.DRAG_DISMISS_THRESHOLD
-import com.andriybobchuk.messenger.feature.chat.model.Message
+import com.andriybobchuk.messenger.feature.chat.data.model.Message
 import com.andriybobchuk.messenger.feature.chat.presentation.util.timestampAsDate
 import com.andriybobchuk.messenger.feature.chat.presentation.viewmodel.ChatViewModel
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi

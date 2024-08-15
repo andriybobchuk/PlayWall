@@ -1,10 +1,11 @@
 package com.andriybobchuk.messenger.feature.chat.data
 
 import android.util.Log
-import com.andriybobchuk.messenger.feature.chat.model.Message
-import com.andriybobchuk.messenger.feature.chat.model.MessageStatus
-import com.andriybobchuk.messenger.feature.chat.model.Reaction
-import com.andriybobchuk.messenger.feature.chat.model.User
+import com.andriybobchuk.messenger.feature.chat.data.model.Message
+import com.andriybobchuk.messenger.feature.chat.data.model.MessageStatus
+import com.andriybobchuk.messenger.feature.chat.data.model.Reaction
+import com.andriybobchuk.messenger.feature.chat.data.model.User
+import com.andriybobchuk.messenger.feature.chat.domain.ChatRepository
 import kotlinx.coroutines.delay
 import java.util.UUID
 

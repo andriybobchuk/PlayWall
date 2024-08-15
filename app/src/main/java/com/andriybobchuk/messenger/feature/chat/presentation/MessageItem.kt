@@ -52,7 +52,7 @@ import com.andriybobchuk.messenger.feature.chat.presentation.util.Constants.HORI
 import com.andriybobchuk.messenger.feature.chat.presentation.util.Constants.MESSAGE_CORNER_RADIUS
 import com.andriybobchuk.messenger.feature.chat.presentation.util.formatStatus
 import com.andriybobchuk.messenger.feature.chat.presentation.util.timestampAsTime
-import com.andriybobchuk.messenger.feature.chat.model.Message
+import com.andriybobchuk.messenger.feature.chat.data.model.Message
 import com.andriybobchuk.messenger.feature.chat.presentation.util.calculateImageDimensions
 import com.andriybobchuk.messenger.feature.chat.presentation.components.ReactSheet
 import com.andriybobchuk.messenger.feature.chat.presentation.util.FetchImageAspectRatio

@@ -1,8 +1,8 @@
 package com.andriybobchuk.messenger.feature.chat.presentation.viewmodel
 
 import android.net.Uri
-import com.andriybobchuk.messenger.feature.chat.model.Message
-import com.andriybobchuk.messenger.feature.chat.model.User
+import com.andriybobchuk.messenger.feature.chat.data.model.Message
+import com.andriybobchuk.messenger.feature.chat.data.model.User
 
 data class MessengerUiState(
     val currentUser: User? = null,

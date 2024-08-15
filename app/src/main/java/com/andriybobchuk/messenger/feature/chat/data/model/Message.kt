@@ -1,4 +1,4 @@
-package com.andriybobchuk.messenger.feature.chat.model
+package com.andriybobchuk.messenger.feature.chat.data.model
 
 data class Reaction(
     val userName: String,

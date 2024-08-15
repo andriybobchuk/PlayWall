@@ -46,8 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.andriybobchuk.messenger.R
 import com.andriybobchuk.messenger.feature.chat.presentation.util.Constants.EMOJI_LIST
-import com.andriybobchuk.messenger.feature.chat.model.Message
-import com.andriybobchuk.messenger.feature.chat.model.Reaction
+import com.andriybobchuk.messenger.feature.chat.data.model.Message
+import com.andriybobchuk.messenger.feature.chat.data.model.Reaction
 import com.andriybobchuk.messenger.feature.chat.presentation.viewmodel.ChatViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

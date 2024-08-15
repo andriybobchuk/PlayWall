@@ -1,7 +1,7 @@
-package com.andriybobchuk.messenger.feature.chat.data
+package com.andriybobchuk.messenger.feature.chat.domain
 
-import com.andriybobchuk.messenger.feature.chat.model.Message
-import com.andriybobchuk.messenger.feature.chat.model.User
+import com.andriybobchuk.messenger.feature.chat.data.model.Message
+import com.andriybobchuk.messenger.feature.chat.data.model.User
 
 interface ChatRepository {
     suspend fun retrieveMessages(page: Int, pageSize: Int): Result<List<Message>>

@@ -1,7 +1,7 @@
 package com.andriybobchuk.messenger.di
 
 import android.content.Context
-import com.andriybobchuk.messenger.feature.chat.data.ChatRepository
+import com.andriybobchuk.messenger.feature.chat.domain.ChatRepository
 import com.andriybobchuk.messenger.feature.chat.data.FakeChatRepository
 //import com.google.firebase.auth.FirebaseAuth
 

@@ -1,4 +1,4 @@
-package com.andriybobchuk.messenger.feature.chat.presentation.pagination
+package com.andriybobchuk.messenger.feature.chat.domain
 
 interface Paginator<Key, Item> {
     suspend fun loadNextItems()
