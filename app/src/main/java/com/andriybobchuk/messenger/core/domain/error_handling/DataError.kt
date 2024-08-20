@@ -8,6 +8,8 @@ sealed interface DataError: Error {
         PAYLOAD_TOO_LARGE,
         SERVER_ERROR,
         SERIALIZATION,
+        UNAUTHORIZED,
+        CONFLICT,
         UNKNOWN
     }
     enum class Local: DataError {
@@ -16,7 +18,7 @@ sealed interface DataError: Error {
 }
 
 
-enum class Network: DataError {
-    WRONG_CREDENTIALS,
-    // write more here
-}
+//enum class Network: DataError {
+//    WRONG_CREDENTIALS,
+//    // write more here
+//}

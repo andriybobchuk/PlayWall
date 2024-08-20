@@ -37,6 +37,9 @@ fun DataError.asUiText(): UiText {
         DataError.Local.DISK_FULL -> UiText.StringResource(
             R.string.error_disk_full
         )
+
+        DataError.Network.UNAUTHORIZED -> TODO()
+        DataError.Network.CONFLICT -> TODO()
     }
 }
 

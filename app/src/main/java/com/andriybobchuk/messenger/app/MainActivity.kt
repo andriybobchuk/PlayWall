@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
-import com.andriybobchuk.messenger.core.presentation.ui.theme.MessengerTheme
+import com.andriybobchuk.messenger.core.presentation.designsystem.MessengerTheme
 import com.andriybobchuk.messenger.navigation.BottomNavigationBar
 import com.andriybobchuk.messenger.navigation.NavigationHost
 
