@@ -32,4 +32,6 @@
     <string name="error_serialization">Error serialization</string>
     <string name="unknown_error">Unknown error!</string>
     <string name="error_disk_full">Disk is full!</string>
+    <string name="error_unauthorized">Unauthorized!</string>
+    <string name="error_conflict">Conflict!</string>
 </resources>

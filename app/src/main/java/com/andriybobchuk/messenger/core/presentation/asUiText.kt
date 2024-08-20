@@ -38,11 +38,12 @@ fun DataError.asUiText(): UiText {
             R.string.error_disk_full
         )
 
-        DataError.Network.UNAUTHORIZED -> TODO()
-        DataError.Network.CONFLICT -> TODO()
-    }
-}
+        DataError.Network.UNAUTHORIZED -> UiText.StringResource(
+            R.string.error_unauthorized
+        )
 
-fun Result.Error<*, DataError>.asErrorUiText(): UiText {
-    return error.asUiText()
+        DataError.Network.CONFLICT -> UiText.StringResource(
+            R.string.error_conflict
+        )
+    }
 }
