@@ -34,4 +34,6 @@
     <string name="error_disk_full">Disk is full!</string>
     <string name="error_unauthorized">Unauthorized!</string>
     <string name="error_conflict">Conflict!</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
 </resources>
