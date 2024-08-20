@@ -36,4 +36,16 @@
     <string name="error_conflict">Conflict!</string>
     <string name="login">Login</string>
     <string name="register">Register</string>
+    <string name="create_account">Create account</string>
+    <string name="already_have_an_account">Already have an account?</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="example_email">example@gmail.com</string>
+    <string name="email">Email</string>
+    <string name="must_be_a_valid_email">Must be a valid email</string>
+    <string name="password">Password</string>
+    <string name="at_least_x_characters">At least %1$s characters</string>
+    <string name="at_least_one_number">At least 1 number</string>
+    <string name="contains_lowercase_char">Contains lowercase character</string>
+    <string name="contains_uppercase_char">Contains uppercase character</string>
 </resources>

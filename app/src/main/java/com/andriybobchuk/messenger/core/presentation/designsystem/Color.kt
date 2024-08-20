@@ -15,3 +15,7 @@ val NAVY500 = Color(0xFF1a1969)
 val NAVY400 = Color(0xFF535C91)
 val NAVY300 = Color(0xFF666488) // only for loading images backgrounds
 val NAVY200 = Color(0xFF9290C3)
+
+// Other:
+val ERROR_RED = Color.Red
+val SUCCESS_GREEN = Color.Green

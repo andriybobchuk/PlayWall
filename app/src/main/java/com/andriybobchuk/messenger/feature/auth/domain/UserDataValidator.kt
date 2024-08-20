@@ -6,6 +6,10 @@ import com.andriybobchuk.messenger.core.domain.error_handling.Result
 
 class UserDataValidator {
 
+    companion object {
+        const val MIN_PASSWORD_LENGTH = 9
+    }
+
     fun validatePassword(password: String): Result<Unit, PasswordError> {
         if(password.length < 9) {
             return Result.Error(PasswordError.TOO_SHORT)
