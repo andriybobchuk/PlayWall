@@ -25,9 +25,9 @@ class MainActivity : ComponentActivity() {
             MessengerTheme {
                 val navController = rememberNavController()
                 Scaffold(
-                    bottomBar = {
-                        BottomNavigationBar(navController)
-                    },
+//                    bottomBar = {
+//                        BottomNavigationBar(navController)
+//                    },
                     modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
                     NavigationHost(navController, innerPadding)

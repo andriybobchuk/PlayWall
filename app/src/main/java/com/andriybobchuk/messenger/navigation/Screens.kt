@@ -4,6 +4,16 @@ import kotlinx.serialization.Serializable
 
 
 sealed class Screens(val route: String?) {
+
+    @Serializable
+    object IntroScreen
+
+    @Serializable
+    object RegisterScreen
+
+    @Serializable
+    object LoginScreen
+
     @Serializable
     object HomeScreen
 

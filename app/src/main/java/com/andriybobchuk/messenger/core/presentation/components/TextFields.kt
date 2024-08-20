@@ -109,7 +109,7 @@ object TextFields {
                                 alpha = 0.05f
                             )
                         } else {
-                            MaterialTheme.colorScheme.surface
+                            MaterialTheme.colorScheme.primaryContainer
                         }
                     )
                     .border(
@@ -216,7 +216,7 @@ object TextFields {
                                 alpha = 0.05f
                             )
                         } else {
-                            MaterialTheme.colorScheme.surface
+                            MaterialTheme.colorScheme.primaryContainer
                         }
                     )
                     .border(

@@ -15,6 +15,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.andriybobchuk.messenger.app.MyApp
 import com.andriybobchuk.messenger.core.presentation.viewModelFactory
+import com.andriybobchuk.messenger.feature.auth.presentation.intro.IntroScreenRoot
+import com.andriybobchuk.messenger.feature.auth.presentation.register.RegisterScreenRoot
+import com.andriybobchuk.messenger.feature.auth.presentation.register.RegisterViewModel
 import com.andriybobchuk.messenger.feature.chat.presentation.screens.chat.MessengerScreen
 import com.andriybobchuk.messenger.feature.chat.presentation.screens.chat.viewmodel.ChatViewModel
 
@@ -41,8 +44,27 @@ import com.andriybobchuk.messenger.feature.chat.presentation.screens.chat.viewmo
 fun NavigationHost(navController: NavHostController, innerPadding: PaddingValues) {
     NavHost(
         navController = navController,
-        startDestination = Screens.HomeScreen
+        startDestination = Screens.RegisterScreen
     ) {
+        composable<Screens.IntroScreen> {
+            IntroScreenRoot(onSignUpClick = { /*TODO*/ }) {
+
+            }
+        }
+        composable<Screens.RegisterScreen> {
+            RegisterScreenRoot(
+                onSignInClick = { /*TODO*/ },
+                onSuccessfulRegistration = { /*TODO*/ },
+                viewModel = viewModel<RegisterViewModel>(
+                    factory = viewModelFactory {
+                        RegisterViewModel()
+                    }
+                ),
+            )
+        }
+        composable<Screens.LoginScreen> {
+           // LoginScreenContent()
+        }
         composable<Screens.HomeScreen> {
             HomeScreenContent()
         }

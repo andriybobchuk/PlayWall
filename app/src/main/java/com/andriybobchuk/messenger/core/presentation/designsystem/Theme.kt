@@ -17,7 +17,8 @@ private val LightColorScheme = lightColorScheme(
     secondaryContainer = BLUE200, // their message
     secondary = GRAY600, // Grey texts
     background = Color.White, // Backgrounds
-    outline = Color.LightGray // Shimmer for loading images
+    outline = Color.LightGray, // Shimmer for loading images
+    surface = Color.Red // For light container elements like textfields backgrounds
 )
 
 private val DarkColorScheme = darkColorScheme(
@@ -26,7 +27,8 @@ private val DarkColorScheme = darkColorScheme(
     secondaryContainer = NAVY500, // their message
     secondary = NAVY400, // Light text for secondary elements
     background = NAVY800, // Background
-    outline = NAVY300 // for loading images backgrounds
+    outline = NAVY300, // for loading images backgrounds
+    surface = Color.Red // For light container elements like textfields backgrounds
 )
 
 //private val LightAndroidBackgroundTheme = BackgroundTheme(color = Color.White)
