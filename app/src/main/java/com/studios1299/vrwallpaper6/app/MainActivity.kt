@@ -30,6 +30,7 @@ class MainActivity : ComponentActivity() {
 
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
+        actionBar?.hide() // Workaround cuz splash screen forces action bar.
         installSplashScreen().apply {
             setKeepOnScreenCondition {
                 viewModel.state.isCheckingAuth
