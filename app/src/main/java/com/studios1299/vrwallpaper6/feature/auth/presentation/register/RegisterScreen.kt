@@ -37,13 +37,14 @@ import com.studios1299.vrwallpaper6.core.presentation.designsystem.CheckIcon
 import com.studios1299.vrwallpaper6.core.presentation.designsystem.CrossIcon
 import com.studios1299.vrwallpaper6.core.presentation.designsystem.ERROR_RED
 import com.studios1299.vrwallpaper6.core.presentation.designsystem.EmailIcon
-import com.studios1299.vrwallpaper6.core.presentation.designsystem.MessengerTheme
+import com.studios1299.vrwallpaper6.core.presentation.designsystem.PlayWallTheme
 import com.studios1299.vrwallpaper6.core.presentation.designsystem.SUCCESS_GREEN
 import com.studios1299.vrwallpaper6.core.presentation.designsystem.poppins
 import com.studios1299.vrwallpaper6.feature.auth.domain.PasswordValidationState
 import com.studios1299.vrwallpaper6.feature.auth.domain.UserDataValidator
 import com.studios1299.vrwallpaper6.R
 import com.studios1299.vrwallpaper6.core.presentation.ObserveAsEvents
+import com.studios1299.vrwallpaper6.feature.auth.presentation.login.LoginAction
 
 @Composable
 fun RegisterScreenRoot(
@@ -79,7 +80,13 @@ fun RegisterScreenRoot(
 
     RegisterScreen(
         state = viewModel.state,
-        onAction = viewModel::onAction
+        onAction = { action ->
+            when(action) {
+                is RegisterAction.OnLoginClick -> onSignInClick()
+                else -> Unit
+            }
+            viewModel.onAction(action)
+        }
     )
 }
 
@@ -234,7 +241,7 @@ fun PasswordRequirement(
 @Preview
 @Composable
 private fun RegisterScreenPreview() {
-    MessengerTheme {
+    PlayWallTheme {
         RegisterScreen(
             state = RegisterState(
                 passwordValidationState = PasswordValidationState(

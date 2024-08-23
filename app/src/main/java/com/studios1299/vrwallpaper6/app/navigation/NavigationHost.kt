@@ -19,6 +19,8 @@ import com.studios1299.vrwallpaper6.app.MyApp
 import com.studios1299.vrwallpaper6.core.presentation.viewModelFactory
 import com.studios1299.vrwallpaper6.feature.auth.domain.UserDataValidator
 import com.studios1299.vrwallpaper6.feature.auth.presentation.intro.IntroScreenRoot
+import com.studios1299.vrwallpaper6.feature.auth.presentation.login.LoginScreenRoot
+import com.studios1299.vrwallpaper6.feature.auth.presentation.login.LoginViewModel
 import com.studios1299.vrwallpaper6.feature.auth.presentation.register.RegisterScreenRoot
 import com.studios1299.vrwallpaper6.feature.auth.presentation.register.RegisterViewModel
 import com.studios1299.vrwallpaper6.feature.chat.presentation.screens.chat.MessengerScreen
@@ -28,13 +30,15 @@ import com.studios1299.vrwallpaper6.feature.chat.presentation.screens.chat.viewm
 @Composable
 fun NavigationHostLegacy(
     navController: NavHostController,
+    isLoggedIn: Boolean,
     innerPadding: PaddingValues
 ) {
     NavHost(
         navController = navController,
-        startDestination = "auth"
+        startDestination = if(isLoggedIn) "play" else "auth"
     ) {
         authGraph(navController)
+        playGraph(navController)
     }
 }
 
@@ -70,12 +74,51 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
                 viewModel = viewModel<RegisterViewModel>(
                     factory = viewModelFactory {
                         RegisterViewModel(
-                            UserDataValidator(MyApp.appModule.emailPatternValidator),
-                            MyApp.appModule.authRepository
+                            MyApp.appModule.authRepository,
+                            UserDataValidator(MyApp.appModule.emailPatternValidator)
                         )
                     }
                 )
             )
+        }
+        composable("login") {
+            LoginScreenRoot(
+                onLoginSuccess = {
+                    navController.navigate("play") {
+                        popUpTo("auth") {
+                            inclusive = true
+                        }
+                    }
+                },
+                onSignUpClick = {
+                    navController.navigate("register") {
+                        popUpTo("login") {
+                            inclusive = true
+                            saveState = true
+                        }
+                        restoreState = true
+                    }
+                },
+                viewModel = viewModel<LoginViewModel>(
+                    factory = viewModelFactory {
+                        LoginViewModel(
+                            MyApp.appModule.authRepository,
+                            UserDataValidator(MyApp.appModule.emailPatternValidator)
+                        )
+                    }
+                )
+            )
+        }
+    }
+}
+
+private fun NavGraphBuilder.playGraph(navController: NavHostController) {
+    navigation(
+        startDestination = "play_main",
+        route = "play"
+    ) {
+        composable("play_main") {
+            Text(text = "Play Tab!")
         }
     }
 }

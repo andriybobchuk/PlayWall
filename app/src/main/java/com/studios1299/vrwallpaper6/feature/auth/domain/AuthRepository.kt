@@ -24,6 +24,7 @@ interface AuthRepository {
 
 
     fun logOut()
+    suspend fun getCurrentUserId(): String?
 }
 
 data class User(

@@ -17,7 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.studios1299.vrwallpaper6.core.presentation.components.Buttons
-import com.studios1299.vrwallpaper6.core.presentation.designsystem.MessengerTheme
+import com.studios1299.vrwallpaper6.core.presentation.designsystem.PlayWallTheme
 import com.studios1299.vrwallpaper6.R
 
 @Composable
@@ -117,7 +117,7 @@ private fun RuniqueLogoVertical(
 @Preview
 @Composable
 private fun IntroScreenPreview() {
-    MessengerTheme {
+    PlayWallTheme {
         IntroScreen(
             onAction = {}
         )

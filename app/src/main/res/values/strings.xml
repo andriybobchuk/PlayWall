@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Messenger</string>
+    <string name="app_name">PlayWall</string>
     <string name="back">Back</string>
     <string name="recipient_profile_picture">Recipient Profile Picture</string>
     <string name="last_online">"Last online "</string>
@@ -50,4 +50,10 @@
     <string name="contains_uppercase_char">Contains uppercase character</string>
     <string name="error_email_exists">A user with this email already exists.</string>
     <string name="registration_successful">Registration successful! You can now log in.</string>
+    <string name="error_email_password_incorrect">Email or password entered is not correct.</string>
+    <string name="youre_logged_in">Logged in successfully!</string>
+    <string name="welcome_text">Welcome to PlayWall!</string>
+    <string name="dont_have_an_account">Don\'t have an account?</string>
+    <string name="sign_up">Register</string>
+    <string name="hi_there">Hi there!</string>
 </resources>

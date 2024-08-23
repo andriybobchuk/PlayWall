@@ -12,8 +12,10 @@ class FakeAuthRepository : AuthRepository {
 
         delay(2000)
 
+        if(email == "test" || password == "test") {
+            return Result.Success(User("Andrii Bobchuk", "token", "andriybobchuk@gmail.com"))
+        }
         return Result.Error(DataError.Network.SERVER_ERROR)
-
     }
 
     override suspend fun register(email: String, password: String): EmptyResult<DataError.Network> {
@@ -45,5 +47,11 @@ class FakeAuthRepository : AuthRepository {
 
     override fun logOut() {
         TODO("Not yet implemented")
+    }
+
+    suspend override fun getCurrentUserId(): String? {
+        delay(2000);
+        //return "fake-id"
+        return null
     }
 }

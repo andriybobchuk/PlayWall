@@ -35,7 +35,7 @@ private val DarkColorScheme = darkColorScheme(
 //private val DarkAndroidBackgroundTheme = BackgroundTheme(color = DARK_GREEN300)
 
 @Composable
-fun MessengerTheme(
+fun PlayWallTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit

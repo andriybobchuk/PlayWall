@@ -78,7 +78,6 @@ interface AppModule {
     val chatRepository: ChatRepository
     val authRepository: AuthRepository
     val emailPatternValidator: PatternValidator
-    val userDataValidator: UserDataValidator
 //    val friendsRepository: AuthRepository
 //    val galleryRepository: AuthRepository
 }
@@ -101,9 +100,6 @@ class AppModuleImpl(
     }
     override val emailPatternValidator: PatternValidator by lazy {
         EmailPatternValidator
-    }
-    override val userDataValidator: UserDataValidator by lazy {
-        UserDataValidator(patternValidator = emailPatternValidator)
     }
 
 
