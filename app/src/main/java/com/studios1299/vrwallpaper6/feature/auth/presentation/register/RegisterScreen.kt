@@ -1,5 +1,6 @@
 package com.studios1299.vrwallpaper6.feature.auth.presentation.register
 
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -40,6 +43,7 @@ import com.studios1299.vrwallpaper6.core.presentation.designsystem.poppins
 import com.studios1299.vrwallpaper6.feature.auth.domain.PasswordValidationState
 import com.studios1299.vrwallpaper6.feature.auth.domain.UserDataValidator
 import com.studios1299.vrwallpaper6.R
+import com.studios1299.vrwallpaper6.core.presentation.ObserveAsEvents
 
 @Composable
 fun RegisterScreenRoot(
@@ -47,6 +51,32 @@ fun RegisterScreenRoot(
     onSuccessfulRegistration: () -> Unit,
     viewModel: RegisterViewModel
 ) {
+
+    val context = LocalContext.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    ObserveAsEvents(viewModel.events) { event ->
+        when (event) {
+            is RegisterEvent.Error -> {
+                keyboardController?.hide()
+                Toast.makeText(
+                    context,
+                    event.error.asString(context),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+
+            RegisterEvent.RegistrationSuccess -> {
+                keyboardController?.hide()
+                Toast.makeText(
+                    context,
+                    R.string.registration_successful,
+                    Toast.LENGTH_LONG
+                ).show()
+                onSuccessfulRegistration()
+            }
+        }
+    }
+
     RegisterScreen(
         state = viewModel.state,
         onAction = viewModel::onAction
@@ -190,7 +220,7 @@ fun PasswordRequirement(
                 CrossIcon
             },
             contentDescription = null,
-            tint = if(isValid) SUCCESS_GREEN else ERROR_RED
+            tint = if (isValid) SUCCESS_GREEN else ERROR_RED
         )
         Spacer(modifier = Modifier.width(16.dp))
         Text(

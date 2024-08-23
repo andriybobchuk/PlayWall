@@ -1,8 +1,8 @@
 package com.studios1299.vrwallpaper6.app
 
 import android.app.Application
-import com.studios1299.vrwallpaper6.di.AppModule
-import com.studios1299.vrwallpaper6.di.AppModuleImpl
+import com.studios1299.vrwallpaper6.app.di.AppModule
+import com.studios1299.vrwallpaper6.app.di.AppModuleImpl
 
 /**
  * The main Application class for setting up the dependency injection module.

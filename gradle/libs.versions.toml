@@ -2,7 +2,6 @@
 agp = "8.2.2"
 androidTools = "31.2.2"
 core = "1.10.3"
-dexter = "6.2.2"
 #noinspection RiskyLibrary
 playCore = "1.10.3"
 coreSplashscreen = "1.0.1"
@@ -21,7 +20,7 @@ koin = "3.5.3"
 lifecycleRuntimeKtx = "2.7.0"
 composeBom = "2024.02.02"
 materialIconsExtended = "1.6.3"
-navigationCompose = "2.8.0-alpha08" # Type safe navigation was firtly released in this version
+navigationCompose = "2.7.7"#"2.8.0-alpha08" # Type safe navigation was firtly released in this version
 securityCryptoKtx = "1.1.0-alpha06"
 timber = "5.0.1"
 ksp = "1.9.22-1.0.17"
@@ -40,9 +39,9 @@ secretsPlugin = "2.0.1"
 playServicesMaps = "18.2.0"
 annotation = "1.7.1"
 glide = "4.16.0"
-glide-compiler = "4.15.1"
 glide-compose = "1.0.0-alpha.1"
 material3 = "1.2.1"
+dexter = "6.2.2"
 
 # Project versions
 projectApplicationId = "com.studios1299.vrwallpaper6"
@@ -104,7 +103,6 @@ play-services-maps = { group = "com.google.android.gms", name = "play-services-m
 google-maps-android-utils-ktx = { module = "com.google.maps.android:maps-utils-ktx", version.ref = "mapsUtils"}
 annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
-glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide-compiler" }
 glide-compose = { module = "com.github.bumptech.glide:compose", version.ref = "glide-compose" }
 dexter = { module = "com.karumi:dexter", version.ref = "dexter" }
 

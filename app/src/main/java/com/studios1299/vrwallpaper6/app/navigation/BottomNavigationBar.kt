@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.navigation
+package com.studios1299.vrwallpaper6.app.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -39,10 +39,10 @@ fun BottomNavigationBar(navController: NavHostController) {
                 onClick = {
                     selectedItemIndex = index
                     when (index) {
-                        0 -> navController.navigate(Screens.HomeScreen)
-                        1 -> navController.navigate(Screens.ChatScreen)
-                        2 -> navController.navigate(Screens.SettingsScreen)
-                        3 -> navController.navigate(Screens.ProfileScreen)
+//                        0 -> navController.navigate(Screens.HomeScreen)
+//                        1 -> navController.navigate(Screens.ChatScreen)
+//                        2 -> navController.navigate(Screens.SettingsScreen)
+//                        3 -> navController.navigate(Screens.ProfileScreen)
                     }
                 },
                 label = { Text(text = item.title) },

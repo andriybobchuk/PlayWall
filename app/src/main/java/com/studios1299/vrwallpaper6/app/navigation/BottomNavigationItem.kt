@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.navigation
+package com.studios1299.vrwallpaper6.app.navigation
 
 import androidx.compose.ui.graphics.vector.ImageVector
 

@@ -1,6 +1,11 @@
-package com.studios1299.vrwallpaper6.di
+package com.studios1299.vrwallpaper6.app.di
 
 import android.content.Context
+import com.studios1299.vrwallpaper6.feature.auth.data.EmailPatternValidator
+import com.studios1299.vrwallpaper6.feature.auth.data.FakeAuthRepository
+import com.studios1299.vrwallpaper6.feature.auth.domain.AuthRepository
+import com.studios1299.vrwallpaper6.feature.auth.domain.PatternValidator
+import com.studios1299.vrwallpaper6.feature.auth.domain.UserDataValidator
 import com.studios1299.vrwallpaper6.feature.chat.domain.ChatRepository
 import com.studios1299.vrwallpaper6.feature.chat.data.FakeChatRepository
 //import com.google.firebase.auth.FirebaseAuth
@@ -71,6 +76,9 @@ interface AppModule {
 //    val firebaseFirestore: FirebaseAuth
 //    val authRepository: AuthRepository
     val chatRepository: ChatRepository
+    val authRepository: AuthRepository
+    val emailPatternValidator: PatternValidator
+    val userDataValidator: UserDataValidator
 //    val friendsRepository: AuthRepository
 //    val galleryRepository: AuthRepository
 }
@@ -88,10 +96,25 @@ class AppModuleImpl(
     override val chatRepository: ChatRepository by lazy {
         FakeChatRepository()
     }
+    override val authRepository: AuthRepository by lazy {
+        FakeAuthRepository()
+    }
+    override val emailPatternValidator: PatternValidator by lazy {
+        EmailPatternValidator
+    }
+    override val userDataValidator: UserDataValidator by lazy {
+        UserDataValidator(patternValidator = emailPatternValidator)
+    }
+
+
 }
 
-class TestAppModuleImpl: AppModule {
-    override val chatRepository: ChatRepository by lazy {
-        TODO("Not yet implemented")
-    }
-}
+//class TestAppModuleImpl: AppModule {
+//    override val chatRepository: ChatRepository by lazy {
+//        TODO("Not yet implemented")
+//    }
+//    override val emailPatternValidator: PatternValidator
+//        get() = TODO("Not yet implemented")
+//    override val userDataValidator: UserDataValidator
+//        get() = TODO("Not yet implemented")
+//}

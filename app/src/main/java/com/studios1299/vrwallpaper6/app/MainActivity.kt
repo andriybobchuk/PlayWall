@@ -11,7 +11,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.studios1299.vrwallpaper6.core.presentation.designsystem.MessengerTheme
-import com.studios1299.vrwallpaper6.navigation.NavigationHost
+import com.studios1299.vrwallpaper6.app.navigation.NavigationHost
+import com.studios1299.vrwallpaper6.app.navigation.NavigationHostLegacy
 
 class MainActivity : ComponentActivity() {
 
@@ -29,7 +30,7 @@ class MainActivity : ComponentActivity() {
 //                    },
                     modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
-                    NavigationHost(navController, innerPadding)
+                    NavigationHostLegacy(navController, innerPadding)
                 }
             }
         }

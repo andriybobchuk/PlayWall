@@ -101,11 +101,10 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     // Can be removed
-    androidTestImplementation(platform(libs.androidx.compose.bom))
+    //androidTestImplementation(platform(libs.androidx.compose.bom))
 
     // Glide for image loading and caching:
     implementation (libs.glide)
-    //kapt (libs.glide.compiler)
     implementation(libs.glide.compose)
 
     // Dexter for permission handling:
