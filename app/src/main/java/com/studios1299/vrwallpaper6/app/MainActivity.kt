@@ -45,12 +45,12 @@ class MainActivity : ComponentActivity() {
                         BottomNavigationBar(navController)
                     },
                     modifier = Modifier.fillMaxSize()
-                ) { innerPadding ->
+                ) { navBarPadding ->
                     if(!viewModel.state.isCheckingAuth) {
                         NavigationHostLegacy(
                             navController = navController,
                             isLoggedIn = viewModel.state.isLoggedIn,
-                            innerPadding = innerPadding
+                            navBarPadding = navBarPadding
                         )
                     }
                 }

@@ -30,18 +30,18 @@ import com.studios1299.vrwallpaper6.feature.play.presentation.screens.play.PlayV
 fun NavigationHostLegacy(
     navController: NavHostController,
     isLoggedIn: Boolean,
-    innerPadding: PaddingValues
+    navBarPadding: PaddingValues
 ) {
     NavHost(
         navController = navController,
         startDestination = if(isLoggedIn) Graphs.Main.root else Graphs.Auth.root
     ) {
-        authGraph(navController)
-        mainGraph(navController)
+        authGraph(navController, navBarPadding)
+        mainGraph(navController, navBarPadding)
     }
 }
 
-private fun NavGraphBuilder.authGraph(navController: NavHostController) {
+private fun NavGraphBuilder.authGraph(navController: NavHostController, navBarPadding: PaddingValues) {
     navigation(
         startDestination = "intro",
         route = "auth"
@@ -111,7 +111,7 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
     }
 }
 
-private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
+private fun NavGraphBuilder.mainGraph(navController: NavHostController, navBarPadding: PaddingValues) {
     navigation(
         startDestination = Graphs.Main.Screens.play,
         route = Graphs.Main.root
@@ -127,7 +127,8 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
                 ),
                 {
 
-                }
+                },
+                paddingValues = navBarPadding
             )
         }
         composable(Graphs.Main.Screens.explore) {
