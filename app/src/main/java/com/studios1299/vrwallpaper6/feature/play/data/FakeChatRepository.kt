@@ -233,77 +233,88 @@ class FakeChatRepository : ChatRepository {
                     name = "Alice",
                     avatar = "https://www.shutterstock.com/image-photo/adult-female-avatar-image-on-260nw-2420293027.jpg",
                     lastMessage = "See you soon!",
-                    unreadMessages = 2
+                    unreadMessages = 2,
+                    muted = false,
                 ),
                 Friend(
                     id = "2",
                     name = "Bob",
                     avatar = "https://www.dell.com/wp-uploads/2022/11/Human-like-Avatar-2-640x480.jpg",
                     lastMessage = "Thanks for the help!",
-                    unreadMessages = 0
+                    unreadMessages = 0,
+                    muted = false,
                 ),
                 Friend(
                     id = "3",
                     name = "Charlie",
                     avatar = "https://www.researchgate.net/profile/Kai-Riemer/publication/313794667/figure/fig4/AS:462513214103554@1487283151275/The-same-image-as-Figure-3-rotated-180-degrees-note-how-crude-the-composite-seems_Q320.jpg",
                     lastMessage = null,
-                    unreadMessages = 0
+                    unreadMessages = 0,
+                    muted = true,
                 ),
                 Friend(
                     id = "4",
                     name = "Derek",
                     avatar = "https://www.cgw.com/images/Media/PublicationsArticle/pg30b.jpg",
                     lastMessage = null,
-                    unreadMessages = 0
+                    unreadMessages = 0,
+                    muted = false,
                 ),
                 Friend(
                     id = "5",
                     name = "John",
                     avatar = "-3-rotated-180-degrees-note-how-crude-the-composite-seems_Q320.jpg",
                     lastMessage = null,
-                    unreadMessages = 0
+                    unreadMessages = 0,
+                    muted = false,
                 ),
                 Friend(
                     id = "6",
                     name = "Tim",
                     avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
                     lastMessage = null,
-                    unreadMessages = 0
+                    unreadMessages = 0,
+                    muted = true,
                 ),
                 Friend(
                     id = "7",
                     name = "Chuck",
                     avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
                     lastMessage = null,
-                    unreadMessages = 0
+                    unreadMessages = 0,
+                    muted = false,
                 ),
                 Friend(
                     id = "8",
                     name = "Tristan",
                     avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
                     lastMessage = null,
-                    unreadMessages = 0
+                    unreadMessages = 0,
+                    muted = false,
                 ),
                 Friend(
                     id = "9",
                     name = "Andrew",
                     avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
                     lastMessage = null,
-                    unreadMessages = 0
+                    unreadMessages = 0,
+                    muted = false,
                 ),
                 Friend(
                     id = "10",
                     name = "Sam",
                     avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
                     lastMessage = null,
-                    unreadMessages = 0
+                    unreadMessages = 0,
+                    muted = false,
                 ),
                 Friend(
                     id = "11",
                     name = "Bob",
                     avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
                     lastMessage = null,
-                    unreadMessages = 0
+                    unreadMessages = 0,
+                    muted = false,
                 )
 
             )
@@ -421,7 +432,8 @@ class FakeChatRepository : ChatRepository {
                     name = request.name,
                     avatar = request.avatar,
                     lastMessage = null,
-                    unreadMessages = 0
+                    unreadMessages = 0,
+                    muted = false
                 )
             )
             true

@@ -42,13 +42,17 @@ class PlayViewModel(
         }
     }
 
+    private fun getSortedFriends(friends: List<Friend>): List<Friend> {
+        return friends.sortedWith(compareBy({ it.muted }, { it.name })) // Mute friends last
+    }
+
     private fun loadFriendsAndRequests() {
         viewModelScope.launch {
             state = state.copy(isLoading = true)
             val friendsResult = repository.getFriends()
             val friendRequestsResult = repository.getFriendRequests()
             state = state.copy(
-                friends = friendsResult,
+                friends = getSortedFriends(friendsResult),
                 friendRequests = friendRequestsResult,
                 isLoading = false
             )

@@ -11,7 +11,8 @@ data class Friend(
     val name: String,
     val avatar: String,
     val lastMessage: String?,
-    val unreadMessages: Int
+    val unreadMessages: Int,
+    val muted: Boolean
 )
 
 data class FriendRequest(
