@@ -6,6 +6,8 @@ import com.studios1299.vrwallpaper6.feature.play.data.model.MessageStatus
 import com.studios1299.vrwallpaper6.feature.play.data.model.Reaction
 import com.studios1299.vrwallpaper6.feature.play.data.model.User
 import com.studios1299.vrwallpaper6.feature.play.domain.ChatRepository
+import com.studios1299.vrwallpaper6.feature.play.presentation.screens.play.Friend
+import com.studios1299.vrwallpaper6.feature.play.presentation.screens.play.FriendRequest
 import kotlinx.coroutines.delay
 import java.util.UUID
 
@@ -15,6 +17,9 @@ class FakeChatRepository : ChatRepository {
     }
 
     private val _messages = mutableListOf<Message>()
+    private val _friends = mutableListOf<Friend>()
+    private val _requests = mutableListOf<FriendRequest>()
+
     private val _currentUser = User(
         id = "user1",
         name = "Andrii Bobchuk",
@@ -221,6 +226,102 @@ class FakeChatRepository : ChatRepository {
                 )
             )
         )
+        _friends.addAll(
+            listOf(
+                Friend(
+                    id = "1",
+                    name = "Alice",
+                    avatar = "https://www.shutterstock.com/image-photo/adult-female-avatar-image-on-260nw-2420293027.jpg",
+                    lastMessage = "See you soon!",
+                    unreadMessages = 2
+                ),
+                Friend(
+                    id = "2",
+                    name = "Bob",
+                    avatar = "https://www.dell.com/wp-uploads/2022/11/Human-like-Avatar-2-640x480.jpg",
+                    lastMessage = "Thanks for the help!",
+                    unreadMessages = 0
+                ),
+                Friend(
+                    id = "3",
+                    name = "Charlie",
+                    avatar = "https://www.researchgate.net/profile/Kai-Riemer/publication/313794667/figure/fig4/AS:462513214103554@1487283151275/The-same-image-as-Figure-3-rotated-180-degrees-note-how-crude-the-composite-seems_Q320.jpg",
+                    lastMessage = null,
+                    unreadMessages = 0
+                ),
+                Friend(
+                    id = "4",
+                    name = "Derek",
+                    avatar = "https://www.cgw.com/images/Media/PublicationsArticle/pg30b.jpg",
+                    lastMessage = null,
+                    unreadMessages = 0
+                ),
+                Friend(
+                    id = "5",
+                    name = "John",
+                    avatar = "-3-rotated-180-degrees-note-how-crude-the-composite-seems_Q320.jpg",
+                    lastMessage = null,
+                    unreadMessages = 0
+                ),
+                Friend(
+                    id = "6",
+                    name = "Tim",
+                    avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
+                    lastMessage = null,
+                    unreadMessages = 0
+                ),
+                Friend(
+                    id = "7",
+                    name = "Chuck",
+                    avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
+                    lastMessage = null,
+                    unreadMessages = 0
+                ),
+                Friend(
+                    id = "8",
+                    name = "Tristan",
+                    avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
+                    lastMessage = null,
+                    unreadMessages = 0
+                ),
+                Friend(
+                    id = "9",
+                    name = "Andrew",
+                    avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
+                    lastMessage = null,
+                    unreadMessages = 0
+                ),
+                Friend(
+                    id = "10",
+                    name = "Sam",
+                    avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
+                    lastMessage = null,
+                    unreadMessages = 0
+                ),
+                Friend(
+                    id = "11",
+                    name = "Bob",
+                    avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
+                    lastMessage = null,
+                    unreadMessages = 0
+                )
+
+            )
+        )
+        _requests.addAll(
+            listOf(
+                FriendRequest(
+                    id = "7",
+                    name = "David",
+                    avatar = "https://comicvine.gamespot.com/a/uploads/scale_small/3/39768/3633678-600full-ian-mckellen.jpg"
+                ),
+                FriendRequest(
+                    id = "8",
+                    name = "Eva",
+                    avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3633865-magneto-daniel%20craig.jpg"
+                )
+            )
+        )
     }
 
     override suspend fun retrieveMessages(page: Int, pageSize: Int): Result<List<Message>> {
@@ -297,5 +398,45 @@ class FakeChatRepository : ChatRepository {
             return "Tom Sawyer"
         }
         return "Unknown"
+    }
+
+
+
+
+    override fun getFriends(): List<Friend> {
+        return _friends
+    }
+
+    override fun getFriendRequests(): List<FriendRequest> {
+        return _requests
+    }
+
+    override fun acceptFriendRequest(requestId: String): Boolean {
+        val request = _requests.find { it.id == requestId }
+        return if (request != null) {
+            _requests.remove(request)
+            _friends.add(
+                Friend(
+                    id = request.id,
+                    name = request.name,
+                    avatar = request.avatar,
+                    lastMessage = null,
+                    unreadMessages = 0
+                )
+            )
+            true
+        } else {
+            false
+        }
+    }
+
+    override fun rejectFriendRequest(requestId: String): Boolean {
+        val request = _requests.find { it.id == requestId }
+        return if (request != null) {
+            _requests.remove(request)
+            true
+        } else {
+            false
+        }
     }
 }

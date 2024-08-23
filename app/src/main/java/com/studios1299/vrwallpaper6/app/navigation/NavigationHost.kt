@@ -22,6 +22,8 @@ import com.studios1299.vrwallpaper6.feature.auth.presentation.login.LoginScreenR
 import com.studios1299.vrwallpaper6.feature.auth.presentation.login.LoginViewModel
 import com.studios1299.vrwallpaper6.feature.auth.presentation.register.RegisterScreenRoot
 import com.studios1299.vrwallpaper6.feature.auth.presentation.register.RegisterViewModel
+import com.studios1299.vrwallpaper6.feature.play.presentation.screens.play.PlayScreenRoot
+import com.studios1299.vrwallpaper6.feature.play.presentation.screens.play.PlayViewModel
 
 
 @Composable
@@ -115,7 +117,18 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
         route = Graphs.Main.root
     ) {
         composable(Graphs.Main.Screens.play) {
-            Text(text = "Play Tab!")
+            PlayScreenRoot(
+                viewModel = viewModel<PlayViewModel>(
+                    factory = viewModelFactory {
+                        PlayViewModel(
+                            MyApp.appModule.chatRepository
+                        )
+                    }
+                ),
+                {
+
+                }
+            )
         }
         composable(Graphs.Main.Screens.explore) {
             Text(text = "Explore Tab!")
