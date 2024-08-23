@@ -13,6 +13,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.studios1299.vrwallpaper6.app.navigation.BottomNavigationBar
 import com.studios1299.vrwallpaper6.core.presentation.designsystem.PlayWallTheme
 import com.studios1299.vrwallpaper6.app.navigation.NavigationHostLegacy
 import com.studios1299.vrwallpaper6.core.presentation.viewModelFactory
@@ -38,14 +39,14 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             PlayWallTheme {
+                val navController = rememberNavController()
                 Scaffold(
-//                    bottomBar = {
-//                        BottomNavigationBar(navController)
-//                    },
+                    bottomBar = {
+                        BottomNavigationBar(navController)
+                    },
                     modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
                     if(!viewModel.state.isCheckingAuth) {
-                        val navController = rememberNavController()
                         NavigationHostLegacy(
                             navController = navController,
                             isLoggedIn = viewModel.state.isLoggedIn,

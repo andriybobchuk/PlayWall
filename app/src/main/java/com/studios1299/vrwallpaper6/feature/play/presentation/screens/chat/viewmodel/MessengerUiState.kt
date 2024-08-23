@@ -1,8 +1,8 @@
-package com.studios1299.vrwallpaper6.feature.chat.presentation.screens.chat.viewmodel
+package com.studios1299.vrwallpaper6.feature.play.presentation.screens.chat.viewmodel
 
 import android.net.Uri
-import com.studios1299.vrwallpaper6.feature.chat.data.model.Message
-import com.studios1299.vrwallpaper6.feature.chat.data.model.User
+import com.studios1299.vrwallpaper6.feature.play.data.model.Message
+import com.studios1299.vrwallpaper6.feature.play.data.model.User
 
 data class MessengerUiState(
     val currentUser: User? = null,

@@ -1,7 +1,7 @@
-package com.studios1299.vrwallpaper6.feature.chat.domain
+package com.studios1299.vrwallpaper6.feature.play.domain
 
-import com.studios1299.vrwallpaper6.feature.chat.data.model.Message
-import com.studios1299.vrwallpaper6.feature.chat.data.model.User
+import com.studios1299.vrwallpaper6.feature.play.data.model.Message
+import com.studios1299.vrwallpaper6.feature.play.data.model.User
 
 interface ChatRepository {
     suspend fun retrieveMessages(page: Int, pageSize: Int): Result<List<Message>>

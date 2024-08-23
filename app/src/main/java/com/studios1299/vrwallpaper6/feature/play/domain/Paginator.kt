@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.feature.chat.domain
+package com.studios1299.vrwallpaper6.feature.play.domain
 
 interface Paginator<Key, Item> {
     suspend fun loadNextItems()

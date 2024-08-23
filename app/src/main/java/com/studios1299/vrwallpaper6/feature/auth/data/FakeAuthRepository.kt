@@ -51,7 +51,7 @@ class FakeAuthRepository : AuthRepository {
 
     suspend override fun getCurrentUserId(): String? {
         delay(2000);
-        //return "fake-id"
-        return null
+        return "fake-id"
+        //return null
     }
 }

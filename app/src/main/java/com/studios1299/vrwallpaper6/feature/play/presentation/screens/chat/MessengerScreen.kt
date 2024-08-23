@@ -1,6 +1,6 @@
-package com.studios1299.vrwallpaper6.feature.chat.presentation.screens.chat
+package com.studios1299.vrwallpaper6.feature.play.presentation.screens.chat
 
-import com.studios1299.vrwallpaper6.feature.chat.presentation.screens.chat.viewmodel.ChatViewModel
+import com.studios1299.vrwallpaper6.feature.play.presentation.screens.chat.viewmodel.ChatViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -27,15 +27,15 @@ import com.bumptech.glide.integration.compose.GlideImage
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
-import com.studios1299.vrwallpaper6.feature.chat.presentation.util.rememberRequestPermissionAndPickImage
-import com.studios1299.vrwallpaper6.feature.chat.data.model.User
-import com.studios1299.vrwallpaper6.feature.chat.presentation.util.BuildCounterDisplay
-import com.studios1299.vrwallpaper6.feature.chat.presentation.util.ConnectivityStatus
-import com.studios1299.vrwallpaper6.feature.chat.presentation.screens.chat.overlays.ImagePicker
-import com.studios1299.vrwallpaper6.feature.chat.presentation.screens.chat.overlays.ImageViewer
-import com.studios1299.vrwallpaper6.feature.chat.presentation.screens.chat.viewmodel.MessengerUiState
-import com.studios1299.vrwallpaper6.feature.chat.presentation.util.isSameDay
-import com.studios1299.vrwallpaper6.feature.chat.presentation.util.timestampAsDate
+import com.studios1299.vrwallpaper6.feature.play.presentation.util.rememberRequestPermissionAndPickImage
+import com.studios1299.vrwallpaper6.feature.play.data.model.User
+import com.studios1299.vrwallpaper6.feature.play.presentation.util.BuildCounterDisplay
+import com.studios1299.vrwallpaper6.feature.play.presentation.util.ConnectivityStatus
+import com.studios1299.vrwallpaper6.feature.play.presentation.screens.chat.overlays.ImagePicker
+import com.studios1299.vrwallpaper6.feature.play.presentation.screens.chat.overlays.ImageViewer
+import com.studios1299.vrwallpaper6.feature.play.presentation.screens.chat.viewmodel.MessengerUiState
+import com.studios1299.vrwallpaper6.feature.play.presentation.util.isSameDay
+import com.studios1299.vrwallpaper6.feature.play.presentation.util.timestampAsDate
 import com.studios1299.vrwallpaper6.R
 import kotlinx.coroutines.launch
 

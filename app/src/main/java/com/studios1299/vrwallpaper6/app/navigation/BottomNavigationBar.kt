@@ -1,13 +1,19 @@
 package com.studios1299.vrwallpaper6.app.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -25,9 +31,9 @@ import androidx.navigation.NavHostController
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
     val items = listOf(
-        BottomNavigationItem("Home", Icons.Filled.Home, Icons.Outlined.Home, false),
-        BottomNavigationItem("Chat", Icons.Filled.Email, Icons.Outlined.Email, false, 45),
-        BottomNavigationItem("Settings", Icons.Filled.Settings, Icons.Outlined.Settings, true),
+        BottomNavigationItem("Play", Icons.Filled.PlayArrow, Icons.Outlined.PlayArrow, false, 4),
+        BottomNavigationItem("Explore", Icons.Filled.Search, Icons.Outlined.Search, false),
+        BottomNavigationItem("Create", Icons.Filled.AddCircle, Icons.Outlined.AddCircle, false),
         BottomNavigationItem("Profile", Icons.Filled.Person, Icons.Outlined.Person, false)
     )
     var selectedItemIndex by rememberSaveable { mutableStateOf(0) }
@@ -43,6 +49,10 @@ fun BottomNavigationBar(navController: NavHostController) {
 //                        1 -> navController.navigate(Screens.ChatScreen)
 //                        2 -> navController.navigate(Screens.SettingsScreen)
 //                        3 -> navController.navigate(Screens.ProfileScreen)
+                        0 -> navController.navigate("play")
+                        1 -> navController.navigate("explore")
+                        2 -> navController.navigate("create")
+                        3 -> navController.navigate("profile")
                     }
                 },
                 label = { Text(text = item.title) },

@@ -1,6 +1,6 @@
-package com.studios1299.vrwallpaper6.feature.chat.data
+package com.studios1299.vrwallpaper6.feature.play.data
 
-import com.studios1299.vrwallpaper6.feature.chat.domain.Paginator
+import com.studios1299.vrwallpaper6.feature.play.domain.Paginator
 
 class DefaultPaginator<Key, Item>(
     private val initialKey: Key,

@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.feature.chat.presentation.util
+package com.studios1299.vrwallpaper6.feature.play.presentation.util
 
 object Constants {
 

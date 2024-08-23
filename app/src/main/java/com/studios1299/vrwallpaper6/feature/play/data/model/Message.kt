@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.feature.chat.data.model
+package com.studios1299.vrwallpaper6.feature.play.data.model
 
 data class Reaction(
     val userName: String,

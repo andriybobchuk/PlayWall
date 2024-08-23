@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.feature.chat.presentation.screens.chat.overlays
+package com.studios1299.vrwallpaper6.feature.play.presentation.screens.chat.overlays
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box

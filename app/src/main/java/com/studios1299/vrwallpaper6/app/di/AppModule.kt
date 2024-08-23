@@ -5,9 +5,8 @@ import com.studios1299.vrwallpaper6.feature.auth.data.EmailPatternValidator
 import com.studios1299.vrwallpaper6.feature.auth.data.FakeAuthRepository
 import com.studios1299.vrwallpaper6.feature.auth.domain.AuthRepository
 import com.studios1299.vrwallpaper6.feature.auth.domain.PatternValidator
-import com.studios1299.vrwallpaper6.feature.auth.domain.UserDataValidator
-import com.studios1299.vrwallpaper6.feature.chat.domain.ChatRepository
-import com.studios1299.vrwallpaper6.feature.chat.data.FakeChatRepository
+import com.studios1299.vrwallpaper6.feature.play.domain.ChatRepository
+import com.studios1299.vrwallpaper6.feature.play.data.FakeChatRepository
 //import com.google.firebase.auth.FirebaseAuth
 
 

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,8 +22,6 @@ import com.studios1299.vrwallpaper6.feature.auth.presentation.login.LoginScreenR
 import com.studios1299.vrwallpaper6.feature.auth.presentation.login.LoginViewModel
 import com.studios1299.vrwallpaper6.feature.auth.presentation.register.RegisterScreenRoot
 import com.studios1299.vrwallpaper6.feature.auth.presentation.register.RegisterViewModel
-import com.studios1299.vrwallpaper6.feature.chat.presentation.screens.chat.MessengerScreen
-import com.studios1299.vrwallpaper6.feature.chat.presentation.screens.chat.viewmodel.ChatViewModel
 
 
 @Composable
@@ -35,10 +32,10 @@ fun NavigationHostLegacy(
 ) {
     NavHost(
         navController = navController,
-        startDestination = if(isLoggedIn) "play" else "auth"
+        startDestination = if(isLoggedIn) Graphs.Main.root else Graphs.Auth.root
     ) {
         authGraph(navController)
-        playGraph(navController)
+        mainGraph(navController)
     }
 }
 
@@ -84,7 +81,7 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
         composable("login") {
             LoginScreenRoot(
                 onLoginSuccess = {
-                    navController.navigate("play") {
+                    navController.navigate("main") {
                         popUpTo("auth") {
                             inclusive = true
                         }
@@ -112,13 +109,22 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
     }
 }
 
-private fun NavGraphBuilder.playGraph(navController: NavHostController) {
+private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
     navigation(
-        startDestination = "play_main",
-        route = "play"
+        startDestination = Graphs.Main.Screens.play,
+        route = Graphs.Main.root
     ) {
-        composable("play_main") {
+        composable(Graphs.Main.Screens.play) {
             Text(text = "Play Tab!")
+        }
+        composable(Graphs.Main.Screens.explore) {
+            Text(text = "Explore Tab!")
+        }
+        composable(Graphs.Main.Screens.create) {
+            Text(text = "Create Tab!")
+        }
+        composable(Graphs.Main.Screens.profile) {
+            Text(text = "Profile Tab!")
         }
     }
 }
@@ -200,7 +206,7 @@ fun HomeScreenContent() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Home Screen")
+        Text(text = "Play Screen")
     }
 }
 

@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.feature.chat.presentation.screens.chat
+package com.studios1299.vrwallpaper6.feature.play.presentation.screens.chat
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -44,10 +44,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.studios1299.vrwallpaper6.feature.chat.presentation.util.Constants.EMOJI_LIST
-import com.studios1299.vrwallpaper6.feature.chat.data.model.Message
-import com.studios1299.vrwallpaper6.feature.chat.data.model.Reaction
-import com.studios1299.vrwallpaper6.feature.chat.presentation.screens.chat.viewmodel.ChatViewModel
+import com.studios1299.vrwallpaper6.feature.play.presentation.util.Constants.EMOJI_LIST
+import com.studios1299.vrwallpaper6.feature.play.data.model.Message
+import com.studios1299.vrwallpaper6.feature.play.data.model.Reaction
+import com.studios1299.vrwallpaper6.feature.play.presentation.screens.chat.viewmodel.ChatViewModel
 import com.studios1299.vrwallpaper6.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.feature.chat.presentation.util
+package com.studios1299.vrwallpaper6.feature.play.presentation.util
 
 import android.content.Context
 import android.os.Build
@@ -7,7 +7,7 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import android.util.Log
 import androidx.compose.ui.unit.Dp
-import com.studios1299.vrwallpaper6.feature.chat.data.model.MessageStatus
+import com.studios1299.vrwallpaper6.feature.play.data.model.MessageStatus
 import com.studios1299.vrwallpaper6.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
