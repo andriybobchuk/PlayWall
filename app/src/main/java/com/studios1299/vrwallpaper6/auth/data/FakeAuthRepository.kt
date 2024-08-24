@@ -7,19 +7,13 @@ import com.studios1299.vrwallpaper6.auth.domain.AuthRepository
 import com.studios1299.vrwallpaper6.auth.domain.User
 import kotlinx.coroutines.delay
 
-class FakeAuthRepository : com.studios1299.vrwallpaper6.auth.domain.AuthRepository {
-    override suspend fun login(email: String, password: String): Result<com.studios1299.vrwallpaper6.auth.domain.User, DataError.Network> {
+class FakeAuthRepository() : AuthRepository {
+    override suspend fun login(email: String, password: String): Result<User, DataError.Network> {
 
         delay(2000)
 
         if(email == "test" || password == "test") {
-            return Result.Success(
-                com.studios1299.vrwallpaper6.auth.domain.User(
-                    "Andrii Bobchuk",
-                    "token",
-                    "andriybobchuk@gmail.com"
-                )
-            )
+            return Result.Success(User("Andrii Bobchuk", "token", "andriybobchuk@gmail.com"))
         }
         return Result.Error(DataError.Network.SERVER_ERROR)
     }

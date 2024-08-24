@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.studios1299.vrwallpaper6.feature.auth.domain.AuthRepository
+import com.studios1299.vrwallpaper6.auth.domain.AuthRepository
 import kotlinx.coroutines.launch
 
 class MainViewModel(

@@ -1,10 +1,12 @@
 package com.studios1299.vrwallpaper6.app.di
 
 import android.content.Context
-import com.studios1299.vrwallpaper6.feature.auth.data.EmailPatternValidator
-import com.studios1299.vrwallpaper6.feature.auth.data.FakeAuthRepository
-import com.studios1299.vrwallpaper6.feature.auth.domain.AuthRepository
-import com.studios1299.vrwallpaper6.feature.auth.domain.PatternValidator
+import com.google.firebase.auth.FirebaseAuth
+import com.studios1299.vrwallpaper6.auth.data.EmailPatternValidator
+import com.studios1299.vrwallpaper6.auth.data.FakeAuthRepository
+import com.studios1299.vrwallpaper6.auth.data.FirebaseAuthRepositoryImpl
+import com.studios1299.vrwallpaper6.auth.domain.AuthRepository
+import com.studios1299.vrwallpaper6.auth.domain.PatternValidator
 import com.studios1299.vrwallpaper6.feature.play.domain.ChatRepository
 import com.studios1299.vrwallpaper6.feature.play.data.FakeChatRepository
 //import com.google.firebase.auth.FirebaseAuth
@@ -77,6 +79,7 @@ interface AppModule {
     val chatRepository: ChatRepository
     val authRepository: AuthRepository
     val emailPatternValidator: PatternValidator
+    val firebaseAuth: FirebaseAuth
 //    val friendsRepository: AuthRepository
 //    val galleryRepository: AuthRepository
 }
@@ -95,7 +98,10 @@ class AppModuleImpl(
         FakeChatRepository()
     }
     override val authRepository: AuthRepository by lazy {
-        FakeAuthRepository()
+        FirebaseAuthRepositoryImpl(firebaseAuth = firebaseAuth)
+    }
+    override val firebaseAuth: FirebaseAuth by lazy {
+        FirebaseAuth.getInstance()
     }
     override val emailPatternValidator: PatternValidator by lazy {
         EmailPatternValidator

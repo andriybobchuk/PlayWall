@@ -17,8 +17,8 @@ import com.studios1299.vrwallpaper6.app.navigation.BottomNavigationBar
 import com.studios1299.vrwallpaper6.core.presentation.designsystem.PlayWallTheme
 import com.studios1299.vrwallpaper6.app.navigation.NavigationHostLegacy
 import com.studios1299.vrwallpaper6.core.presentation.viewModelFactory
-import com.studios1299.vrwallpaper6.feature.auth.domain.UserDataValidator
-import com.studios1299.vrwallpaper6.feature.auth.presentation.register.RegisterViewModel
+import com.studios1299.vrwallpaper6.auth.domain.UserDataValidator
+import com.studios1299.vrwallpaper6.auth.presentation.register.RegisterViewModel
 
 class MainActivity : ComponentActivity() {
 

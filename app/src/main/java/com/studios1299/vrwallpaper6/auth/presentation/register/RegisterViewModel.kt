@@ -22,8 +22,8 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 class RegisterViewModel(
-    private val repository: com.studios1299.vrwallpaper6.auth.domain.AuthRepository,
-    private val userDataValidator: com.studios1299.vrwallpaper6.auth.domain.UserDataValidator
+    private val repository: AuthRepository,
+    private val userDataValidator: UserDataValidator
 ): ViewModel() {
 
     var state by mutableStateOf(RegisterState())
@@ -80,9 +80,11 @@ class RegisterViewModel(
             when(result) {
                 is com.studios1299.vrwallpaper6.core.domain.error_handling.Result.Error -> {
                     if(result.error == DataError.Network.CONFLICT) {
-                        eventChannel.send(RegisterEvent.Error(
-                            UiText.StringResource(R.string.error_email_exists)
-                        ))
+                        eventChannel.send(
+                            RegisterEvent.Error(
+                                UiText.StringResource(R.string.error_email_exists)
+                            )
+                        )
                     } else {
                         eventChannel.send(RegisterEvent.Error(result.error.asUiText()))
                     }

@@ -16,12 +16,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.studios1299.vrwallpaper6.app.MyApp
 import com.studios1299.vrwallpaper6.core.presentation.viewModelFactory
-import com.studios1299.vrwallpaper6.feature.auth.domain.UserDataValidator
-import com.studios1299.vrwallpaper6.feature.auth.presentation.intro.IntroScreenRoot
-import com.studios1299.vrwallpaper6.feature.auth.presentation.login.LoginScreenRoot
-import com.studios1299.vrwallpaper6.feature.auth.presentation.login.LoginViewModel
-import com.studios1299.vrwallpaper6.feature.auth.presentation.register.RegisterScreenRoot
-import com.studios1299.vrwallpaper6.feature.auth.presentation.register.RegisterViewModel
+import com.studios1299.vrwallpaper6.auth.domain.UserDataValidator
+import com.studios1299.vrwallpaper6.auth.presentation.intro.IntroScreenRoot
+import com.studios1299.vrwallpaper6.auth.presentation.login.LoginScreenRoot
+import com.studios1299.vrwallpaper6.auth.presentation.login.LoginViewModel
+import com.studios1299.vrwallpaper6.auth.presentation.register.RegisterScreenRoot
+import com.studios1299.vrwallpaper6.auth.presentation.register.RegisterViewModel
 import com.studios1299.vrwallpaper6.feature.play.presentation.screens.play.PlayScreenRoot
 import com.studios1299.vrwallpaper6.feature.play.presentation.screens.play.PlayViewModel
 

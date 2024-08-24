@@ -21,8 +21,8 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 class LoginViewModel(
-    private val authRepository: com.studios1299.vrwallpaper6.auth.domain.AuthRepository,
-    private val userDataValidator: com.studios1299.vrwallpaper6.auth.domain.UserDataValidator
+    private val authRepository: AuthRepository,
+    private val userDataValidator: UserDataValidator
 ) : ViewModel() {
 
     var state by mutableStateOf(LoginState())
@@ -65,9 +65,11 @@ class LoginViewModel(
             when(result) {
                 is com.studios1299.vrwallpaper6.core.domain.error_handling.Result.Error -> {
                     if(result.error == DataError.Network.UNAUTHORIZED) {
-                        eventChannel.send(LoginEvent.Error(
-                            UiText.StringResource(R.string.error_email_password_incorrect)
-                        ))
+                        eventChannel.send(
+                            LoginEvent.Error(
+                                UiText.StringResource(R.string.error_email_password_incorrect)
+                            )
+                        )
                     } else {
                         eventChannel.send(LoginEvent.Error(result.error.asUiText()))
                     }

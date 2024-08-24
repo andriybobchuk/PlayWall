@@ -3,6 +3,7 @@ agp = "8.2.2"
 androidTools = "31.2.2"
 core = "1.10.3"
 #noinspection RiskyLibrary
+firebaseBom = "33.2.0"
 playCore = "1.10.3"
 coreSplashscreen = "1.0.1"
 composeCompiler = "1.5.9"
@@ -50,6 +51,7 @@ projectMinSdkVersion = "24"
 projectTargetSdkVersion = "34"
 projectCompileSdkVersion = "34"
 projectVersionCode = "1"
+firebaseAuthKtx = "23.0.0"
 
 
 [libraries]
@@ -62,6 +64,8 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 androidx-security-crypto-ktx = { module = "androidx.security:security-crypto-ktx", version.ref = "securityCryptoKtx" }
 core = { module = "com.google.android.play:core", version.ref = "playCore" }
 core-testing = { module = "com.google.android.play:core-testing", version.ref = "playCore" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization"}
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines"}
 kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutines"}
@@ -105,6 +109,7 @@ annotation = { group = "androidx.annotation", name = "annotation", version.ref =
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 glide-compose = { module = "com.github.bumptech.glide:compose", version.ref = "glide-compose" }
 dexter = { module = "com.karumi:dexter", version.ref = "dexter" }
+firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
 
 
 
