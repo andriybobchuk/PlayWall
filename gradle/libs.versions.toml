@@ -43,9 +43,10 @@ glide = "4.16.0"
 glide-compose = "1.0.0-alpha.1"
 material3 = "1.2.1"
 dexter = "6.2.2"
+google-services = "4.4.2"
 
 # Project versions
-projectApplicationId = "com.studios1299.vrwallpaper6"
+projectApplicationId = "com.studios1299.playwall"
 projectVersionName = "1.0"
 projectMinSdkVersion = "24"
 projectTargetSdkVersion = "34"
@@ -110,10 +111,14 @@ glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 glide-compose = { module = "com.github.bumptech.glide:compose", version.ref = "glide-compose" }
 dexter = { module = "com.karumi:dexter", version.ref = "dexter" }
 firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
-
+#google-services = { module = "com.google.gms:google-services", version.ref = "google-services" }
+#play-services = { module = "com.google.android.gms:play-services-auth" version.ref = }
+#
+#implementation 'com.google.android.gms:play-services-auth:20.4.0'
 
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+firebase-plugin = { id = 'com.google.gms.google-services', version.ref = "google-services"}

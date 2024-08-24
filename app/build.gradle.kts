@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     kotlin("kapt")
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.firebase.plugin)
 }
 
 android {
@@ -92,7 +93,6 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.firebase.auth.ktx)
 
     // Test:
     testImplementation(libs.junit)
@@ -127,5 +127,6 @@ dependencies {
     // Firebase:
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.auth.ktx)
 
 }
