@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.feature.auth.presentation.register
+package com.studios1299.vrwallpaper6.auth.presentation.register
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text2.input.textAsFlow
@@ -11,8 +11,8 @@ import com.studios1299.vrwallpaper6.R
 import com.studios1299.vrwallpaper6.core.domain.error_handling.DataError
 import com.studios1299.vrwallpaper6.core.presentation.UiText
 import com.studios1299.vrwallpaper6.core.presentation.asUiText
-import com.studios1299.vrwallpaper6.feature.auth.domain.AuthRepository
-import com.studios1299.vrwallpaper6.feature.auth.domain.UserDataValidator
+import com.studios1299.vrwallpaper6.auth.domain.AuthRepository
+import com.studios1299.vrwallpaper6.auth.domain.UserDataValidator
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -22,8 +22,8 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 class RegisterViewModel(
-    private val repository: AuthRepository,
-    private val userDataValidator: UserDataValidator
+    private val repository: com.studios1299.vrwallpaper6.auth.domain.AuthRepository,
+    private val userDataValidator: com.studios1299.vrwallpaper6.auth.domain.UserDataValidator
 ): ViewModel() {
 
     var state by mutableStateOf(RegisterState())

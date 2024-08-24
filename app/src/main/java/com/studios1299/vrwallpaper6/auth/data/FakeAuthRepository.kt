@@ -1,19 +1,25 @@
-package com.studios1299.vrwallpaper6.feature.auth.data
+package com.studios1299.vrwallpaper6.auth.data
 
 import com.studios1299.vrwallpaper6.core.domain.error_handling.DataError
 import com.studios1299.vrwallpaper6.core.domain.error_handling.EmptyResult
 import com.studios1299.vrwallpaper6.core.domain.error_handling.Result
-import com.studios1299.vrwallpaper6.feature.auth.domain.AuthRepository
-import com.studios1299.vrwallpaper6.feature.auth.domain.User
+import com.studios1299.vrwallpaper6.auth.domain.AuthRepository
+import com.studios1299.vrwallpaper6.auth.domain.User
 import kotlinx.coroutines.delay
 
-class FakeAuthRepository : AuthRepository {
-    override suspend fun login(email: String, password: String): Result<User, DataError.Network> {
+class FakeAuthRepository : com.studios1299.vrwallpaper6.auth.domain.AuthRepository {
+    override suspend fun login(email: String, password: String): Result<com.studios1299.vrwallpaper6.auth.domain.User, DataError.Network> {
 
         delay(2000)
 
         if(email == "test" || password == "test") {
-            return Result.Success(User("Andrii Bobchuk", "token", "andriybobchuk@gmail.com"))
+            return Result.Success(
+                com.studios1299.vrwallpaper6.auth.domain.User(
+                    "Andrii Bobchuk",
+                    "token",
+                    "andriybobchuk@gmail.com"
+                )
+            )
         }
         return Result.Error(DataError.Network.SERVER_ERROR)
     }

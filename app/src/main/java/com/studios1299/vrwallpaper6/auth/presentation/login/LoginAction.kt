@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.feature.auth.presentation.login
+package com.studios1299.vrwallpaper6.auth.presentation.login
 
 sealed interface LoginAction {
     data object OnTogglePasswordVisibility: LoginAction

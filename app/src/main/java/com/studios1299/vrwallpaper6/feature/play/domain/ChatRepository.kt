@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.feature.play.domain
+package com.studios1299.vrwallpaper6.play.domain
 
 import com.studios1299.vrwallpaper6.feature.play.data.model.Message
 import com.studios1299.vrwallpaper6.feature.play.data.model.User

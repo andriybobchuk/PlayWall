@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.feature.auth.presentation.register
+package com.studios1299.vrwallpaper6.auth.presentation.register
 
 sealed interface RegisterAction {
     data object OnTogglePasswordVisibilityClick: RegisterAction

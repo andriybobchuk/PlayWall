@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.feature.auth.domain
+package com.studios1299.vrwallpaper6.auth.domain
 
 import com.studios1299.vrwallpaper6.core.domain.error_handling.DataError
 import com.studios1299.vrwallpaper6.core.domain.error_handling.EmptyResult
@@ -6,7 +6,7 @@ import com.studios1299.vrwallpaper6.core.domain.error_handling.Result
 
 interface AuthRepository {
     //fun loginUser(email: String, password: String): Flow<Resource<AuthResult>>
-    suspend fun login(email: String, password: String): Result<User, DataError.Network>
+    suspend fun login(email: String, password: String): Result<com.studios1299.vrwallpaper6.auth.domain.User, DataError.Network>
 
 
     //fun registerUser(name: String, email: String, password: String): Flow<Resource<AuthResult>>

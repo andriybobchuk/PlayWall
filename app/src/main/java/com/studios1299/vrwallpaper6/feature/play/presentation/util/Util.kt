@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.feature.play.presentation.util
+package com.studios1299.vrwallpaper6.play.presentation.util
 
 import android.content.Context
 import android.os.Build

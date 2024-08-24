@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.feature.auth.presentation.register
+package com.studios1299.vrwallpaper6.auth.presentation.register
 
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -40,8 +40,8 @@ import com.studios1299.vrwallpaper6.core.presentation.designsystem.EmailIcon
 import com.studios1299.vrwallpaper6.core.presentation.designsystem.PlayWallTheme
 import com.studios1299.vrwallpaper6.core.presentation.designsystem.SUCCESS_GREEN
 import com.studios1299.vrwallpaper6.core.presentation.designsystem.poppins
-import com.studios1299.vrwallpaper6.feature.auth.domain.PasswordValidationState
-import com.studios1299.vrwallpaper6.feature.auth.domain.UserDataValidator
+import com.studios1299.vrwallpaper6.auth.domain.PasswordValidationState
+import com.studios1299.vrwallpaper6.auth.domain.UserDataValidator
 import com.studios1299.vrwallpaper6.R
 import com.studios1299.vrwallpaper6.core.presentation.ObserveAsEvents
 import com.studios1299.vrwallpaper6.feature.auth.presentation.login.LoginAction
@@ -172,7 +172,7 @@ private fun RegisterScreen(
         PasswordRequirement(
             text = stringResource(
                 id = R.string.at_least_x_characters,
-                UserDataValidator.MIN_PASSWORD_LENGTH
+                com.studios1299.vrwallpaper6.auth.domain.UserDataValidator.MIN_PASSWORD_LENGTH
             ),
             isValid = state.passwordValidationState.hasMinLength
         )
@@ -244,7 +244,7 @@ private fun RegisterScreenPreview() {
     PlayWallTheme {
         RegisterScreen(
             state = RegisterState(
-                passwordValidationState = PasswordValidationState(
+                passwordValidationState = com.studios1299.vrwallpaper6.auth.domain.PasswordValidationState(
                     hasNumber = true,
                 )
             ),

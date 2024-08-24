@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.feature.auth.domain
+package com.studios1299.vrwallpaper6.auth.domain
 
 data class PasswordValidationState(
     val hasMinLength: Boolean = false,

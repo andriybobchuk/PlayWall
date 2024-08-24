@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.feature.auth.presentation.intro
+package com.studios1299.vrwallpaper6.auth.presentation.intro
 
 sealed interface IntroAction {
     data object OnSignInClick: IntroAction

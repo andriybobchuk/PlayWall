@@ -1,4 +1,4 @@
-package com.studios1299.vrwallpaper6.feature.play.data
+package com.studios1299.vrwallpaper6.play.data
 
 import com.studios1299.vrwallpaper6.feature.play.domain.Paginator
 
