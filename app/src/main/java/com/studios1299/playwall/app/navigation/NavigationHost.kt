@@ -25,6 +25,8 @@ import com.studios1299.playwall.auth.presentation.register.RegisterScreenRoot
 import com.studios1299.playwall.auth.presentation.register.RegisterViewModel
 import com.studios1299.playwall.core.presentation.components.PolicyScreen
 import com.studios1299.playwall.core.presentation.components.PolicyType
+import com.studios1299.playwall.feature.play.presentation.screens.chat.MessengerScreen
+import com.studios1299.playwall.feature.play.presentation.screens.chat.viewmodel.ChatViewModel
 import com.studios1299.playwall.feature.play.presentation.screens.play.PlayScreenRoot
 import com.studios1299.playwall.feature.play.presentation.screens.play.PlayViewModel
 
@@ -140,7 +142,7 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
                     }
                 ),
                 {
-
+                    navController.navigate(Graphs.Main.Screens.play_chat)
                 },
                 bottomNavbar = { BottomNavigationBar(navController = navController) }
             )
@@ -153,6 +155,18 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
         }
         composable(Graphs.Main.Screens.profile) {
             Text(text = "Profile Tab!")
+        }
+        composable(Graphs.Main.Screens.play_chat) {
+            MessengerScreen(
+                viewModel = viewModel<ChatViewModel>(
+                    factory = viewModelFactory {
+                        ChatViewModel(
+                            MyApp.appModule.chatRepository
+                        )
+                    }
+                ),
+                onBackClick = { navController.popBackStack() }
+            )
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.studios1299.playwall.feature.play.presentation.screens.play
 
+import android.graphics.drawable.Drawable
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -28,6 +30,8 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.PersonAddAlt
 import androidx.compose.material.icons.filled.Search
@@ -63,6 +67,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -70,6 +75,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Buttons
@@ -274,6 +283,64 @@ fun CircularCheckbox(
     }
 }
 
+//@OptIn(ExperimentalGlideComposeApi::class)
+//@Composable
+//fun UserImage(
+//    model: Any?,
+//    contentDescription: String = "",
+//    size: Dp = 40.dp
+//) {
+//    val defaultUserIcon = Icons.Default.Person
+//
+//    Box(
+//        modifier = Modifier
+//            .size(size)
+//            .clip(CircleShape)
+//            .background(MaterialTheme.colorScheme.outline),
+//        contentAlignment = Alignment.Center
+//    ) {
+//        GlideImage(
+//            model = model,
+//            contentDescription = contentDescription,
+//            modifier = Modifier.fillMaxSize(),
+//            // Fallback to the default user icon if the image fails to load
+//            requestBuilderTransform = { requestBuilder ->
+//                requestBuilder.addListener(object : RequestListener<Drawable> {
+//                    override fun onLoadFailed(
+//                        e: GlideException?,
+//                        model: Any?,
+//                        target: Target<Drawable>,
+//                        isFirstResource: Boolean
+//
+//
+//                    ): Boolean {
+//
+//
+//
+//                        Log.e(LOG_TAG, "Image load failed", e)
+//                        e?.logRootCauses(LOG_TAG)
+//                        e?.causes?.forEach { cause ->
+//                            Log.e(LOG_TAG, "Cause: ${cause.message}", cause)
+//                        }
+//                        return false
+//                    }
+//
+//                    override fun onResourceReady(
+//                        resource: Drawable,
+//                        model: Any,
+//                        target: Target<Drawable>?,
+//                        dataSource: DataSource,
+//                        isFirstResource: Boolean
+//                    ): Boolean {
+//                        Log.i(LOG_TAG, "Image loaded successfully")
+//                        return false
+//                    }
+//                })
+//            }
+//        )
+//    }
+//}
+
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun FriendItem(
@@ -304,9 +371,9 @@ fun FriendItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (isSelectable) {
-            CircularCheckbox(
+            Checkbox(
                 checked = isSelected,
-                onCheckedChange = null,
+                onCheckedChange = null, // Clicking is handled by the row itself
                 modifier = Modifier.padding(end = 8.dp)
             )
         }
@@ -338,21 +405,24 @@ fun FriendItem(
             }
         }
         if (friend.unreadMessages > 0) {
-            BadgedBox(
-                badge = {
-                    Badge(
-                        containerColor = MaterialTheme.colorScheme.error
-                    ) {
-                        Text(
-                            text = friend.unreadMessages.toString(),
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                },
-                modifier = Modifier,
-                {}
-            )
+            Box(
+                modifier = Modifier
+                    .size(18.dp) // Size of the circle
+                    .background(
+                        color = MaterialTheme.colorScheme.error, // Circle color
+                        shape = CircleShape // Make it circular
+                    ),
+                contentAlignment = Alignment.Center // Center the text inside the circle
+            ) {
+                Text(
+                    text = friend.unreadMessages.toString(),
+                    color = Color.White, // Text color
+                    style = MaterialTheme.typography.bodySmall, // Adjust text style
+                   // fontWeight = FontWeight.Bold // Make the text bold
+                )
+            }
         }
+
     }
 }
 
