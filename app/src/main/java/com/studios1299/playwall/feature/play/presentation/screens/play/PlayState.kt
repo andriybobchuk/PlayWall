@@ -1,9 +1,15 @@
 package com.studios1299.playwall.feature.play.presentation.screens.play
 
-data class PlayState(
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.text2.input.TextFieldState
+import com.studios1299.playwall.feature.play.data.model.User
+
+data class PlayState @OptIn(ExperimentalFoundationApi::class) constructor(
     val friends: List<Friend> = emptyList(),
     val friendRequests: List<FriendRequest> = emptyList(),
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val friendId: TextFieldState = TextFieldState(),
+    val searchResults: List<User> = emptyList()
 )
 
 data class Friend(

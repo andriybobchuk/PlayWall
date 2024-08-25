@@ -20,4 +20,5 @@ interface ChatRepository {
     fun getFriendRequests(): List<FriendRequest>
     fun acceptFriendRequest(requestId: String): Boolean
     fun rejectFriendRequest(requestId: String): Boolean
+    fun searchUsers(query: String): List<User>
 }

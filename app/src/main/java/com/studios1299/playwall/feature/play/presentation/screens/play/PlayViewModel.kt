@@ -1,5 +1,7 @@
 package com.studios1299.playwall.feature.play.presentation.screens.play
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.text2.input.textAsFlow
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
@@ -7,9 +9,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.studios1299.playwall.feature.play.domain.ChatRepository
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalFoundationApi::class)
 class PlayViewModel(
     private val repository: ChatRepository
 ) : ViewModel() {
@@ -22,6 +27,11 @@ class PlayViewModel(
 
     init {
         loadFriendsAndRequests()
+
+        state.friendId.textAsFlow()
+            .onEach { email ->
+                onAction(PlayAction.OnSearchUser(email.toString()))
+            }.launchIn(viewModelScope)
     }
 
     fun onAction(action: PlayAction) {
@@ -37,6 +47,16 @@ class PlayViewModel(
             PlayAction.OnSelectClick -> TODO()
             PlayAction.OnSelectFriend -> TODO()
             PlayAction.OnSetWallpaperClick -> TODO()
+            is PlayAction.OnSearchUser -> searchUser(action.userEmail)
+        }
+    }
+
+    @OptIn(ExperimentalFoundationApi::class)
+    private fun searchUser(userEmail: String) {
+        viewModelScope.launch {
+            state = state.copy(isLoading = true)
+            val searchResults = repository.searchUsers(userEmail)
+            state = state.copy(searchResults = searchResults, isLoading = false)
         }
     }
 
@@ -44,6 +64,7 @@ class PlayViewModel(
         return friends.sortedWith(compareBy({ it.muted }, { it.name })) // Mute friends last
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     private fun loadFriendsAndRequests() {
         viewModelScope.launch {
             state = state.copy(isLoading = true)

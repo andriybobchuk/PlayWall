@@ -24,13 +24,15 @@ class FakeChatRepository : ChatRepository {
         id = "user1",
         name = "Andrii Bobchuk",
         profilePictureUrl = "https://media.licdn.com/dms/image/D4D03AQG510ilgQaD_g/profile-displayphoto-shrink_200_200/0/1709116748493?e=2147483647&v=beta&t=rfehlo_FlkkyBXfptFpsVWBUcNnQbID_dR0Ght21TTw",
-        lastOnline = System.currentTimeMillis()
+        lastOnline = System.currentTimeMillis(),
+        email = "andrii.bobchuk@gmail.com"
     )
     private val _recipient = User(
         id = "user2",
         name = "Tom Sawyer",
         profilePictureUrl = "https://lithelper.com/wp-content/uploads/2020/05/tom1.jpeg",
-        lastOnline = System.currentTimeMillis()
+        lastOnline = System.currentTimeMillis(),
+        email = "andrii.bobchuk@gmail.com"
     )
 
     init {
@@ -334,6 +336,21 @@ class FakeChatRepository : ChatRepository {
             )
         )
     }
+    private val _users = listOf(
+        User(
+            id = "user1",
+            name = "Viktor Didyk",
+            email = "vi.didyk@gmail.com",
+            profilePictureUrl = "https://media.licdn.com/dms/image/D4D03AQG510ilgQaD_g/profile-displayphoto-shrink_200_200/0/1709116748493?e=2147483647&v=beta&t=rfehlo_FlkkyBXfptFpsVWBUcNnQbID_dR0Ght21TTw"
+        ),
+        User(
+            id = "user2",
+            name = "Walter White",
+            email = "ww@gmail.com",
+            profilePictureUrl = "https://lithelper.com/wp-content/uploads/2020/05/tom1.jpeg"
+        ),
+        // Add more users as needed
+    )
 
     override suspend fun retrieveMessages(page: Int, pageSize: Int): Result<List<Message>> {
         Log.d(LOG_TAG, "retrieveMessages called with page: $page, pageSize: $pageSize")
@@ -449,6 +466,16 @@ class FakeChatRepository : ChatRepository {
             true
         } else {
             false
+        }
+    }
+
+    override fun searchUsers(query: String): List<User> {
+        if (query.length < 3) {
+            return emptyList()
+        }
+        return _users.filter {
+            it.email.contains(query, ignoreCase = true) ||
+                    it.name.contains(query, ignoreCase = true)
         }
     }
 }

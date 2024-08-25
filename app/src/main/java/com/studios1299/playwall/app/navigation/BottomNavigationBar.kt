@@ -3,10 +3,13 @@ package com.studios1299.playwall.app.navigation
 import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.AddCircle
+import androidx.compose.material.icons.outlined.AddCircleOutline
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Search
@@ -30,9 +33,9 @@ fun BottomNavigationBar(navController: NavHostController) {
 
     // todo ("Chnage the routes with classes")
     val items = listOf(
-        BottomNavigationItem("Play", Icons.Filled.PlayArrow, Icons.Outlined.PlayArrow, false, 4),
+        BottomNavigationItem("Play", Icons.Filled.ChatBubble, Icons.Outlined.ChatBubbleOutline, false, 4),
         BottomNavigationItem("Explore", Icons.Filled.Search, Icons.Outlined.Search, false),
-        BottomNavigationItem("Create", Icons.Filled.AddCircle, Icons.Outlined.AddCircle, false),
+        BottomNavigationItem("Create", Icons.Filled.AddCircle, Icons.Outlined.AddCircleOutline, false),
         BottomNavigationItem("Profile", Icons.Filled.Person, Icons.Outlined.Person, false)
     )
     var selectedItemIndex by rememberSaveable { mutableStateOf(0) }
@@ -51,7 +54,7 @@ fun BottomNavigationBar(navController: NavHostController) {
                     }
                 },
                 label = { Text(text = item.title) },
-                alwaysShowLabel = false,
+                alwaysShowLabel = true,
                 icon = {
                     BadgedBox(
                         badge = {

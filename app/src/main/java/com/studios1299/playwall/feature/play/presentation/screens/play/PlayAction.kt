@@ -14,4 +14,7 @@ sealed interface PlayAction {
     data class OnAcceptFriendRequest(val requestId: String): PlayAction
     data class OnRejectFriendRequest(val requestId: String): PlayAction
     data object Refresh: PlayAction
+
+    data class OnSearchUser(val userEmail: String): PlayAction
+
 }
