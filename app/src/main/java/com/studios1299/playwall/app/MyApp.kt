@@ -1,15 +1,12 @@
 package com.studios1299.playwall.app
 
 import android.app.Application
+import com.google.firebase.Firebase
+import com.google.firebase.initialize
+import com.studios1299.playwall.BuildConfig
 import com.studios1299.playwall.app.di.AppModule
 import com.studios1299.playwall.app.di.AppModuleImpl
 
-/**
- * The main Application class for setting up the dependency injection module.
- *
- * Initialize your dependencies here in `onCreate()`. To add more modules, include
- * them in the companion object. Access the module's dependencies via `MyApp.appModule`.
- */
 class MyApp: Application() {
 
     companion object {
@@ -19,5 +16,23 @@ class MyApp: Application() {
     override fun onCreate() {
         super.onCreate()
         appModule = AppModuleImpl(this)
+
+        Firebase.initialize(this)
+        initializeCrashlytics()
     }
+
+    private fun initializeCrashlytics() {
+        val isCrashlyticsEnabled = !BuildConfig.DEBUG
+
+        val crashlytics = appModule.crashlytics
+        crashlytics.setCrashlyticsCollectionEnabled(isCrashlyticsEnabled)
+
+        crashlytics.setCustomKey("app_version", BuildConfig.VERSION_NAME)
+        crashlytics.setCustomKey("device", android.os.Build.MODEL)
+
+        crashlytics.log("Crashlytics initialized")
+
+        //throw RuntimeException("Test Crash for crashlytics")
+    }
+
 }

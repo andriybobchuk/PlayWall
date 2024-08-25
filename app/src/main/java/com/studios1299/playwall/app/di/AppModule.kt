@@ -2,6 +2,7 @@ package com.studios1299.playwall.app.di
 
 import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.studios1299.playwall.auth.data.EmailPatternValidator
 import com.studios1299.playwall.auth.data.FirebaseAuthRepositoryImpl
 import com.studios1299.playwall.auth.domain.AuthRepository
@@ -79,6 +80,7 @@ interface AppModule {
     val authRepository: AuthRepository
     val emailPatternValidator: PatternValidator
     val firebaseAuth: FirebaseAuth
+    val crashlytics: FirebaseCrashlytics
 }
 
 class AppModuleImpl(
@@ -102,6 +104,9 @@ class AppModuleImpl(
     }
     override val firebaseAuth: FirebaseAuth by lazy {
         FirebaseAuth.getInstance()
+    }
+    override val crashlytics: FirebaseCrashlytics by lazy {
+        FirebaseCrashlytics.getInstance()
     }
     override val emailPatternValidator: PatternValidator by lazy {
         EmailPatternValidator

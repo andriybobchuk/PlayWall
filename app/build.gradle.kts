@@ -6,6 +6,7 @@ plugins {
     kotlin("kapt")
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.firebase.plugin)
+    alias(libs.plugins.crashlytics)
 }
 
 android {
@@ -23,6 +24,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigField ("String", "BASE_URL", "\"baseurl\"")
     }
 
     buildTypes {
@@ -44,6 +47,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.9"
@@ -128,5 +132,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth.ktx)
+    implementation(libs.crashlytics)
+    implementation(libs.analytics)
 
 }
