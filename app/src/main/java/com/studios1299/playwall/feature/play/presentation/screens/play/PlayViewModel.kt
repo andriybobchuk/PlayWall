@@ -36,7 +36,6 @@ class PlayViewModel(
 
     fun onAction(action: PlayAction) {
         when(action) {
-            is PlayAction.OnFriendClick -> navigateToChat(action.friendId)
             is PlayAction.OnAcceptFriendRequest -> acceptFriendRequest(action.requestId)
             is PlayAction.OnRejectFriendRequest -> rejectFriendRequest(action.requestId)
             PlayAction.Refresh -> loadFriendsAndRequests()
@@ -44,10 +43,41 @@ class PlayViewModel(
             PlayAction.OnFriendRemove -> TODO()
             PlayAction.OnFriendUnMute -> TODO()
             PlayAction.OnInviteClick -> TODO()
-            PlayAction.OnSelectClick -> TODO()
-            PlayAction.OnSelectFriend -> TODO()
-            PlayAction.OnSetWallpaperClick -> TODO()
             is PlayAction.OnSearchUser -> searchUser(action.userEmail)
+            is PlayAction.OnSelectFriend -> toggleFriendSelection(action.friendId)
+            is PlayAction.OnEnterSelectMode -> enterSelectMode()
+            is PlayAction.OnExitSelectMode -> exitSelectMode()
+            is PlayAction.OnFriendClick -> {
+                if (state.isSelectMode) {
+                    toggleFriendSelection(action.friendId)
+                } else {
+                    navigateToChat(action.friendId)
+                }
+            }
+        }
+    }
+
+    private fun enterSelectMode() {
+        state = state.copy(isSelectMode = true)
+    }
+
+    private fun exitSelectMode() {
+        state = state.copy(isSelectMode = false, selectedFriends = emptyList())
+    }
+
+    private fun toggleFriendSelection(friendId: String) {
+        val currentSelection = state.selectedFriends.toMutableList()
+        if (currentSelection.contains(friendId)) {
+            currentSelection.remove(friendId)
+        } else {
+            currentSelection.add(friendId)
+        }
+        state = state.copy(selectedFriends = currentSelection)
+    }
+
+    private fun navigateToChat(friendId: String) {
+        viewModelScope.launch {
+            eventChannel.send(PlayEvent.NavigateToChat(friendId))
         }
     }
 
@@ -75,12 +105,6 @@ class PlayViewModel(
                 friendRequests = friendRequestsResult,
                 isLoading = false
             )
-        }
-    }
-
-    private fun navigateToChat(friendId: String) {
-        viewModelScope.launch {
-            eventChannel.send(PlayEvent.NavigateToChat(friendId))
         }
     }
 

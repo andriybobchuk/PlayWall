@@ -3,8 +3,10 @@ package com.studios1299.playwall.feature.play.presentation.screens.play
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -29,10 +31,13 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.PersonAddAlt
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,6 +46,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -59,12 +65,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
+import com.studios1299.playwall.core.presentation.components.Buttons
 import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.ToolbarScaffold
 import com.studios1299.playwall.core.presentation.components.Toolbars
@@ -135,25 +143,68 @@ fun PlayScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            Toolbars.Primary(
-                title = "Play",
-                actions = listOf(
-                    Toolbars.ToolBarAction(
-                        icon = Icons.Default.CheckCircleOutline,
-                        contentDescription = "Select",
-                        onClick = { /* handle click */ }
+            if (state.isSelectMode) {
+                Toolbars.Primary(
+                    title = "Select Friends",
+                    actions = listOf(
+                        Toolbars.ToolBarAction(
+                            icon = Icons.Outlined.Cancel,
+                            contentDescription = "Cancel",
+                            onClick = { onAction(PlayAction.OnExitSelectMode) }
+                        )
                     ),
-                    Toolbars.ToolBarAction(
-                        icon = Icons.Default.PersonAddAlt,
-                        contentDescription = "Invite friend",
-                        onClick = { isInviteSheetOpen.value = true }
-                    )
-                ),
-                scrollBehavior = scrollBehavior
-            )
+                    scrollBehavior = scrollBehavior
+                )
+            } else {
+                Toolbars.Primary(
+                    title = "Play",
+                    actions = listOf(
+                        Toolbars.ToolBarAction(
+                            icon = Icons.Default.CheckCircleOutline,
+                            contentDescription = "Select",
+                            onClick = { onAction(PlayAction.OnEnterSelectMode) }
+                        ),
+                        Toolbars.ToolBarAction(
+                            icon = Icons.Default.PersonAddAlt,
+                            contentDescription = "Invite friend",
+                            onClick = { isInviteSheetOpen.value = true }
+                        )
+                    ),
+                    scrollBehavior = scrollBehavior
+                )
+            }
         },
         bottomBar = {
-            bottomNavbar()
+            if (state.isSelectMode) {
+                BottomAppBar(
+                    contentPadding = PaddingValues(8.dp),
+                    content = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Buttons.Outlined(
+                                text = "Saved in PlayWall",
+                                isLoading = false,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(end = 4.dp),
+                                onClick = { /* Handle Choose from saved */ }
+                            )
+                            Buttons.Primary(
+                                text = "Device Gallery",
+                                isLoading = false,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(start = 4.dp),
+                                onClick = { /* Handle Choose from device */ }
+                            )
+                        }
+                    }
+                )
+            } else {
+                bottomNavbar()
+            }
         }
     ) { combinedPadding ->
 
@@ -174,27 +225,68 @@ fun PlayScreen(
 
             // Friends Section
             items(state.friends) { friend ->
-                FriendItem(
-                    friend = friend,
-                    onClick = { onAction(PlayAction.OnFriendClick(friend.id)) }
-                )
+                if (!friend.muted) { // Exclude muted users from being selectable
+                    FriendItem(
+                        friend = friend,
+                        onClick = { onAction(PlayAction.OnFriendClick(friend.id)) },
+                        isSelectable = state.isSelectMode,
+                        isSelected = state.selectedFriends.contains(friend.id)
+                    )
+                } else {
+                    // Render non-selectable muted friends
+                    FriendItem(
+                        friend = friend,
+                        onClick = { onAction(PlayAction.OnFriendClick(friend.id)) },
+                        isSelectable = false,
+                        isSelected = false
+                    )
+                }
             }
         }
     }
 }
 
+@Composable
+fun CircularCheckbox(
+    checked: Boolean,
+    onCheckedChange: ((Boolean) -> Unit)?,
+    modifier: Modifier = Modifier,
+    size: Dp = 24.dp,
+    color: Color = MaterialTheme.colorScheme.primary
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .size(size)
+            .clip(CircleShape)
+            .background(if (checked) color else Color.Transparent)
+            .border(2.dp, color, CircleShape)
+            .clickable { onCheckedChange?.invoke(!checked) }
+    ) {
+        if (checked) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = "Checked",
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(size * 0.6f)
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun FriendItem(
     friend: Friend,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isSelectable: Boolean = false,
+    isSelected: Boolean = false
 ) {
-    val backgroundColor = if (friend.muted) {
-        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-    } else {
-        MaterialTheme.colorScheme.background
+    val backgroundColor = when {
+        isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+        friend.muted -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+        else -> MaterialTheme.colorScheme.background
     }
 
     val textColor = if (friend.muted) {
@@ -211,6 +303,13 @@ fun FriendItem(
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        if (isSelectable) {
+            CircularCheckbox(
+                checked = isSelected,
+                onCheckedChange = null,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+        }
         GlideImage(
             model = friend.avatar,
             contentDescription = friend.name,

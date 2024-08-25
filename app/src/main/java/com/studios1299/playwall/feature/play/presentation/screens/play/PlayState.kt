@@ -9,7 +9,9 @@ data class PlayState @OptIn(ExperimentalFoundationApi::class) constructor(
     val friendRequests: List<FriendRequest> = emptyList(),
     val isLoading: Boolean = false,
     val friendId: TextFieldState = TextFieldState(),
-    val searchResults: List<User> = emptyList()
+    val searchResults: List<User> = emptyList(),
+    val isSelectMode: Boolean = false,
+    val selectedFriends: List<String> = emptyList(),
 )
 
 data class Friend(
