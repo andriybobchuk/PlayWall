@@ -13,6 +13,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.presentation.viewModelFactory
@@ -30,21 +31,20 @@ import com.studios1299.playwall.feature.play.presentation.screens.play.PlayViewM
 
 @Composable
 fun NavigationHostLegacy(
-    navController: NavHostController,
     isLoggedIn: Boolean,
-    navBarPadding: PaddingValues
 ) {
+    val navController = rememberNavController()
     NavHost(
         navController = navController,
         startDestination = if(isLoggedIn) Graphs.Main.root else Graphs.Auth.root
     ) {
-        authGraph(navController, navBarPadding)
-        mainGraph(navController, navBarPadding)
-        sharedGraph(navController, navBarPadding)
+        authGraph(navController)
+        mainGraph(navController)
+        sharedGraph(navController)
     }
 }
 
-private fun NavGraphBuilder.authGraph(navController: NavHostController, navBarPadding: PaddingValues) {
+private fun NavGraphBuilder.authGraph(navController: NavHostController) {
     navigation(
         startDestination = "intro",
         route = "auth"
@@ -72,6 +72,7 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController, navBarPa
         composable(route = "register") {
             RegisterScreenRoot(
                 onSignInClick = {
+                    //TODO Do the same for bottom nav bar
                     navController.navigate("login") {
                         popUpTo("register") {
                             inclusive = true
@@ -124,7 +125,7 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController, navBarPa
     }
 }
 
-private fun NavGraphBuilder.mainGraph(navController: NavHostController, navBarPadding: PaddingValues) {
+private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
     navigation(
         startDestination = Graphs.Main.Screens.play,
         route = Graphs.Main.root
@@ -141,7 +142,7 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, navBarPa
                 {
 
                 },
-                paddingValues = navBarPadding
+                bottomNavbar = { BottomNavigationBar(navController = navController) }
             )
         }
         composable(Graphs.Main.Screens.explore) {
@@ -156,12 +157,11 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, navBarPa
     }
 }
 
-private fun NavGraphBuilder.sharedGraph(navController: NavHostController, navBarPadding: PaddingValues) {
+private fun NavGraphBuilder.sharedGraph(navController: NavHostController) {
     composable(Graphs.Shared.Screens.policy) { backStackEntry ->
         val policyType = PolicyType.valueOf(backStackEntry.arguments?.getString("policyType") ?: PolicyType.TOS.name)
         PolicyScreen(
             policyType = policyType,
-            padding = navBarPadding,
             onBackClick = {
                 navController.popBackStack()
             }

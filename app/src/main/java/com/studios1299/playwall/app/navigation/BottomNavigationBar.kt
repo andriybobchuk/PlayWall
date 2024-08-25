@@ -28,16 +28,6 @@ import com.studios1299.playwall.core.presentation.components.PolicyType
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
 
-    val hideNavigationBarRoutes = listOf(
-        Graphs.Auth.Screens.intro,
-        Graphs.Auth.Screens.login,
-        Graphs.Auth.Screens.register,
-        Graphs.Shared.Screens.policy
-    )
-    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-    if (currentRoute in hideNavigationBarRoutes) {
-       return
-    }
     // todo ("Chnage the routes with classes")
     val items = listOf(
         BottomNavigationItem("Play", Icons.Filled.PlayArrow, Icons.Outlined.PlayArrow, false, 4),
@@ -54,10 +44,6 @@ fun BottomNavigationBar(navController: NavHostController) {
                 onClick = {
                     selectedItemIndex = index
                     when (index) {
-//                        0 -> navController.navigate(Screens.HomeScreen)
-//                        1 -> navController.navigate(Screens.ChatScreen)
-//                        2 -> navController.navigate(Screens.SettingsScreen)
-//                        3 -> navController.navigate(Screens.ProfileScreen)
                         0 -> navController.navigate("play")
                         1 -> navController.navigate("explore")
                         2 -> navController.navigate("create")

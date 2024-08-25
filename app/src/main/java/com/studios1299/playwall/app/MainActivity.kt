@@ -27,7 +27,7 @@ class MainActivity : ComponentActivity() {
 
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
-        actionBar?.hide() // Workaround cuz splash screen forces action bar.
+        actionBar?.hide()
         installSplashScreen().apply {
             setKeepOnScreenCondition {
                 viewModel.state.isCheckingAuth
@@ -35,20 +35,10 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             PlayWallTheme {
-                val navController = rememberNavController()
-                Scaffold(
-                    bottomBar = {
-                        BottomNavigationBar(navController)
-                    },
-                    modifier = Modifier.fillMaxSize()
-                ) { navBarPadding ->
-                    if(!viewModel.state.isCheckingAuth) {
-                        NavigationHostLegacy(
-                            navController = navController,
-                            isLoggedIn = viewModel.state.isLoggedIn,
-                            navBarPadding = navBarPadding
-                        )
-                    }
+                if(!viewModel.state.isCheckingAuth) {
+                    NavigationHostLegacy(
+                        isLoggedIn = viewModel.state.isLoggedIn
+                    )
                 }
             }
         }

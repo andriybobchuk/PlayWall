@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,10 +33,10 @@ enum class PolicyType(val title: String, val url: String) {
 }
 
 @Composable
-fun PolicyScreen(policyType: PolicyType, padding: PaddingValues, onBackClick: () -> Unit) {
+fun PolicyScreen(policyType: PolicyType, onBackClick: () -> Unit) {
     var isLoading by remember { mutableStateOf(true) }
 
-    WebViewComponent(policyType.url, padding, onBackClick, isLoading) {
+    WebViewComponent(policyType.url, onBackClick, isLoading) {
         isLoading = false
     }
 }
@@ -45,27 +46,25 @@ fun PolicyScreen(policyType: PolicyType, padding: PaddingValues, onBackClick: ()
 @Composable
 fun WebViewComponent(
     url: String,
-    padding: PaddingValues,
     onBackClick: () -> Unit,
     isLoading: Boolean,
     onPageFinished: () -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    ToolbarScaffold(
+    Scaffold(
         modifier = Modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
-        toolbar = {
+        topBar = {
             Toolbars.Primary(
                 showBackButton = true,
                 title = PolicyType.entries.first { it.url == url }.title,
                 onBackClick = onBackClick,
                 scrollBehavior = scrollBehavior
             )
-        },
-        navBarPadding = padding
-    ) { combinedPadding ->
-        Box(modifier = Modifier.padding(combinedPadding).fillMaxSize()) {
+        }
+    ) { padding ->
+        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             AndroidView(
                 factory = { context ->
                     WebView(context).apply {

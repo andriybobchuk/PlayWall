@@ -10,44 +10,67 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.ToolbarScaffold
 import com.studios1299.playwall.core.presentation.components.Toolbars
+import com.studios1299.playwall.feature.play.data.model.Message
+import com.studios1299.playwall.feature.play.data.model.Reaction
+import com.studios1299.playwall.feature.play.presentation.screens.chat.ReplyField
+import com.studios1299.playwall.feature.play.presentation.screens.chat.viewmodel.ChatViewModel
+import com.studios1299.playwall.feature.play.presentation.util.Constants.EMOJI_LIST
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun PlayScreenRoot(
     viewModel: PlayViewModel,
     onNavigateToChat: (String) -> Unit,
-    paddingValues: PaddingValues
+    bottomNavbar: @Composable () -> Unit
 ) {
     val context = LocalContext.current
     val state = viewModel.state
@@ -71,7 +94,7 @@ fun PlayScreenRoot(
         onAction = { action ->
             viewModel.onAction(action)
         },
-        navBarPadding = paddingValues
+        bottomNavbar = bottomNavbar
     )
 }
 
@@ -80,14 +103,22 @@ fun PlayScreenRoot(
 fun PlayScreen(
     state: PlayState,
     onAction: (PlayAction) -> Unit,
-    navBarPadding: PaddingValues
+    bottomNavbar: @Composable () -> Unit
 ) {
+    val isReactSheetOpen = remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    val reactSheet = rememberModalBottomSheetState()
+    Sheet(
+        reactSheet,
+        isReactSheetOpen,
+        coroutineScope
+    )
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-    ToolbarScaffold(
+    Scaffold(
         modifier = Modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
-        toolbar = {
+        topBar = {
             Toolbars.Primary(
                 title = "Play",
                 actions = listOf(
@@ -105,7 +136,9 @@ fun PlayScreen(
                 scrollBehavior = scrollBehavior
             )
         },
-        navBarPadding = navBarPadding
+        bottomBar = {
+            bottomNavbar()
+        }
     ) { combinedPadding ->
 
         LazyColumn(
@@ -261,6 +294,34 @@ fun FriendRequestItem(
                     contentDescription = "Reject",
                     tint = MaterialTheme.colorScheme.error
                 )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun Sheet(
+    sheetState: SheetState,
+    isSheetOpen: MutableState<Boolean>,
+    coroutineScope: CoroutineScope
+) {
+    if (isSheetOpen.value) {
+        ModalBottomSheet(
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.background,
+            onDismissRequest = {
+                coroutineScope.launch {
+                    isSheetOpen.value = false
+                }
+            }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text(text = "hey")
             }
         }
     }
