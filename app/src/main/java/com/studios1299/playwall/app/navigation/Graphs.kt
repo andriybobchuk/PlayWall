@@ -19,4 +19,11 @@ sealed class Graphs {
             const val profile = "profile"
         }
     }
+
+    object Shared {
+        const val root = "shared"
+        object Screens {
+            const val policy = "policy/{policyType}"
+        }
+    }
 }

@@ -23,13 +23,19 @@ import com.studios1299.playwall.core.presentation.designsystem.PlayWallTheme
 @Composable
 fun IntroScreenRoot(
     onSignUpClick: () -> Unit,
-    onSignInClick: () -> Unit
+    onSignInClick: () -> Unit,
+    onTermsClick: () -> Unit,
+    onPrivacyClick: () -> Unit,
+    onContentPolicyClick: () -> Unit
 ) {
     IntroScreen(
         onAction = { action ->
             when(action) {
                 IntroAction.OnSignInClick -> onSignInClick()
                 IntroAction.OnSignUpClick -> onSignUpClick()
+                IntroAction.onTermsClick -> onTermsClick()
+                IntroAction.onPrivacyClick -> onPrivacyClick()
+                IntroAction.onContentPolicyClick -> onContentPolicyClick()
             }
         }
     )
@@ -71,7 +77,8 @@ fun IntroScreen(
                 text = stringResource(id = R.string.login),
                 isLoading = false,
                 onClick = {
-                    onAction(IntroAction.OnSignInClick)
+                   // onAction(IntroAction.OnSignInClick)
+                    onAction(IntroAction.onTermsClick)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

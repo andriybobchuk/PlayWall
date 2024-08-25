@@ -22,6 +22,8 @@ import com.studios1299.playwall.auth.presentation.login.LoginScreenRoot
 import com.studios1299.playwall.auth.presentation.login.LoginViewModel
 import com.studios1299.playwall.auth.presentation.register.RegisterScreenRoot
 import com.studios1299.playwall.auth.presentation.register.RegisterViewModel
+import com.studios1299.playwall.core.presentation.components.PolicyScreen
+import com.studios1299.playwall.core.presentation.components.PolicyType
 import com.studios1299.playwall.feature.play.presentation.screens.play.PlayScreenRoot
 import com.studios1299.playwall.feature.play.presentation.screens.play.PlayViewModel
 
@@ -38,6 +40,7 @@ fun NavigationHostLegacy(
     ) {
         authGraph(navController, navBarPadding)
         mainGraph(navController, navBarPadding)
+        sharedGraph(navController, navBarPadding)
     }
 }
 
@@ -53,7 +56,17 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController, navBarPa
                 },
                 onSignInClick = {
                     navController.navigate("login")
+                },
+                onTermsClick = {
+                    navController.navigate(Graphs.Shared.Screens.policy.replace("{policyType}", PolicyType.TOS.name))
+                },
+                onPrivacyClick = {
+                    navController.navigate(Graphs.Shared.Screens.policy.replace("{policyType}", PolicyType.PP.name))
+                },
+                onContentPolicyClick = {
+                    navController.navigate(Graphs.Shared.Screens.policy.replace("{policyType}", PolicyType.CP.name))
                 }
+
             )
         }
         composable(route = "register") {
@@ -140,6 +153,19 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, navBarPa
         composable(Graphs.Main.Screens.profile) {
             Text(text = "Profile Tab!")
         }
+    }
+}
+
+private fun NavGraphBuilder.sharedGraph(navController: NavHostController, navBarPadding: PaddingValues) {
+    composable(Graphs.Shared.Screens.policy) { backStackEntry ->
+        val policyType = PolicyType.valueOf(backStackEntry.arguments?.getString("policyType") ?: PolicyType.TOS.name)
+        PolicyScreen(
+            policyType = policyType,
+            padding = navBarPadding,
+            onBackClick = {
+                navController.popBackStack()
+            }
+        )
     }
 }
 

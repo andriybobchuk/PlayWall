@@ -1,5 +1,6 @@
 package com.studios1299.playwall.app.navigation
 
+import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Person
@@ -22,16 +23,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.studios1299.playwall.core.presentation.components.PolicyType
 
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
 
-    val hideNavigationBarRoutes = listOf("intro", "login", "register")
+    val hideNavigationBarRoutes = listOf(
+        Graphs.Auth.Screens.intro,
+        Graphs.Auth.Screens.login,
+        Graphs.Auth.Screens.register,
+        Graphs.Shared.Screens.policy
+    )
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     if (currentRoute in hideNavigationBarRoutes) {
        return
     }
-
+    // todo ("Chnage the routes with classes")
     val items = listOf(
         BottomNavigationItem("Play", Icons.Filled.PlayArrow, Icons.Outlined.PlayArrow, false, 4),
         BottomNavigationItem("Explore", Icons.Filled.Search, Icons.Outlined.Search, false),
