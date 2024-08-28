@@ -1,4 +1,4 @@
-package com.studios1299.playwall.feature.play.presentation.util
+package com.studios1299.playwall.feature.play.presentation.chat.util
 
 object Constants {
 

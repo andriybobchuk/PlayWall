@@ -1,6 +1,6 @@
-package com.studios1299.playwall.feature.play.presentation.screens.chat
+package com.studios1299.playwall.feature.play.presentation.chat
 
-import com.studios1299.playwall.feature.play.presentation.screens.chat.viewmodel.ChatViewModel
+import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -28,15 +28,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import com.studios1299.playwall.R
-import com.studios1299.playwall.feature.play.presentation.util.rememberRequestPermissionAndPickImage
+import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
 import com.studios1299.playwall.feature.play.data.model.User
-import com.studios1299.playwall.feature.play.presentation.util.BuildCounterDisplay
-import com.studios1299.playwall.feature.play.presentation.util.ConnectivityStatus
-import com.studios1299.playwall.feature.play.presentation.screens.chat.overlays.ImagePicker
-import com.studios1299.playwall.feature.play.presentation.screens.chat.overlays.ImageViewer
-import com.studios1299.playwall.feature.play.presentation.screens.chat.viewmodel.MessengerUiState
-import com.studios1299.playwall.feature.play.presentation.util.isSameDay
-import com.studios1299.playwall.feature.play.presentation.util.timestampAsDate
+import com.studios1299.playwall.feature.play.presentation.chat.util.BuildCounterDisplay
+import com.studios1299.playwall.feature.play.presentation.chat.util.ConnectivityStatus
+import com.studios1299.playwall.feature.play.presentation.chat.overlays.ImagePicker
+import com.studios1299.playwall.feature.play.presentation.chat.overlays.ImageViewer
+import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.MessengerUiState
+import com.studios1299.playwall.feature.play.presentation.chat.util.isSameDay
+import com.studios1299.playwall.feature.play.presentation.chat.util.timestampAsDate
 import kotlinx.coroutines.launch
 
 /**

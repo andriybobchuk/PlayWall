@@ -1,4 +1,4 @@
-package com.studios1299.playwall.feature.play.presentation.screens.chat.overlays
+package com.studios1299.playwall.feature.play.presentation.chat.overlays
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box

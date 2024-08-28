@@ -56,6 +56,7 @@ projectMinSdkVersion = "24"
 projectTargetSdkVersion = "34"
 projectCompileSdkVersion = "34"
 projectVersionCode = "1"
+lifecycleViewmodelAndroid = "2.8.4"
 
 
 
@@ -121,6 +122,7 @@ firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx",
 #implementation 'com.google.android.gms:play-services-auth:20.4.0'
 crashlytics = { module = "com.google.firebase:firebase-crashlytics-ktx", version.ref = "crashlytics" }
 analytics = { module = "com.google.firebase:firebase-analytics-ktx", version.ref = "analytics" }
+androidx-lifecycle-viewmodel-android = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-android", version.ref = "lifecycleViewmodelAndroid" }
 
 
 [plugins]

@@ -1,4 +1,4 @@
-package com.studios1299.playwall.feature.play.presentation.screens.chat.viewmodel
+package com.studios1299.playwall.feature.play.presentation.chat.viewmodel
 
 import android.net.Uri
 import android.util.Log

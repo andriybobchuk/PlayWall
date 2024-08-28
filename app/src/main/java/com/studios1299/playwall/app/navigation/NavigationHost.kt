@@ -23,12 +23,15 @@ import com.studios1299.playwall.auth.presentation.login.LoginScreenRoot
 import com.studios1299.playwall.auth.presentation.login.LoginViewModel
 import com.studios1299.playwall.auth.presentation.register.RegisterScreenRoot
 import com.studios1299.playwall.auth.presentation.register.RegisterViewModel
-import com.studios1299.playwall.core.presentation.components.PolicyScreen
-import com.studios1299.playwall.core.presentation.components.PolicyType
-import com.studios1299.playwall.feature.play.presentation.screens.chat.MessengerScreen
-import com.studios1299.playwall.feature.play.presentation.screens.chat.viewmodel.ChatViewModel
-import com.studios1299.playwall.feature.play.presentation.screens.play.PlayScreenRoot
-import com.studios1299.playwall.feature.play.presentation.screens.play.PlayViewModel
+import com.studios1299.playwall.core.presentation.components.WebViewScreen
+import com.studios1299.playwall.core.presentation.components.WebContent
+import com.studios1299.playwall.feature.play.presentation.chat.MessengerScreen
+import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
+import com.studios1299.playwall.feature.play.presentation.play.PlayScreenRoot
+import com.studios1299.playwall.feature.play.presentation.play.PlayViewModel
+import com.studios1299.playwall.profile.presentation.ProfileDestination
+import com.studios1299.playwall.profile.presentation.ProfileScreenRoot
+import com.studios1299.playwall.profile.presentation.ProfileViewModel
 
 
 @Composable
@@ -60,13 +63,13 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
                     navController.navigate("login")
                 },
                 onTermsClick = {
-                    navController.navigate(Graphs.Shared.Screens.policy.replace("{policyType}", PolicyType.TOS.name))
+                    navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TOS.name))
                 },
                 onPrivacyClick = {
-                    navController.navigate(Graphs.Shared.Screens.policy.replace("{policyType}", PolicyType.PP.name))
+                    navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.PP.name))
                 },
                 onContentPolicyClick = {
-                    navController.navigate(Graphs.Shared.Screens.policy.replace("{policyType}", PolicyType.CP.name))
+                    navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.CP.name))
                 }
 
             )
@@ -154,7 +157,45 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
             Text(text = "Create Tab!")
         }
         composable(Graphs.Main.Screens.profile) {
-            Text(text = "Profile Tab!")
+            ProfileScreenRoot(
+                viewModel = viewModel<ProfileViewModel>(
+                    factory = viewModelFactory {
+                        ProfileViewModel(
+                            MyApp.appModule.coreRepository
+                        )
+                    }
+                ),
+                onNavigateTo = { destination ->
+                    when (destination) {
+                        ProfileDestination.TermsOfService -> {
+                            navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TOS.name))
+
+                        }
+                        ProfileDestination.PrivacyPolicy -> {
+                            navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.PP.name))
+
+                        }
+                        ProfileDestination.ContentPolicy -> {
+                            navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.CP.name))
+
+                        }
+                        ProfileDestination.Faq -> {
+                            navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.FAQ.name))
+
+                        }
+                        ProfileDestination.Instagram -> {
+                            navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.IG.name))
+
+                        }
+                        ProfileDestination.TikTok -> {
+                            navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TIKTOK.name))
+
+                        }
+                        // Add any other necessary destinations as needed
+                    }
+                },
+                bottomNavbar = { BottomNavigationBar(navController = navController) }
+            )
         }
         composable(Graphs.Main.Screens.play_chat) {
             MessengerScreen(
@@ -172,9 +213,9 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
 }
 
 private fun NavGraphBuilder.sharedGraph(navController: NavHostController) {
-    composable(Graphs.Shared.Screens.policy) { backStackEntry ->
-        val policyType = PolicyType.valueOf(backStackEntry.arguments?.getString("policyType") ?: PolicyType.TOS.name)
-        PolicyScreen(
+    composable(Graphs.Shared.Screens.web) { backStackEntry ->
+        val policyType = WebContent.valueOf(backStackEntry.arguments?.getString("policyType") ?: WebContent.TOS.name)
+        WebViewScreen(
             policyType = policyType,
             onBackClick = {
                 navController.popBackStack()

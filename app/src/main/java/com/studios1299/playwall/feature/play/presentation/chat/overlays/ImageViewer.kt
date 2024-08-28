@@ -1,4 +1,4 @@
-package com.studios1299.playwall.feature.play.presentation.screens.chat.overlays
+package com.studios1299.playwall.feature.play.presentation.chat.overlays
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -39,12 +39,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.studios1299.playwall.feature.play.presentation.util.Constants.BACKGROUND_ALPHA
-import com.studios1299.playwall.feature.play.presentation.util.Constants.DRAG_ALPHA_FACTOR
-import com.studios1299.playwall.feature.play.presentation.util.Constants.DRAG_DISMISS_THRESHOLD
+import com.studios1299.playwall.feature.play.presentation.chat.util.Constants.BACKGROUND_ALPHA
+import com.studios1299.playwall.feature.play.presentation.chat.util.Constants.DRAG_ALPHA_FACTOR
+import com.studios1299.playwall.feature.play.presentation.chat.util.Constants.DRAG_DISMISS_THRESHOLD
 import com.studios1299.playwall.feature.play.data.model.Message
-import com.studios1299.playwall.feature.play.presentation.util.timestampAsDate
-import com.studios1299.playwall.feature.play.presentation.screens.chat.viewmodel.ChatViewModel
+import com.studios1299.playwall.feature.play.presentation.chat.util.timestampAsDate
+import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.R

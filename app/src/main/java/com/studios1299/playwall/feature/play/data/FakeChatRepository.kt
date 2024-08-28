@@ -6,8 +6,8 @@ import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.data.model.Reaction
 import com.studios1299.playwall.feature.play.data.model.User
 import com.studios1299.playwall.feature.play.domain.ChatRepository
-import com.studios1299.playwall.feature.play.presentation.screens.play.Friend
-import com.studios1299.playwall.feature.play.presentation.screens.play.FriendRequest
+import com.studios1299.playwall.feature.play.presentation.play.Friend
+import com.studios1299.playwall.feature.play.presentation.play.FriendRequest
 import kotlinx.coroutines.delay
 import java.util.UUID
 

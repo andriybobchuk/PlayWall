@@ -1,4 +1,4 @@
-package com.studios1299.playwall.feature.play.presentation.screens.play
+package com.studios1299.playwall.feature.play.presentation.play
 
 sealed interface PlayAction {
     data class OnFriendClick(val friendId: String): PlayAction

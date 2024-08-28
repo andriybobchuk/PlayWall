@@ -1,13 +1,10 @@
 package com.studios1299.playwall.core.data
 
-import com.google.firebase.auth.FirebaseAuth
 import com.studios1299.playwall.core.domain.CoreRepository
 
-class FirebaseCoreRepositoryImpl(
-    private val firebaseAuth: FirebaseAuth
-) : CoreRepository {
+class FakeCoreRepository : CoreRepository {
     override suspend fun getCurrentUserId(): String? {
-        return firebaseAuth.currentUser?.uid
+        TODO("Not yet implemented")
     }
 
     override suspend fun getUserProfile(): UserProfile {
@@ -19,8 +16,3 @@ class FirebaseCoreRepositoryImpl(
     }
 }
 
-data class UserProfile(
-    val name: String,
-    val email: String,
-    val avatarUrl: String
-)

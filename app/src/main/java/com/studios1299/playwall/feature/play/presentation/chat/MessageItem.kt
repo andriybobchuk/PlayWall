@@ -1,4 +1,4 @@
-package com.studios1299.playwall.feature.play.presentation.screens.chat
+package com.studios1299.playwall.feature.play.presentation.chat
 
 import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
@@ -49,16 +49,16 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.studios1299.playwall.feature.play.presentation.util.Constants.HORIZONTAL_SCREEN_PERCENTAGE
-import com.studios1299.playwall.feature.play.presentation.util.Constants.MESSAGE_CORNER_RADIUS
-import com.studios1299.playwall.feature.play.presentation.util.formatStatus
-import com.studios1299.playwall.feature.play.presentation.util.timestampAsTime
+import com.studios1299.playwall.feature.play.presentation.chat.util.Constants.HORIZONTAL_SCREEN_PERCENTAGE
+import com.studios1299.playwall.feature.play.presentation.chat.util.Constants.MESSAGE_CORNER_RADIUS
+import com.studios1299.playwall.feature.play.presentation.chat.util.formatStatus
+import com.studios1299.playwall.feature.play.presentation.chat.util.timestampAsTime
 import com.studios1299.playwall.feature.play.data.model.Message
-import com.studios1299.playwall.feature.play.presentation.util.calculateImageDimensions
-import com.studios1299.playwall.feature.play.presentation.util.FetchImageAspectRatio
-import com.studios1299.playwall.feature.play.presentation.util.getMaxMessageDimensions
-import com.studios1299.playwall.feature.play.presentation.screens.chat.viewmodel.ChatViewModel
-import com.studios1299.playwall.feature.play.presentation.screens.chat.viewmodel.MessengerUiState
+import com.studios1299.playwall.feature.play.presentation.chat.util.calculateImageDimensions
+import com.studios1299.playwall.feature.play.presentation.chat.util.FetchImageAspectRatio
+import com.studios1299.playwall.feature.play.presentation.chat.util.getMaxMessageDimensions
+import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
+import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.MessengerUiState
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 

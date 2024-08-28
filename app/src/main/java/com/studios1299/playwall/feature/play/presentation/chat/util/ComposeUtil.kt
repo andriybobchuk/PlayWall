@@ -1,4 +1,4 @@
-package com.studios1299.playwall.feature.play.presentation.util
+package com.studios1299.playwall.feature.play.presentation.chat.util
 
 import android.Manifest
 import android.content.Context
@@ -29,8 +29,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.studios1299.playwall.feature.play.presentation.util.Constants.HORIZONTAL_SCREEN_PERCENTAGE
-import com.studios1299.playwall.feature.play.presentation.util.Constants.VERTICAL_SCREEN_PERCENTAGE
+import com.studios1299.playwall.feature.play.presentation.chat.util.Constants.HORIZONTAL_SCREEN_PERCENTAGE
+import com.studios1299.playwall.feature.play.presentation.chat.util.Constants.VERTICAL_SCREEN_PERCENTAGE
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException

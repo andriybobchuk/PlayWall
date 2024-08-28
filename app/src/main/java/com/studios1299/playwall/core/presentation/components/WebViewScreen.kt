@@ -6,7 +6,6 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,14 +25,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 
 
-enum class PolicyType(val title: String, val url: String) {
+enum class WebContent(val title: String, val url: String) {
     TOS("Terms of Service", "https://www.facebook.com/terms.php?paipv=0&eav=AfYpS9BfUgSfKgu2rxjNFVIcBqsbTB9R63KFiuKDFqodvsFu401FYgmpPmrQi5pquFM&_rdr"),
     PP("Privacy Policy", "https://www.facebook.com/privacy/policy/version/7122790421067234"),
-    CP("Content Policy", "https://yourapp.com/-policy")
+    CP("Content Policy", "https://www.instagram.com/"),
+    FAQ("FAQ", "https://www.instagram.com/"),
+    IG("Follow us on IG", "https://www.instagram.com/"),
+    TIKTOK("Follow us on TikTok", "https://www.tiktok.com/"),
 }
 
 @Composable
-fun PolicyScreen(policyType: PolicyType, onBackClick: () -> Unit) {
+fun WebViewScreen(policyType: WebContent, onBackClick: () -> Unit) {
     var isLoading by remember { mutableStateOf(true) }
 
     WebViewComponent(policyType.url, onBackClick, isLoading) {
@@ -58,7 +60,7 @@ fun WebViewComponent(
         topBar = {
             Toolbars.Primary(
                 showBackButton = true,
-                title = PolicyType.entries.first { it.url == url }.title,
+                title = WebContent.entries.first { it.url == url }.title,
                 onBackClick = onBackClick,
                 scrollBehavior = scrollBehavior
             )

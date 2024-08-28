@@ -1,4 +1,4 @@
-package com.studios1299.playwall.feature.play.presentation.screens.chat
+package com.studios1299.playwall.feature.play.presentation.chat
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -45,10 +45,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.studios1299.playwall.R
-import com.studios1299.playwall.feature.play.presentation.util.Constants.EMOJI_LIST
+import com.studios1299.playwall.feature.play.presentation.chat.util.Constants.EMOJI_LIST
 import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.data.model.Reaction
-import com.studios1299.playwall.feature.play.presentation.screens.chat.viewmodel.ChatViewModel
+import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

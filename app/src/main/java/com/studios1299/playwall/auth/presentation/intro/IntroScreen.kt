@@ -77,8 +77,8 @@ fun IntroScreen(
                 text = stringResource(id = R.string.login),
                 isLoading = false,
                 onClick = {
-                   // onAction(IntroAction.OnSignInClick)
-                    onAction(IntroAction.onTermsClick)
+                    onAction(IntroAction.OnSignInClick)
+                    //onAction(IntroAction.onTermsClick)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

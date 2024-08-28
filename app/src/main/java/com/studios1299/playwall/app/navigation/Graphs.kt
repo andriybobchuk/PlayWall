@@ -24,7 +24,7 @@ sealed class Graphs {
     object Shared {
         const val root = "shared"
         object Screens {
-            const val policy = "policy/{policyType}"
+            const val web = "web/{webType}"
         }
     }
 }

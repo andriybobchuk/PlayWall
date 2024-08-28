@@ -1,4 +1,4 @@
-package com.studios1299.playwall.feature.play.presentation.screens.play
+package com.studios1299.playwall.feature.play.presentation.play
 
 import android.graphics.drawable.Drawable
 import android.util.Log
@@ -83,14 +83,13 @@ import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Buttons
 import com.studios1299.playwall.core.presentation.components.TextFields
-import com.studios1299.playwall.core.presentation.components.ToolbarScaffold
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.data.model.Reaction
 import com.studios1299.playwall.feature.play.data.model.User
-import com.studios1299.playwall.feature.play.presentation.screens.chat.ReplyField
-import com.studios1299.playwall.feature.play.presentation.screens.chat.viewmodel.ChatViewModel
-import com.studios1299.playwall.feature.play.presentation.util.Constants.EMOJI_LIST
+import com.studios1299.playwall.feature.play.presentation.chat.ReplyField
+import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
+import com.studios1299.playwall.feature.play.presentation.chat.util.Constants.EMOJI_LIST
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.launchIn

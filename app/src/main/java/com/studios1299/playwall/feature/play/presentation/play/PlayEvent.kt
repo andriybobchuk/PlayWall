@@ -1,4 +1,4 @@
-package com.studios1299.playwall.feature.play.presentation.screens.play
+package com.studios1299.playwall.feature.play.presentation.play
 
 import com.studios1299.playwall.core.presentation.UiText
 
