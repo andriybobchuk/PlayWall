@@ -146,7 +146,7 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
                 viewModel = viewModel<PlayViewModel>(
                     factory = viewModelFactory {
                         PlayViewModel(
-                            MyApp.appModule.chatRepository
+                            MyApp.appModule.coreRepository
                         )
                     }
                 ),
@@ -184,6 +184,7 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
                 })
             ImageDetailScreen(
                 state = viewModel.state.copy(currentPhotoIndex = photoIndex),
+                viewModel = viewModel,
                 onSwipe = { newIndex ->
                     viewModel.onAction(ExploreAction.OnSwipePhoto(newIndex))
                 },
@@ -239,7 +240,7 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
                 viewModel = viewModel<ChatViewModel>(
                     factory = viewModelFactory {
                         ChatViewModel(
-                            MyApp.appModule.chatRepository
+                            MyApp.appModule.coreRepository
                         )
                     }
                 ),

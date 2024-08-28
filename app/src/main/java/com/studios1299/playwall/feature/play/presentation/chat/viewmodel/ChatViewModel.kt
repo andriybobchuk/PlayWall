@@ -7,7 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.studios1299.playwall.feature.play.domain.ChatRepository
+import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.data.model.Reaction
@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 
 class ChatViewModel(
-    private val chatRepository: ChatRepository
+    private val chatRepository: CoreRepository
 ) : ViewModel() {
     companion object {
         private const val LOG_TAG = "ChatViewModel"

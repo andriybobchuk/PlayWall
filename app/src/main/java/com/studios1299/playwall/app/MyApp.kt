@@ -1,6 +1,8 @@
 package com.studios1299.playwall.app
 
 import android.app.Application
+import android.content.Context
+import android.content.SharedPreferences
 import com.google.firebase.Firebase
 import com.google.firebase.initialize
 import com.studios1299.playwall.BuildConfig
@@ -8,6 +10,9 @@ import com.studios1299.playwall.app.di.AppModule
 import com.studios1299.playwall.app.di.AppModuleImpl
 
 class MyApp: Application() {
+
+    lateinit var sharedPrefs: SharedPreferences
+        private set
 
     companion object {
         lateinit var appModule: AppModule
@@ -19,6 +24,8 @@ class MyApp: Application() {
 
         Firebase.initialize(this)
         initializeCrashlytics()
+
+        sharedPrefs = getSharedPreferences("playwall", Context.MODE_PRIVATE)
     }
 
     private fun initializeCrashlytics() {

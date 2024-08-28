@@ -76,13 +76,15 @@ class ExploreViewModel(
 
     // Get the like status from shared preferences
     fun isLiked(photoId: String): Boolean {
-        return sharedPrefs.getBoolean("like_$photoId", false)
+       // return sharedPrefs.getBoolean("like_$photoId", false)
+        return true
     }
 
     // Toggle the like status and update shared preferences
     fun toggleLike(photoId: String) {
         val isLiked = isLiked(photoId)
-        sharedPrefs.edit().putBoolean("like_$photoId", !isLiked).apply()
+       // sharedPrefs.edit().putBoolean("like_$photoId", !isLiked).apply()
+        //sharedPrefs.edit().putBoolean("like_$photoId", !isLiked).apply()
         // You may also want to notify the server or update the database
     }
 }

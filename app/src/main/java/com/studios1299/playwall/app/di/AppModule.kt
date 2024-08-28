@@ -9,8 +9,6 @@ import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.domain.PatternValidator
 import com.studios1299.playwall.core.data.FirebaseCoreRepositoryImpl
 import com.studios1299.playwall.core.domain.CoreRepository
-import com.studios1299.playwall.feature.play.domain.ChatRepository
-import com.studios1299.playwall.feature.play.data.FakeChatRepository
 
 /**
  * # Adding Dependencies
@@ -73,7 +71,6 @@ import com.studios1299.playwall.feature.play.data.FakeChatRepository
  *  I made AppModule an interface to be able to later define TestAppModule and use it for testing!
  */
 interface AppModule {
-    val chatRepository: ChatRepository
     val coreRepository: CoreRepository
     val authRepository: AuthRepository
     val emailPatternValidator: PatternValidator
@@ -91,9 +88,7 @@ class AppModuleImpl(
 //            .build()
 //            .create()
 //    }
-    override val chatRepository: ChatRepository by lazy {
-        FakeChatRepository()
-    }
+
     override val coreRepository: CoreRepository by lazy {
         FirebaseCoreRepositoryImpl(firebaseAuth = firebaseAuth)
     }
