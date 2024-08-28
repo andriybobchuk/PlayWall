@@ -11,9 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.presentation.viewModelFactory
@@ -25,6 +27,10 @@ import com.studios1299.playwall.auth.presentation.register.RegisterScreenRoot
 import com.studios1299.playwall.auth.presentation.register.RegisterViewModel
 import com.studios1299.playwall.core.presentation.components.WebViewScreen
 import com.studios1299.playwall.core.presentation.components.WebContent
+import com.studios1299.playwall.explore.presentation.ExploreAction
+import com.studios1299.playwall.explore.presentation.ExploreScreenRoot
+import com.studios1299.playwall.explore.presentation.ExploreViewModel
+import com.studios1299.playwall.explore.presentation.ImageDetailScreen
 import com.studios1299.playwall.feature.play.presentation.chat.MessengerScreen
 import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
 import com.studios1299.playwall.feature.play.presentation.play.PlayScreenRoot
@@ -151,7 +157,38 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
             )
         }
         composable(Graphs.Main.Screens.explore) {
-            Text(text = "Explore Tab!")
+            ExploreScreenRoot(
+                viewModel = viewModel<ExploreViewModel>(
+                    factory = viewModelFactory {
+                        ExploreViewModel(
+                            MyApp.appModule.coreRepository
+                        )
+                    }
+                ),
+                onNavigateToPhotoDetail = { photoIndex ->
+                    navController.navigate("explore-image/$photoIndex")
+                },
+                bottomNavbar = { BottomNavigationBar(navController = navController) }
+            )
+        }
+        composable(
+            route = Graphs.Main.Screens.explore_image,
+            arguments = listOf(navArgument("photoIndex") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val photoIndex = backStackEntry.arguments?.getInt("photoIndex") ?: 0
+            val viewModel = viewModel<ExploreViewModel>(
+                factory = viewModelFactory {
+                    ExploreViewModel(
+                        MyApp.appModule.coreRepository
+                    )
+                })
+            ImageDetailScreen(
+                state = viewModel.state.copy(currentPhotoIndex = photoIndex),
+                onSwipe = { newIndex ->
+                    viewModel.onAction(ExploreAction.OnSwipePhoto(newIndex))
+                },
+                onExit = { navController.popBackStack() }
+            )
         }
         composable(Graphs.Main.Screens.create) {
             Text(text = "Create Tab!")

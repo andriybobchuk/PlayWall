@@ -16,6 +16,7 @@ sealed class Graphs {
             const val play = "play"
             const val play_chat = "play-chat"
             const val explore = "explore"
+            const val explore_image = "explore-image/{photoIndex}"
             const val create = "create"
             const val profile = "profile"
         }

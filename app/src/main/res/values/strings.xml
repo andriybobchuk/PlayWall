@@ -58,4 +58,5 @@
     <string name="hi_there">Hi there!</string>
     <string name="action_successful">Action successful!</string>
     <string name="go_back">Go back</string>
+    <string name="error_photo_not_found">Image was not found</string>
 </resources>
