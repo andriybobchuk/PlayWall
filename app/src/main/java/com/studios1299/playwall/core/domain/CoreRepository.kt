@@ -1,7 +1,7 @@
 package com.studios1299.playwall.core.domain
 
 import com.studios1299.playwall.core.data.UserProfile
-import com.studios1299.playwall.explore.presentation.Photo
+import com.studios1299.playwall.explore.presentation.explore.Photo
 import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.data.model.User
 import com.studios1299.playwall.feature.play.presentation.play.Friend

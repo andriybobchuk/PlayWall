@@ -1,10 +1,8 @@
-package com.studios1299.playwall.explore.presentation
+package com.studios1299.playwall.explore.presentation.explore
 
 data class ExploreState(
     val photos: List<Photo> = emptyList(),
     val isLoading: Boolean = false,
-    val currentPhotoIndex: Int = 0,
-    val isImageDetailVisible: Boolean = false
 )
 
 data class Photo(

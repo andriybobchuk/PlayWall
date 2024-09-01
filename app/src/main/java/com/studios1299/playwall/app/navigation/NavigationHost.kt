@@ -1,5 +1,6 @@
 package com.studios1299.playwall.app.navigation
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,10 +28,12 @@ import com.studios1299.playwall.auth.presentation.register.RegisterScreenRoot
 import com.studios1299.playwall.auth.presentation.register.RegisterViewModel
 import com.studios1299.playwall.core.presentation.components.WebViewScreen
 import com.studios1299.playwall.core.presentation.components.WebContent
-import com.studios1299.playwall.explore.presentation.ExploreAction
-import com.studios1299.playwall.explore.presentation.ExploreScreenRoot
-import com.studios1299.playwall.explore.presentation.ExploreViewModel
-import com.studios1299.playwall.explore.presentation.ImageDetailScreen
+import com.studios1299.playwall.explore.presentation.explore.ExploreAction
+import com.studios1299.playwall.explore.presentation.explore.ExploreScreenRoot
+import com.studios1299.playwall.explore.presentation.explore.ExploreViewModel
+import com.studios1299.playwall.explore.presentation.PostDetailScreenRoot
+import com.studios1299.playwall.explore.presentation.detail.PostDetailViewModel
+import com.studios1299.playwall.explore.presentation.explore.Photo
 import com.studios1299.playwall.feature.play.presentation.chat.MessengerScreen
 import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
 import com.studios1299.playwall.feature.play.presentation.play.PlayScreenRoot
@@ -165,32 +168,37 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
                         )
                     }
                 ),
-                onNavigateToPhotoDetail = { photoIndex ->
-                    navController.navigate("explore-image/$photoIndex")
+                onNavigateToPhotoDetail = { selectedPhoto ->
+                    navController.navigate("${Graphs.Main.Screens.explore_image}/${selectedPhoto}")
                 },
                 bottomNavbar = { BottomNavigationBar(navController = navController) }
             )
         }
         composable(
-            route = Graphs.Main.Screens.explore_image,
-            arguments = listOf(navArgument("photoIndex") { type = NavType.IntType })
+            "${Graphs.Main.Screens.explore_image}/{photoId}",
+            arguments = listOf(navArgument("photoId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val photoIndex = backStackEntry.arguments?.getInt("photoIndex") ?: 0
-            val viewModel = viewModel<ExploreViewModel>(
-                factory = viewModelFactory {
-                    ExploreViewModel(
-                        MyApp.appModule.coreRepository
-                    )
-                })
-            ImageDetailScreen(
-                state = viewModel.state.copy(currentPhotoIndex = photoIndex),
-                viewModel = viewModel,
-                onSwipe = { newIndex ->
-                    viewModel.onAction(ExploreAction.OnSwipePhoto(newIndex))
-                },
-                onExit = { navController.popBackStack() }
+            val photoId = backStackEntry.arguments?.getString("photoId") ?: run {
+                Log.e("PostDetailScreen", "Photo ID is null, returning from composable")
+                return@composable
+            }
+
+            PostDetailScreenRoot(
+                viewModel = viewModel<PostDetailViewModel>(
+                    factory = viewModelFactory {
+                        PostDetailViewModel(
+                            MyApp.appModule.coreRepository,
+                            photoId
+                        )
+                    }
+                ),
+                onExit = {
+                    navController.popBackStack()
+                }
             )
         }
+
+
         composable(Graphs.Main.Screens.create) {
             Text(text = "Create Tab!")
         }
@@ -229,7 +237,6 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
                             navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TIKTOK.name))
 
                         }
-                        // Add any other necessary destinations as needed
                     }
                 },
                 bottomNavbar = { BottomNavigationBar(navController = navController) }
