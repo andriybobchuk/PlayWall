@@ -1,6 +1,10 @@
 package com.studios1299.playwall.profile.presentation
 
+import android.net.Uri
 import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.text2.input.TextFieldState
+import androidx.compose.foundation.text2.input.textAsFlow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,9 +14,12 @@ import com.studios1299.playwall.R
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.presentation.UiText
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalFoundationApi::class)
 class ProfileViewModel(
     private val repository: CoreRepository
 ) : ViewModel() {
@@ -26,6 +33,17 @@ class ProfileViewModel(
     init {
         loadUserProfile()
         onAction(ProfileAction.LoadPhotos)
+
+        //state.userName.textAsFlow()
+    }
+
+    init {
+        state.userName.textAsFlow()
+            .onEach { email ->
+               // state = state.copy(userEmail = email)
+            }
+            .launchIn(viewModelScope)
+
     }
 
     fun onAction(action: ProfileAction) {
@@ -49,15 +67,59 @@ class ProfileViewModel(
                     navigateToPhotoDetail(action.photoId)
                 }
             }
+            ProfileAction.OnSaveProfileClick -> saveProfile()
+            ProfileAction.OnCancelEditProfileClick -> cancelEditProfile()
+            ProfileAction.OnDeletePhotoClick -> deletePhoto()
+            is ProfileAction.OnPhotoSelected -> updatePhoto(action.uri)
+            is ProfileAction.OnNameChanged -> state = state.copy(userName = TextFieldState(action.name))
+            is ProfileAction.OnEmailChanged -> state = state.copy(userEmail = TextFieldState(action.email))
+            ProfileAction.OnEditProfileClick -> openEditProfileDialog()
         }
+    }
+
+    private fun saveProfile() {
+        viewModelScope.launch {
+            // Logic to save profile (e.g., repository.updateProfile(state))
+            eventChannel.send(ProfileEvent.ProfileUpdated)
+        }
+    }
+
+    private fun cancelEditProfile() {
+        viewModelScope.launch {
+            eventChannel.send(ProfileEvent.ProfileEditCancelled)
+        }
+    }
+
+    private fun deletePhoto() {
+        viewModelScope.launch {
+            // Logic to delete photo (e.g., state = state.copy(userAvatar = ""))
+            state = state.copy(userAvatar = "")
+            eventChannel.send(ProfileEvent.ProfileUpdated)
+        }
+    }
+
+    private fun updatePhoto(uri: Uri) {
+        viewModelScope.launch {
+            // Logic to update the profile photo
+            state = state.copy(userAvatar = uri.toString())
+            eventChannel.send(ProfileEvent.ProfileUpdated)
+        }
+    }
+
+    private fun openEditProfileDialog() {
+        state = state.copy(isEditProfileDialogOpen = true)
+    }
+
+    private fun closeEditProfileDialog() {
+        state = state.copy(isEditProfileDialogOpen = false)
     }
 
     private fun loadUserProfile() {
         viewModelScope.launch {
             val profile = repository.getUserProfile()
             state = state.copy(
-                userName = profile.name,
-                userEmail = profile.email,
+                userName = TextFieldState(profile.name),
+                userEmail = TextFieldState(profile.email),
                 userAvatar = profile.avatarUrl
             )
         }

@@ -34,6 +34,7 @@ coroutines = "1.8.0"
 gmsLocation = "21.2.0"
 mapsUtils = "5.0.0"
 bson = "4.11.1"
+ucrop = "2.2.6"
 work = "2.9.0"
 kotlinx-serialization = "1.6.3"
 secretsPlugin = "2.0.1"
@@ -123,6 +124,7 @@ firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx",
 crashlytics = { module = "com.google.firebase:firebase-crashlytics-ktx", version.ref = "crashlytics" }
 analytics = { module = "com.google.firebase:firebase-analytics-ktx", version.ref = "analytics" }
 androidx-lifecycle-viewmodel-android = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-android", version.ref = "lifecycleViewmodelAndroid" }
+
 
 
 [plugins]

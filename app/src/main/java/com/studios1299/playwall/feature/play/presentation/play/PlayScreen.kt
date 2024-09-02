@@ -376,6 +376,7 @@ fun FriendItem(
                 modifier = Modifier.padding(end = 8.dp)
             )
         }
+        //todo chnage to my image
         GlideImage(
             model = friend.avatar,
             contentDescription = friend.name,

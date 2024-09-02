@@ -1,5 +1,7 @@
 package com.studios1299.playwall.profile.presentation
 
+import android.net.Uri
+
 sealed interface ProfileAction {
     data object OnHelpClick : ProfileAction
     data object OnContactClick : ProfileAction
@@ -20,6 +22,15 @@ sealed interface ProfileAction {
     data class OnPhotoClick(val photoId: String): ProfileAction
     data object LoadPhotos: ProfileAction
    // data class NavigateTo(val destination: ProfileDestination) : ProfileAction
+
+
+    data object OnEditProfileClick : ProfileAction
+    data object OnSaveProfileClick : ProfileAction
+    data object OnCancelEditProfileClick : ProfileAction
+    data object OnDeletePhotoClick : ProfileAction
+    data class OnPhotoSelected(val uri: Uri) : ProfileAction
+    data class OnNameChanged(val name: String) : ProfileAction
+    data class OnEmailChanged(val email: String) : ProfileAction
 }
 
 

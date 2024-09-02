@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -30,20 +31,21 @@ object Buttons {
         isLoading: Boolean,
         modifier: Modifier = Modifier,
         enabled: Boolean = true,
-        onClick: () -> Unit
+        onClick: () -> Unit,
+        style: TextStyle = MaterialTheme.typography.bodyMedium
     ) {
         Button(
             onClick = onClick,
             enabled = enabled,
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
+                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 disabledContainerColor = Color.Gray,
                 disabledContentColor = Color.Black
             ),
             shape = RoundedCornerShape(100f),
             modifier = modifier
-                .height(IntrinsicSize.Min)
+                .padding(vertical = 4.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -62,7 +64,8 @@ object Buttons {
                     text = text,
                     modifier = Modifier
                         .alpha(if(isLoading) 0f else 1f),
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    style = style
                 )
             }
         }
@@ -74,7 +77,8 @@ object Buttons {
         isLoading: Boolean,
         modifier: Modifier = Modifier,
         enabled: Boolean = true,
-        onClick: () -> Unit
+        onClick: () -> Unit,
+        style: TextStyle = MaterialTheme.typography.bodyMedium
     ) {
         OutlinedButton(
             onClick = onClick,
@@ -107,7 +111,8 @@ object Buttons {
                     text = text,
                     modifier = Modifier
                         .alpha(if(isLoading) 0f else 1f),
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    style = style
                 )
             }
         }

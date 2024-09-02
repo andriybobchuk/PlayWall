@@ -1,6 +1,9 @@
 package com.studios1299.playwall.profile.presentation
 
+import android.content.Context
+import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,11 +22,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text2.input.TextFieldState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Facebook
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.QuestionAnswer
@@ -37,6 +44,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -44,6 +52,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -60,10 +69,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.listener.single.PermissionListener
+import com.studios1299.playwall.core.data.UserProfile
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
+import com.studios1299.playwall.core.presentation.components.Buttons
+import com.studios1299.playwall.core.presentation.components.Images
+import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.core.presentation.components.image_grid.ImageGrid
 import com.studios1299.playwall.explore.presentation.explore.Photo
+import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
 
 
 @Composable
@@ -77,6 +93,7 @@ fun ProfileScreenRoot(
     val state = viewModel.state
     var showHelpLegalSheet by remember { mutableStateOf(false) }
     var showSocialMediaSheet by remember { mutableStateOf(false) }
+    var showEditProfileDialog by remember { mutableStateOf(false) }
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
@@ -99,6 +116,13 @@ fun ProfileScreenRoot(
             is ProfileEvent.NavigateToPhotoDetail -> {
                 onNavigateToPhotoDetail(event.initialPhotoIndex)
             }
+            is ProfileEvent.ProfileUpdated -> {
+                Toast.makeText(context, "Profile updated", Toast.LENGTH_SHORT).show()
+                showEditProfileDialog = false
+            }
+            is ProfileEvent.ProfileEditCancelled -> {
+                showEditProfileDialog = false
+            }
         }
     }
 
@@ -108,24 +132,45 @@ fun ProfileScreenRoot(
             when (action) {
                 ProfileAction.OnHelpClick -> showHelpLegalSheet = true
                 ProfileAction.OnSocialClick -> showSocialMediaSheet = true
+                ProfileAction.OnEditProfileClick -> showEditProfileDialog = true
                 else -> viewModel.onAction(action)
             }
         },
         bottomNavbar = bottomNavbar
     )
 
-    // Help & Legal Bottom Sheet
     if (showHelpLegalSheet) {
         HelpLegalBottomSheet(onDismiss = { showHelpLegalSheet = false }, onNavigateTo)
     }
 
-    // Social Media Bottom Sheet
     if (showSocialMediaSheet) {
         SocialMediaBottomSheet(onDismiss = { showSocialMediaSheet = false }, onNavigateTo)
     }
+
+    if (showEditProfileDialog) {
+        EditProfileDialog(
+            state = state,
+            onAction = { action ->
+                when (action) {
+                    ProfileAction.OnSaveProfileClick -> {
+                        viewModel.onAction(action)
+                        showEditProfileDialog = false
+                    }
+                    ProfileAction.OnCancelEditProfileClick -> {
+                        viewModel.onAction(action)
+                        showEditProfileDialog = false
+                    }
+                    else -> viewModel.onAction(action)
+                }
+            },
+            onDismiss = { showEditProfileDialog = false }
+        )
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 fun ProfileScreen(
     state: ProfileState,
@@ -144,7 +189,7 @@ fun ProfileScreen(
                     Toolbars.ToolBarAction(
                         icon = Icons.Default.Edit,
                         contentDescription = "Edit",
-                        onClick = {  }
+                        onClick = { onAction(ProfileAction.OnEditProfileClick) }
                     )
                 ),
                 scrollBehavior = scrollBehavior
@@ -161,8 +206,8 @@ fun ProfileScreen(
             item {
                 Spacer(modifier = Modifier.height(10.dp))
                 ProfileHeader(
-                    name = state.userName,
-                    email = state.userEmail,
+                    name = state.userName.text.toString(),
+                    email = state.userEmail.text.toString(),
                     avatar = state.userAvatar
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -253,6 +298,132 @@ fun ProfileScreen(
         }
     }
 }
+
+@OptIn(ExperimentalGlideComposeApi::class,
+    ExperimentalFoundationApi::class
+)
+@Composable
+fun EditProfileDialog(
+    state: ProfileState,
+    onAction: (ProfileAction) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var name by remember { mutableStateOf(state.userName) }
+    var email by remember { mutableStateOf(state.userEmail) }
+
+    val requestImagePicker = rememberRequestPermissionAndPickImage { uri ->
+        onAction(ProfileAction.OnPhotoSelected(uri))
+    }
+
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        confirmButton = {
+            TextButton(onClick = { onAction(ProfileAction.OnSaveProfileClick) }) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { onDismiss() }) {
+                Text("Cancel")
+            }
+        },
+        title = {
+            Text(text = "Edit Profile")
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp),
+                ) {
+                    Images.Circle(
+                        model = state.userAvatar,
+                        size = 100.dp
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        IconButton(
+                            onClick = requestImagePicker,
+                            modifier = Modifier
+                                // .align(Alignment.BottomEnd)
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Change Photo",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                        IconButton(
+                            onClick = { onAction(ProfileAction.OnDeletePhotoClick) },
+                            modifier = Modifier
+                                //  .align(Alignment.BottomEnd)
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.error)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete Photo",
+                                tint = MaterialTheme.colorScheme.errorContainer
+                            )
+                        }
+//                        Buttons.Primary(
+//                            text = "Change Photo",
+//                            isLoading = false,
+//                            onClick = requestImagePicker,
+//                            modifier = Modifier.fillMaxWidth(),
+//                            style = MaterialTheme.typography.bodySmall
+//                        )
+//                        Buttons.Primary(
+//                            text = "Delete Photo",
+//                            isLoading = false,
+//                            onClick = { onAction(ProfileAction.OnDeletePhotoClick) },
+//                            style = MaterialTheme.typography.bodySmall
+//                        )
+
+                    }
+
+                }
+
+                TextFields.Primary(
+                    state = remember { name },
+                    startIcon = Icons.Default.Person,
+                    endIcon = null,
+                    hint = "Enter your name",
+                    title = "Name",
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                TextFields.Primary(
+                    state = remember { email },
+                    startIcon = Icons.Default.Email,
+                    endIcon = null,
+                    hint = "Enter your email",
+                    title = "Email",
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+
+            }
+        }
+    )
+}
+
+
+
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
@@ -485,7 +656,6 @@ fun Group(
 }
 
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun ProfileHeader(
     name: String,
@@ -498,14 +668,10 @@ fun ProfileHeader(
                 .fillMaxSize()
                 .align(Alignment.Center)
         ) {
-            GlideImage(
+            Images.Circle(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
                 model = avatar,
-                contentDescription = name,
-                modifier = Modifier
-                    .size(72.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.outline)
-                    .align(Alignment.CenterHorizontally)
+                size = 70.dp
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
