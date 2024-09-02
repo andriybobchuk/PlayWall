@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -32,25 +33,25 @@ object Buttons {
         modifier: Modifier = Modifier,
         enabled: Boolean = true,
         onClick: () -> Unit,
+        colors: ButtonColors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            disabledContainerColor = Color.Gray,
+            disabledContentColor = Color.Black
+        ),
         style: TextStyle = MaterialTheme.typography.bodyMedium
     ) {
         Button(
             onClick = onClick,
             enabled = enabled,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                disabledContainerColor = Color.Gray,
-                disabledContentColor = Color.Black
-            ),
+            colors = colors,
             shape = RoundedCornerShape(100f),
             modifier = modifier
-                .padding(vertical = 4.dp)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 6.dp),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(
@@ -64,7 +65,7 @@ object Buttons {
                     text = text,
                     modifier = Modifier
                         .alpha(if(isLoading) 0f else 1f),
-                    fontWeight = FontWeight.Medium,
+                   // fontWeight = FontWeight.Medium,
                     style = style
                 )
             }
@@ -92,12 +93,11 @@ object Buttons {
             ),
             shape = RoundedCornerShape(100f),
             modifier = modifier
-                .height(IntrinsicSize.Min)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 6.dp),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(
@@ -111,7 +111,7 @@ object Buttons {
                     text = text,
                     modifier = Modifier
                         .alpha(if(isLoading) 0f else 1f),
-                    fontWeight = FontWeight.Medium,
+                   // fontWeight = FontWeight.Medium,
                     style = style
                 )
             }

@@ -111,7 +111,9 @@ object TextFields {
                                 alpha = 0.05f
                             )
                         } else {
-                            MaterialTheme.colorScheme.primaryContainer
+                            MaterialTheme.colorScheme.primary.copy(
+                                alpha = 0.1f
+                            )
                         }
                     )
                     .border(
@@ -219,7 +221,9 @@ object TextFields {
                                 alpha = 0.05f
                             )
                         } else {
-                            MaterialTheme.colorScheme.primaryContainer
+                            MaterialTheme.colorScheme.primary.copy(
+                                alpha = 0.1f
+                            )
                         }
                     )
                     .border(

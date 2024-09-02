@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.Support
 import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material.icons.filled.Whatsapp
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -62,6 +63,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
@@ -338,7 +340,7 @@ fun EditProfileDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.CenterHorizontally)
-                        .padding(16.dp),
+                        .padding(vertical = 18.dp),
                 ) {
                     Images.Circle(
                         model = state.userAvatar,
@@ -348,47 +350,26 @@ fun EditProfileDialog(
                     Column(
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        IconButton(
+                        Buttons.Outlined(
+                            text = "Change Photo",
+                            isLoading = false,
                             onClick = requestImagePicker,
-                            modifier = Modifier
-                                // .align(Alignment.BottomEnd)
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = "Change Photo",
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-                        IconButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Buttons.Primary(
+                            text = "Delete Photo",
+                            isLoading = false,
                             onClick = { onAction(ProfileAction.OnDeletePhotoClick) },
-                            modifier = Modifier
-                                //  .align(Alignment.BottomEnd)
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.error)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete Photo",
-                                tint = MaterialTheme.colorScheme.errorContainer
-                            )
-                        }
-//                        Buttons.Primary(
-//                            text = "Change Photo",
-//                            isLoading = false,
-//                            onClick = requestImagePicker,
-//                            modifier = Modifier.fillMaxWidth(),
-//                            style = MaterialTheme.typography.bodySmall
-//                        )
-//                        Buttons.Primary(
-//                            text = "Delete Photo",
-//                            isLoading = false,
-//                            onClick = { onAction(ProfileAction.OnDeletePhotoClick) },
-//                            style = MaterialTheme.typography.bodySmall
-//                        )
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        disabledContainerColor = Color.Gray,
+                        disabledContentColor = Color.Black
+                        ),
+                            style = MaterialTheme.typography.bodySmall
+                        )
 
                     }
 
