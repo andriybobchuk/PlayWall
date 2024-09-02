@@ -1,5 +1,7 @@
 package com.studios1299.playwall.feature.play.presentation.play
 
+import android.net.Uri
+
 sealed interface PlayAction {
     data class OnFriendClick(val friendId: String): PlayAction
     data class OnSelectFriend(val friendId: String): PlayAction
@@ -17,4 +19,6 @@ sealed interface PlayAction {
 
     data class OnSearchUser(val userEmail: String): PlayAction
 
+    data class OnSelectedFromGallery(val uri: Uri) : PlayAction
+    data class OnSelectedFromSaved(val selectedWallpaper: String) : PlayAction
 }

@@ -7,4 +7,5 @@ sealed interface PlayEvent {
     data class NavigateToChat(val friendId: String): PlayEvent
     data object FriendRequestAccepted: PlayEvent
     data object FriendRequestRejected: PlayEvent
+    data object WallpaperSent : PlayEvent
 }

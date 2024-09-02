@@ -7,13 +7,8 @@ import com.studios1299.playwall.core.presentation.components.image_grid.ImageGri
 import com.studios1299.playwall.explore.presentation.explore.Photo
 
 data class ProfileState @OptIn(ExperimentalFoundationApi::class) constructor(
-//    val userName: String = "",
-//    val userEmail: String = "",
-
     val userName: TextFieldState = TextFieldState(),
     val userEmail: TextFieldState = TextFieldState(),
-
-
 
     val userAvatar: String = "",
     val isSaveWallpapersEnabled: Boolean = false,

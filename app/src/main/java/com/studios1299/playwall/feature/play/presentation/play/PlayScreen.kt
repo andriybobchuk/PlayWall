@@ -1,11 +1,8 @@
 package com.studios1299.playwall.feature.play.presentation.play
 
-import android.graphics.drawable.Drawable
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,24 +20,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text2.input.textAsFlow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.PersonAddAlt
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Cancel
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -50,50 +39,32 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Buttons
+import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.Toolbars
-import com.studios1299.playwall.feature.play.data.model.Message
-import com.studios1299.playwall.feature.play.data.model.Reaction
-import com.studios1299.playwall.feature.play.data.model.User
-import com.studios1299.playwall.feature.play.presentation.chat.ReplyField
-import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
-import com.studios1299.playwall.feature.play.presentation.chat.util.Constants.EMOJI_LIST
+import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @Composable
@@ -116,6 +87,9 @@ fun PlayScreenRoot(
             PlayEvent.FriendRequestAccepted, PlayEvent.FriendRequestRejected -> {
                 Toast.makeText(context, R.string.action_successful, Toast.LENGTH_SHORT).show()
             }
+            PlayEvent.WallpaperSent -> {
+                Toast.makeText(context, R.string.action_successful, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -136,14 +110,32 @@ fun PlayScreen(
     bottomNavbar: @Composable () -> Unit
 ) {
     val isInviteSheetOpen = remember { mutableStateOf(false) }
+    val isSavedWallpaperSheetOpen = remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val inviteSheetState = rememberModalBottomSheetState()
+    val savedWallpaperSheetState = rememberModalBottomSheetState()
+
     InviteSheet(
         state = state,
         sheetState = inviteSheetState,
         isSheetOpen = isInviteSheetOpen,
         coroutineScope = coroutineScope
     )
+
+    SavedWallpaperSheet(
+        isSheetOpen = isSavedWallpaperSheetOpen,
+        sheetState = savedWallpaperSheetState,
+        onWallpaperSelected = { selectedWallpaper ->
+            onAction(PlayAction.OnSelectedFromSaved(selectedWallpaper))
+            isSavedWallpaperSheetOpen.value = false
+        }
+    )
+
+
+    val requestImagePicker = rememberRequestPermissionAndPickImage { uri ->
+        onAction(PlayAction.OnSelectedFromGallery(uri))
+        onAction(PlayAction.OnExitSelectMode)
+    }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(
@@ -153,7 +145,7 @@ fun PlayScreen(
         topBar = {
             if (state.isSelectMode) {
                 Toolbars.Primary(
-                    title = "Select Friends",
+                    title = "Send wallpaper",
                     actions = listOf(
                         Toolbars.ToolBarAction(
                             icon = Icons.Outlined.Cancel,
@@ -197,7 +189,11 @@ fun PlayScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .padding(end = 4.dp),
-                                onClick = { /* Handle Choose from saved */ }
+                                onClick = {
+                                 //   onAction(PlayAction.OnOpenSavedWallpapers)
+                                    isSavedWallpaperSheetOpen.value = true
+                                    onAction(PlayAction.OnExitSelectMode)
+                                }
                             )
                             Buttons.Primary(
                                 text = "Device Gallery",
@@ -205,7 +201,7 @@ fun PlayScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .padding(start = 4.dp),
-                                onClick = { /* Handle Choose from device */ }
+                                onClick = { requestImagePicker() }
                             )
                         }
                     }
@@ -222,26 +218,27 @@ fun PlayScreen(
                 .padding(combinedPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            // Friend Requests Section
-            items(state.friendRequests) { request ->
-                FriendRequestItem(
-                    friendRequest = request,
-                    onAccept = { onAction(PlayAction.OnAcceptFriendRequest(request.id)) },
-                    onReject = { onAction(PlayAction.OnRejectFriendRequest(request.id)) }
-                )
+            if(!state.isSelectMode) {
+                items(state.friendRequests) { request ->
+                    FriendRequestItem(
+                        friendRequest = request,
+                        onAccept = { onAction(PlayAction.OnAcceptFriendRequest(request.id)) },
+                        onReject = { onAction(PlayAction.OnRejectFriendRequest(request.id)) }
+                    )
+                }
             }
-
-            // Friends Section
             items(state.friends) { friend ->
-                if (!friend.muted) { // Exclude muted users from being selectable
+                if (!friend.muted) {
                     FriendItem(
                         friend = friend,
                         onClick = { onAction(PlayAction.OnFriendClick(friend.id)) },
                         isSelectable = state.isSelectMode,
                         isSelected = state.selectedFriends.contains(friend.id)
                     )
-                } else {
-                    // Render non-selectable muted friends
+                }
+            }
+            items(state.friends) { friend ->
+                if(!state.isSelectMode && friend.muted) {
                     FriendItem(
                         friend = friend,
                         onClick = { onAction(PlayAction.OnFriendClick(friend.id)) },
@@ -250,95 +247,10 @@ fun PlayScreen(
                     )
                 }
             }
+
         }
     }
 }
-
-@Composable
-fun CircularCheckbox(
-    checked: Boolean,
-    onCheckedChange: ((Boolean) -> Unit)?,
-    modifier: Modifier = Modifier,
-    size: Dp = 24.dp,
-    color: Color = MaterialTheme.colorScheme.primary
-) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(if (checked) color else Color.Transparent)
-            .border(2.dp, color, CircleShape)
-            .clickable { onCheckedChange?.invoke(!checked) }
-    ) {
-        if (checked) {
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = "Checked",
-                tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(size * 0.6f)
-            )
-        }
-    }
-}
-
-//@OptIn(ExperimentalGlideComposeApi::class)
-//@Composable
-//fun UserImage(
-//    model: Any?,
-//    contentDescription: String = "",
-//    size: Dp = 40.dp
-//) {
-//    val defaultUserIcon = Icons.Default.Person
-//
-//    Box(
-//        modifier = Modifier
-//            .size(size)
-//            .clip(CircleShape)
-//            .background(MaterialTheme.colorScheme.outline),
-//        contentAlignment = Alignment.Center
-//    ) {
-//        GlideImage(
-//            model = model,
-//            contentDescription = contentDescription,
-//            modifier = Modifier.fillMaxSize(),
-//            // Fallback to the default user icon if the image fails to load
-//            requestBuilderTransform = { requestBuilder ->
-//                requestBuilder.addListener(object : RequestListener<Drawable> {
-//                    override fun onLoadFailed(
-//                        e: GlideException?,
-//                        model: Any?,
-//                        target: Target<Drawable>,
-//                        isFirstResource: Boolean
-//
-//
-//                    ): Boolean {
-//
-//
-//
-//                        Log.e(LOG_TAG, "Image load failed", e)
-//                        e?.logRootCauses(LOG_TAG)
-//                        e?.causes?.forEach { cause ->
-//                            Log.e(LOG_TAG, "Cause: ${cause.message}", cause)
-//                        }
-//                        return false
-//                    }
-//
-//                    override fun onResourceReady(
-//                        resource: Drawable,
-//                        model: Any,
-//                        target: Target<Drawable>?,
-//                        dataSource: DataSource,
-//                        isFirstResource: Boolean
-//                    ): Boolean {
-//                        Log.i(LOG_TAG, "Image loaded successfully")
-//                        return false
-//                    }
-//                })
-//            }
-//        )
-//    }
-//}
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
@@ -376,14 +288,9 @@ fun FriendItem(
                 modifier = Modifier.padding(end = 8.dp)
             )
         }
-        //todo chnage to my image
-        GlideImage(
+        Images.Circle(
             model = friend.avatar,
-            contentDescription = friend.name,
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.outline)
+            size = 40.dp
         )
         Spacer(modifier = Modifier.width(8.dp))
         Column(
@@ -561,6 +468,72 @@ fun InviteSheet(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SavedWallpaperSheet(
+    isSheetOpen: MutableState<Boolean>,
+    sheetState: SheetState,
+    onWallpaperSelected: (String) -> Unit
+) {
+    if (isSheetOpen.value) {
+        ModalBottomSheet(
+            sheetState = sheetState,
+            onDismissRequest = { isSheetOpen.value = false }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Select a wallpaper",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                // Example wallpaper options; replace with actual data
+                val savedWallpapers = listOf("Wallpaper 1", "Wallpaper 2", "Wallpaper 3")
+
+                savedWallpapers.forEach { wallpaper ->
+                    Button(
+                        onClick = {
+                            onWallpaperSelected(wallpaper)
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.LightGray,
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = wallpaper,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { isSheetOpen.value = false },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.LightGray,
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                ) {
+                    Text("Close")
+                }
+            }
+        }
+    }
+}
 
 
 

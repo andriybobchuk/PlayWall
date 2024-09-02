@@ -289,7 +289,7 @@ init {
                 name = "Bob",
                 avatar = "https://www.dell.com/wp-uploads/2022/11/Human-like-Avatar-2-640x480.jpg",
                 lastMessage = "Sent you a wallpaper · 5h",
-                unreadMessages = 0,
+                unreadMessages = 99,
                 muted = false,
             ),
             Friend(
@@ -391,7 +391,7 @@ private val _users = listOf(
     ),
     User(
         id = "user2",
-        name = "Walter White",
+        name = "Andrii White",
         email = "ww@gmail.com",
         profilePictureUrl = "https://lithelper.com/wp-content/uploads/2020/05/tom1.jpeg"
     ),

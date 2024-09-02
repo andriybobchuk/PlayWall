@@ -1,5 +1,6 @@
 package com.studios1299.playwall.feature.play.presentation.play
 
+import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text2.input.textAsFlow
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +55,9 @@ class PlayViewModel(
                     navigateToChat(action.friendId)
                 }
             }
+
+            is PlayAction.OnSelectedFromGallery -> send(action.uri)
+            is PlayAction.OnSelectedFromSaved -> send(action.selectedWallpaper)
         }
     }
 
@@ -78,6 +82,18 @@ class PlayViewModel(
     private fun navigateToChat(friendId: String) {
         viewModelScope.launch {
             eventChannel.send(PlayEvent.NavigateToChat(friendId))
+        }
+    }
+
+    private fun send(uri: Uri) {
+        viewModelScope.launch {
+            eventChannel.send(PlayEvent.WallpaperSent)
+        }
+    }
+
+    private fun send(wallpaper: String) {
+        viewModelScope.launch {
+            eventChannel.send(PlayEvent.WallpaperSent)
         }
     }
 

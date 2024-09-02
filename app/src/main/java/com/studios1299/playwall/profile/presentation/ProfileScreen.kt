@@ -552,9 +552,7 @@ fun SelectorMenuItem(
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.height(12.dp))
-
                 Button(
                     onClick = { isSheetOpen = false },
                     colors = ButtonDefaults.buttonColors(
@@ -639,7 +637,6 @@ fun Group(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
-           // color = MaterialTheme.colorScheme.surface,
         ) {
             Column {
                 items.forEachIndexed { index, item ->
