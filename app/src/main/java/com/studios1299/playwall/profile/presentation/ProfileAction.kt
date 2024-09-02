@@ -35,13 +35,21 @@ sealed interface ProfileAction {
 
 
 
-enum class WallpaperOption(private val displayName: String, private val key: String) {
-    HomeScreen("HomeScreen", "HomeScreen"),
-    LockScreen("LockScreen", "LockScreen"),
-    Both("Both", "Both");
+enum class WallpaperOption(private val displayName: String) {
+    HomeScreen("Home Screen"),
+    LockScreen("Lock Screen"),
+    Both("Both");
 
+    companion object {
+        fun getEnumByDisplayName(name: String): WallpaperOption? {
+            return entries.find { it.displayName == name }
+        }
+        fun getDisplayNames(): List<String> {
+            return entries.map { it.displayName }
+        }
+    }
     override fun toString(): String {
-        return key
+        return displayName
     }
 }
 

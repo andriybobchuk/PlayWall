@@ -40,8 +40,10 @@ import androidx.compose.material.icons.filled.Support
 import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material.icons.filled.Whatsapp
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -242,9 +244,9 @@ fun ProfileScreen(
                                 icon = Icons.Default.Wallpaper,
                                 label = "Change Wallpaper on",
                                 selectedOption = state.selectedWallpaperOption,
-                                options = WallpaperOption.entries, // Pass the enum options directly
+                                options = WallpaperOption.getDisplayNames(), // Pass the enum options directly
                                 onOptionSelected = { option ->
-                                    // onAction(ProfileAction.ChangeWallpaperScreen() // Use the enum directly
+                                     onAction(ProfileAction.ChangeWallpaperScreen(WallpaperOption.getEnumByDisplayName(option) ?: WallpaperOption.HomeScreen))
                                 }
                             )
                         },
@@ -301,22 +303,19 @@ fun ProfileScreen(
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class,
-    ExperimentalFoundationApi::class
-)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EditProfileDialog(
     state: ProfileState,
     onAction: (ProfileAction) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var name by remember { mutableStateOf(state.userName) }
-    var email by remember { mutableStateOf(state.userEmail) }
+    val name by remember { mutableStateOf(state.userName) }
+    val email by remember { mutableStateOf(state.userEmail) }
 
     val requestImagePicker = rememberRequestPermissionAndPickImage { uri ->
         onAction(ProfileAction.OnPhotoSelected(uri))
     }
-
     AlertDialog(
         onDismissRequest = { onDismiss() },
         confirmButton = {
@@ -370,11 +369,8 @@ fun EditProfileDialog(
                         ),
                             style = MaterialTheme.typography.bodySmall
                         )
-
                     }
-
                 }
-
                 TextFields.Primary(
                     state = remember { name },
                     startIcon = Icons.Default.Person,
@@ -383,9 +379,7 @@ fun EditProfileDialog(
                     title = "Name",
                     modifier = Modifier.fillMaxWidth(),
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 TextFields.Primary(
                     state = remember { email },
                     startIcon = Icons.Default.Email,
@@ -394,17 +388,11 @@ fun EditProfileDialog(
                     title = "Email",
                     modifier = Modifier.fillMaxWidth(),
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
-
-
             }
         }
     )
 }
-
-
-
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
@@ -436,7 +424,6 @@ fun PhotoGridRow(
                 contentScale = ContentScale.Crop
             )
         }
-
         // Fill any remaining spaces if less than 3 photos are provided
         repeat(3 - photos.size) {
             Spacer(modifier = Modifier.weight(1f))
@@ -479,20 +466,21 @@ fun SettingMenuItem(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectorMenuItem(
     icon: ImageVector,
     label: String,
-    selectedOption: String,
-    options: List<WallpaperOption>,
+    selectedOption: WallpaperOption,
+    options: List<String>,
     onOptionSelected: (String) -> Unit
 ) {
-    var isDialogOpen by remember { mutableStateOf(false) }
+    var isSheetOpen by remember { mutableStateOf(false) }
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { isDialogOpen = true }
+            .clickable { isSheetOpen = true }
             .background(MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(14.dp),
     ) {
@@ -521,37 +509,69 @@ fun SelectorMenuItem(
                 )
             }
             Text(
-                text = selectedOption,
+                text = selectedOption.toString(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
         }
     }
 
-    if (isDialogOpen) {
-        AlertDialog(
-            onDismissRequest = { isDialogOpen = false },
-            title = { Text(text = "Select an option") },
-            text = {
-                Column {
-                    options.forEach { option ->
-                        TextButton(onClick = {
-                            onOptionSelected(option.toString())
-                            isDialogOpen = false
-                        }) {
-                            Text(text = option.toString())
-                        }
+    if (isSheetOpen) {
+        ModalBottomSheet(
+            onDismissRequest = { isSheetOpen = false }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Select an option",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+
+                options.forEach { option ->
+                    Button(
+                        onClick = {
+                            onOptionSelected(option)
+                            isSheetOpen = false
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+                        Text(
+                            text = option,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
                     }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = { isDialogOpen = false }) {
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Button(
+                    onClick = { isSheetOpen = false },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = MaterialTheme.colorScheme.primary
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
                     Text("Close")
                 }
             }
-        )
+        }
     }
 }
+
 
 @Composable
 fun SwitchMenuItem(

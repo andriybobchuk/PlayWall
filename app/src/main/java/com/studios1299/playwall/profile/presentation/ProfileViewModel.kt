@@ -161,7 +161,7 @@ class ProfileViewModel(
     }
 
     private fun changeWallpaper(option: WallpaperOption) {
-        state = state.copy(selectedWallpaperOption = option.toString())
+        state = state.copy(selectedWallpaperOption = option)
     }
 
     private fun toggleSaveWallpapers() {

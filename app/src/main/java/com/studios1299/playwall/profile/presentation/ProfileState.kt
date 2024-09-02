@@ -17,7 +17,7 @@ data class ProfileState @OptIn(ExperimentalFoundationApi::class) constructor(
 
     val userAvatar: String = "",
     val isSaveWallpapersEnabled: Boolean = false,
-    val selectedWallpaperOption: String = "Lock Screen", // Default option
+    val selectedWallpaperOption: WallpaperOption = WallpaperOption.HomeScreen,
 
     override val photos: List<Photo> = emptyList(),
     override val isLoading: Boolean = false,
