@@ -6,8 +6,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.studios1299.playwall.R
 import com.studios1299.playwall.core.domain.CoreRepository
-import kotlinx.coroutines.CoroutineScope
+import com.studios1299.playwall.core.presentation.UiText
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -24,17 +25,7 @@ class ProfileViewModel(
 
     init {
         loadUserProfile()
-    }
-
-    private fun loadUserProfile() {
-        viewModelScope.launch {
-            val profile = repository.getUserProfile()
-            state = state.copy(
-                userName = profile.name,
-                userEmail = profile.email,
-                userAvatar = profile.avatarUrl
-            )
-        }
+        onAction(ProfileAction.LoadPhotos)
     }
 
     fun onAction(action: ProfileAction) {
@@ -52,6 +43,44 @@ class ProfileViewModel(
             ProfileAction.OnTosClick -> navigateTo(ProfileDestination.TermsOfService)
             ProfileAction.RollbackDefaultWallpaper -> rollbackWallpaper()
             ProfileAction.RollbackPreviousWallpaper -> rollbackWallpaper()
+            ProfileAction.LoadPhotos -> loadPhotos()
+            is ProfileAction.OnPhotoClick -> {
+                if (state.photos.isNotEmpty()) {
+                    navigateToPhotoDetail(action.photoId)
+                }
+            }
+        }
+    }
+
+    private fun loadUserProfile() {
+        viewModelScope.launch {
+            val profile = repository.getUserProfile()
+            state = state.copy(
+                userName = profile.name,
+                userEmail = profile.email,
+                userAvatar = profile.avatarUrl
+            )
+        }
+    }
+
+    private fun loadPhotos() {
+        viewModelScope.launch {
+            state = state.copy(isLoading = true)
+            val photos = repository.getExploreItems()
+            state = state.copy(photos = photos, isLoading = false)
+        }
+    }
+
+    private fun navigateToPhotoDetail(photoId: String) {
+
+        if (photoId.isNotEmpty()) {
+            viewModelScope.launch {
+                eventChannel.send(ProfileEvent.NavigateToPhotoDetail(photoId))
+            }
+        } else {
+            viewModelScope.launch {
+                eventChannel.send(ProfileEvent.ShowError(UiText.StringResource(R.string.error_photo_not_found)))
+            }
         }
     }
 

@@ -1,6 +1,7 @@
-package com.studios1299.playwall.explore.presentation
+package com.studios1299.playwall.explore.presentation.detail
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -9,16 +10,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Wallpaper
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,17 +37,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Toolbars
-import com.studios1299.playwall.explore.presentation.detail.PostDetailAction
-import com.studios1299.playwall.explore.presentation.detail.PostDetailEvent
-import com.studios1299.playwall.explore.presentation.detail.PostDetailState
-import com.studios1299.playwall.explore.presentation.detail.PostDetailViewModel
-import com.studios1299.playwall.explore.presentation.explore.ExploreState
-import com.studios1299.playwall.explore.presentation.explore.ExploreViewModel
 
 
 @Composable
@@ -89,6 +87,7 @@ fun PostDetailScreen(
     onSwipe: (Int) -> Unit,
     onExit: () -> Unit
 ) {
+    val context = LocalContext.current
     val pagerState = rememberPagerState(initialPage = state.currentPhotoIndex, pageCount = { state.photos.size })
     Log.e("D", state.currentPhotoIndex.toString())
 
@@ -100,8 +99,6 @@ fun PostDetailScreen(
     LaunchedEffect(pagerState.currentPage) {
         onSwipe(pagerState.currentPage)
     }
-
-
     Scaffold(
         topBar = {
             Toolbars.Primary(
@@ -114,22 +111,17 @@ fun PostDetailScreen(
         bottomBar = {
             BottomAppBar {
                 IconButton(onClick = {
-
+                    Toast.makeText(context, "Sent to friend", Toast.LENGTH_SHORT).show()
                 }) {
-                    Icon(imageVector = Icons.Default.Share, contentDescription = "Send to Friend")
+                    Icon(imageVector = Icons.Outlined.Send, contentDescription = "Send to Friend")
                 }
                 IconButton(onClick = {
-
+                    Toast.makeText(context, "Set my wallpaper", Toast.LENGTH_SHORT).show()
                 }) {
-                    Icon(imageVector = Icons.Default.Wallpaper, contentDescription = "Set as Friend's Wallpaper")
+                    Icon(imageVector = Icons.Outlined.Image, contentDescription = "Set as Friend's Wallpaper")
                 }
                 IconButton(onClick = {
-
-                }) {
-                    Icon(imageVector = Icons.Default.Favorite, contentDescription = "Add to Favorites")
-                }
-                IconButton(onClick = {
-
+                    Toast.makeText(context, "Set friend's wallpaper", Toast.LENGTH_SHORT).show()
                 }) {
                     Icon(imageVector = Icons.Default.Wallpaper, contentDescription = "Set as My Wallpaper")
                 }
@@ -142,6 +134,7 @@ fun PostDetailScreen(
                     likeCount = viewModel.getLikeCount(currentPhoto.id),
                     isLiked = viewModel.isLiked(currentPhoto.id)
                 ) {
+                    Toast.makeText(context, "Liked!", Toast.LENGTH_SHORT).show()
                     viewModel.onAction(PostDetailAction.ToggleLike(currentPhoto.id))
                 }
             }
@@ -154,107 +147,20 @@ fun PostDetailScreen(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
-                VerticalPager(
-                    state = pagerState,
-                    modifier = Modifier.fillMaxSize()
-                ) { page ->
-                    if (!state.isLoading) {
-                        val photo = state.photos[page]
-                        GlideImage(
-                            model = photo.url,
-                            contentDescription = photo.description,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-
-
+            VerticalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                if (!state.isLoading) {
+                    val photo = state.photos[page]
+                    GlideImage(
+                        model = photo.url,
+                        contentDescription = photo.description,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
-           // }
-
-//
-//            CustomTopBar(
-//                title = "Explore",
-//                onBackClick = onExit
-//            )
-//
-//            if (!state.isLoading) {
-//                Log.e("HEY", "state ${state.photos}")
-//                val currentPhoto = state.photos[pagerState.currentPage]
-//                CustomBottomBar(
-//                    likeCount = viewModel.getLikeCount(currentPhoto.id),
-//                    isLiked = viewModel.isLiked(currentPhoto.id),
-//                    onLikeClick = { viewModel.onAction(PostDetailAction.ToggleLike(currentPhoto.id)) },
-//                    onSendToFriendClick = { /* Handle send to friend */ },
-//                    onSetAsFriendWallpaperClick = { /* Handle set as friend's wallpaper */ },
-//                    onAddToFavoritesClick = { /* Handle add to favorites */ },
-//                    onSetAsMyWallpaperClick = { /* Handle set as my wallpaper */ }
-//                )
-//            }
-
-        }
-
-    }
-
-
-}
-
-
-
-@Composable
-fun CustomTopBar(
-    title: String,
-    onBackClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primary)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onBackClick) {
-            Icon(imageVector = Icons.Default.Close, contentDescription = "Back", tint = MaterialTheme.colorScheme.onPrimary)
-        }
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier.padding(start = 8.dp)
-        )
-    }
-}
-
-@Composable
-fun CustomBottomBar(
-    likeCount: Int,
-    isLiked: Boolean,
-    onLikeClick: () -> Unit,
-    onSendToFriendClick: () -> Unit,
-    onSetAsFriendWallpaperClick: () -> Unit,
-    onAddToFavoritesClick: () -> Unit,
-    onSetAsMyWallpaperClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceAround,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        LikeButton(likeCount, isLiked, onLikeClick)
-        IconButton(onClick = onSendToFriendClick) {
-            Icon(imageVector = Icons.Default.Share, contentDescription = "Send to Friend")
-        }
-        IconButton(onClick = onSetAsFriendWallpaperClick) {
-            Icon(imageVector = Icons.Default.Wallpaper, contentDescription = "Set as Friend's Wallpaper")
-        }
-        IconButton(onClick = onAddToFavoritesClick) {
-            Icon(imageVector = Icons.Default.Favorite, contentDescription = "Add to Favorites")
-        }
-        IconButton(onClick = onSetAsMyWallpaperClick) {
-            Icon(imageVector = Icons.Default.Wallpaper, contentDescription = "Set as My Wallpaper")
+            }
         }
     }
 }

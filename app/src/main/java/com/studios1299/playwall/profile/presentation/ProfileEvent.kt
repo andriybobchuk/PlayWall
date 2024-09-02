@@ -8,4 +8,6 @@ sealed interface ProfileEvent {
     data object WallpaperRolledBack : ProfileEvent
     data object WallpapersSavedSettingToggled : ProfileEvent
     data object SupportContacted : ProfileEvent
+
+    data class NavigateToPhotoDetail(val initialPhotoIndex: String): ProfileEvent
 }

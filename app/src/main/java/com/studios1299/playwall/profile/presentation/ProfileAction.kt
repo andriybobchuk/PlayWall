@@ -17,6 +17,8 @@ sealed interface ProfileAction {
     data object RollbackPreviousWallpaper : ProfileAction
     data object RollbackDefaultWallpaper : ProfileAction
 
+    data class OnPhotoClick(val photoId: String): ProfileAction
+    data object LoadPhotos: ProfileAction
    // data class NavigateTo(val destination: ProfileDestination) : ProfileAction
 }
 

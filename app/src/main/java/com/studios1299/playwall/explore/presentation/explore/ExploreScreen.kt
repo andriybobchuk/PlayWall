@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -26,6 +27,8 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Toolbars
+import com.studios1299.playwall.core.presentation.components.image_grid.ImageGrid
+import com.studios1299.playwall.core.presentation.components.image_grid.ImageGridState
 
 @Composable
 fun ExploreScreenRoot(
@@ -46,7 +49,6 @@ fun ExploreScreenRoot(
             }
         }
     }
-
     ExploreScreen(
         state = state,
         onAction = { action ->
@@ -57,7 +59,7 @@ fun ExploreScreenRoot(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExploreScreen(
     state: ExploreState,
@@ -65,8 +67,6 @@ fun ExploreScreen(
     bottomNavbar: @Composable () -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-
-    // Avoid recompositions by only passing minimal and stable references to Scaffold
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -77,45 +77,9 @@ fun ExploreScreen(
         },
         bottomBar = { bottomNavbar() }
     ) { innerPadding ->
-        // Box with padding from Scaffold
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            } else if (state.photos.isEmpty()) {
-                Text(
-                    text = "No photos available",
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(state.photos.size) { index ->
-                        val photo = state.photos[index]
-                        GlideImage(
-                            model = photo.url,
-                            contentDescription = photo.description,
-                            modifier = Modifier
-                                .aspectRatio(1f)
-                                .clickable {
-                                    if (state.photos.isNotEmpty()) {
-                                        onAction(ExploreAction.OnPhotoClick(photo.id))
-                                    }
-                                }
-                                .background(MaterialTheme.colorScheme.outline),
-                            contentScale = ContentScale.Crop,
-                        )
-                    }
-                }
-            }
-        }
+        ImageGrid(innerPadding, state, onAction)
     }
 }
+
+
 

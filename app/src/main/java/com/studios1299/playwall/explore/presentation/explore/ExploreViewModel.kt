@@ -24,13 +24,7 @@ class ExploreViewModel(
     val events = eventChannel.receiveAsFlow()
 
     init {
-        Log.e("ExploreViewModel", "ViewModel crCREATEDeated!")
         onAction(ExploreAction.LoadPhotos)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        Log.d("ExploreViewModel", "ViewModel cleared!")
     }
 
     fun onAction(action: ExploreAction) {

@@ -1,9 +1,11 @@
 package com.studios1299.playwall.explore.presentation.explore
 
+import com.studios1299.playwall.core.presentation.components.image_grid.ImageGridState
+
 data class ExploreState(
-    val photos: List<Photo> = emptyList(),
-    val isLoading: Boolean = false,
-)
+    override val photos: List<Photo> = emptyList(),
+    override val isLoading: Boolean = false,
+) : ImageGridState()
 
 data class Photo(
     val id: String,

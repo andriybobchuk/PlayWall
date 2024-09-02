@@ -28,12 +28,10 @@ import com.studios1299.playwall.auth.presentation.register.RegisterScreenRoot
 import com.studios1299.playwall.auth.presentation.register.RegisterViewModel
 import com.studios1299.playwall.core.presentation.components.WebViewScreen
 import com.studios1299.playwall.core.presentation.components.WebContent
-import com.studios1299.playwall.explore.presentation.explore.ExploreAction
 import com.studios1299.playwall.explore.presentation.explore.ExploreScreenRoot
 import com.studios1299.playwall.explore.presentation.explore.ExploreViewModel
-import com.studios1299.playwall.explore.presentation.PostDetailScreenRoot
+import com.studios1299.playwall.explore.presentation.detail.PostDetailScreenRoot
 import com.studios1299.playwall.explore.presentation.detail.PostDetailViewModel
-import com.studios1299.playwall.explore.presentation.explore.Photo
 import com.studios1299.playwall.feature.play.presentation.chat.MessengerScreen
 import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
 import com.studios1299.playwall.feature.play.presentation.play.PlayScreenRoot
@@ -238,6 +236,9 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
 
                         }
                     }
+                },
+                onNavigateToPhotoDetail = { selectedPhoto ->
+                    navController.navigate("${Graphs.Main.Screens.explore_image}/${selectedPhoto}")
                 },
                 bottomNavbar = { BottomNavigationBar(navController = navController) }
             )
