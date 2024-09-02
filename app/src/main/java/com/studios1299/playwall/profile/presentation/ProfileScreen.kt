@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.Facebook
 import androidx.compose.material.icons.filled.Info
@@ -141,7 +142,7 @@ fun ProfileScreen(
                 title = "Profile",
                 actions = listOf(
                     Toolbars.ToolBarAction(
-                        icon = Icons.Default.EditNote,
+                        icon = Icons.Default.Edit,
                         contentDescription = "Edit",
                         onClick = {  }
                     )
@@ -151,107 +152,105 @@ fun ProfileScreen(
         },
         bottomBar = { bottomNavbar() }
     ) { paddingValues ->
-        //Column {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)),
-            ) {
-                item {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    ProfileHeader(
-                        name = state.userName,
-                        email = state.userEmail,
-                        avatar = state.userAvatar
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-                item {
-                    Group(
-                        items = listOf(
-                            {
-                                SettingMenuItem(
-                                    icon = Icons.Default.Support,
-                                    label = "Help & Legal info",
-                                    onClick = { onAction(ProfileAction.OnHelpClick) }
-                                )
-                            },
-                            {
-                                SettingMenuItem(
-                                    icon = Icons.Default.Whatsapp,
-                                    label = "Our social media",
-                                    onClick = { onAction(ProfileAction.OnSocialClick) }
-                                )
-                            }
-                        )
-                    )
-                }
-                item {
-                    Group(
-                        items = listOf(
-                            {
-                                SelectorMenuItem(
-                                    icon = Icons.Default.Wallpaper,
-                                    label = "Change Wallpaper on",
-                                    selectedOption = state.selectedWallpaperOption,
-                                    options = WallpaperOption.entries, // Pass the enum options directly
-                                    onOptionSelected = { option ->
-                                        // onAction(ProfileAction.ChangeWallpaperScreen() // Use the enum directly
-                                    }
-                                )
-                            },
-                            {
-                                SwitchMenuItem(
-                                    icon = Icons.Default.Save,
-                                    label = "Save wallpapers set by friends",
-                                    isChecked = state.isSaveWallpapersEnabled,
-                                    onCheckedChange = { onAction(ProfileAction.ToggleSaveWallpapers) }
-                                )
-                            },
-                            {
-                                SettingMenuItem(
-                                    icon = Icons.Default.Restore,
-                                    label = "Rollback to previous wallpaper",
-                                    onClick = { onAction(ProfileAction.RollbackPreviousWallpaper) }
-                                )
-                            },
-                            {
-                                SettingMenuItem(
-                                    icon = Icons.Default.Restore,
-                                    label = "Rollback to default wallpaper",
-                                    onClick = { onAction(ProfileAction.RollbackDefaultWallpaper) }
-                                )
-                            }
-                        )
-                    )
-                }
-                item {
-                    Text(
-                        text = "Saved Photos",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-                item {
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        if (state.isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.align(Alignment.Center)
+        LazyColumn(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)),
+        ) {
+            item {
+                Spacer(modifier = Modifier.height(10.dp))
+                ProfileHeader(
+                    name = state.userName,
+                    email = state.userEmail,
+                    avatar = state.userAvatar
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            item {
+                Group(
+                    items = listOf(
+                        {
+                            SettingMenuItem(
+                                icon = Icons.Default.Support,
+                                label = "Help & Legal info",
+                                onClick = { onAction(ProfileAction.OnHelpClick) }
                             )
-                        } else if (state.photos.isEmpty()) {
-                            Text(
-                                text = "No photos available",
-                                modifier = Modifier.align(Alignment.Center)
+                        },
+                        {
+                            SettingMenuItem(
+                                icon = Icons.Default.Whatsapp,
+                                label = "Our social media",
+                                onClick = { onAction(ProfileAction.OnSocialClick) }
                             )
                         }
+                    )
+                )
+            }
+            item {
+                Group(
+                    items = listOf(
+                        {
+                            SelectorMenuItem(
+                                icon = Icons.Default.Wallpaper,
+                                label = "Change Wallpaper on",
+                                selectedOption = state.selectedWallpaperOption,
+                                options = WallpaperOption.entries, // Pass the enum options directly
+                                onOptionSelected = { option ->
+                                    // onAction(ProfileAction.ChangeWallpaperScreen() // Use the enum directly
+                                }
+                            )
+                        },
+                        {
+                            SwitchMenuItem(
+                                icon = Icons.Default.Save,
+                                label = "Save wallpapers set by friends",
+                                isChecked = state.isSaveWallpapersEnabled,
+                                onCheckedChange = { onAction(ProfileAction.ToggleSaveWallpapers) }
+                            )
+                        },
+                        {
+                            SettingMenuItem(
+                                icon = Icons.Default.Restore,
+                                label = "Rollback to previous wallpaper",
+                                onClick = { onAction(ProfileAction.RollbackPreviousWallpaper) }
+                            )
+                        },
+                        {
+                            SettingMenuItem(
+                                icon = Icons.Default.Restore,
+                                label = "Rollback to default wallpaper",
+                                onClick = { onAction(ProfileAction.RollbackDefaultWallpaper) }
+                            )
+                        }
+                    )
+                )
+            }
+            item {
+                Text(
+                    text = "Saved Photos",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+            item {
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    } else if (state.photos.isEmpty()) {
+                        Text(
+                            text = "No photos available",
+                            modifier = Modifier.align(Alignment.Center)
+                        )
                     }
                 }
-                items(state.photos.chunked(3)) { photoRow ->
-                    PhotoGridRow(photoRow, state, onAction)
-                }
             }
-        //}
+            items(state.photos.chunked(3)) { photoRow ->
+                PhotoGridRow(photoRow, state, onAction)
+            }
+        }
     }
 }
 
@@ -304,7 +303,6 @@ fun SettingMenuItem(
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .background(MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(14.dp),
     ) {
         Row(
             modifier = Modifier
@@ -469,7 +467,7 @@ fun Group(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
-            color = MaterialTheme.colorScheme.surface,
+           // color = MaterialTheme.colorScheme.surface,
         ) {
             Column {
                 items.forEachIndexed { index, item ->
@@ -528,63 +526,61 @@ fun ProfileHeader(
 @Composable
 fun HelpLegalBottomSheet(onDismiss: () -> Unit, onNavigateTo: (ProfileDestination) -> Unit) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column {
-            Group(
-                label = "Help & Legal",
-                items = listOf(
-                    {
-                        SettingMenuItem(
-                            icon = Icons.Default.Support,
-                            label = "Contact Support",
-                            onClick = {
-                                //onNavigateTo(ProfileDestination.ContactSupport)
-                                onDismiss()
-                            }
-                        )
-                    },
-                    {
-                        SettingMenuItem(
-                            icon = Icons.Default.QuestionAnswer,
-                            label = "FAQ",
-                            onClick = {
-                                onNavigateTo(ProfileDestination.Faq)
-                                onDismiss()
-                            }
-                        )
-                    },
-                    {
-                        SettingMenuItem(
-                            icon = Icons.Default.Info,
-                            label = "Terms of Service",
-                            onClick = {
-                                onNavigateTo(ProfileDestination.TermsOfService)
-                                onDismiss()
-                            }
-                        )
-                    },
-                    {
-                        SettingMenuItem(
-                            icon = Icons.Default.PrivacyTip,
-                            label = "Privacy Policy",
-                            onClick = {
-                                onNavigateTo(ProfileDestination.PrivacyPolicy)
-                                onDismiss()
-                            }
-                        )
-                    },
-                    {
-                        SettingMenuItem(
-                            icon = Icons.Default.Policy,
-                            label = "Content Policy",
-                            onClick = {
-                                onNavigateTo(ProfileDestination.ContentPolicy)
-                                onDismiss()
-                            }
-                        )
-                    }
-                )
+        Group(
+            label = "Help & Legal",
+            items = listOf(
+                {
+                    SettingMenuItem(
+                        icon = Icons.Default.Support,
+                        label = "Contact Support",
+                        onClick = {
+                            //onNavigateTo(ProfileDestination.ContactSupport)
+                            onDismiss()
+                        }
+                    )
+                },
+                {
+                    SettingMenuItem(
+                        icon = Icons.Default.QuestionAnswer,
+                        label = "FAQ",
+                        onClick = {
+                            onNavigateTo(ProfileDestination.Faq)
+                            onDismiss()
+                        }
+                    )
+                },
+                {
+                    SettingMenuItem(
+                        icon = Icons.Default.Info,
+                        label = "Terms of Service",
+                        onClick = {
+                            onNavigateTo(ProfileDestination.TermsOfService)
+                            onDismiss()
+                        }
+                    )
+                },
+                {
+                    SettingMenuItem(
+                        icon = Icons.Default.PrivacyTip,
+                        label = "Privacy Policy",
+                        onClick = {
+                            onNavigateTo(ProfileDestination.PrivacyPolicy)
+                            onDismiss()
+                        }
+                    )
+                },
+                {
+                    SettingMenuItem(
+                        icon = Icons.Default.Policy,
+                        label = "Content Policy",
+                        onClick = {
+                            onNavigateTo(ProfileDestination.ContentPolicy)
+                            onDismiss()
+                        }
+                    )
+                }
             )
-        }
+        )
     }
 }
 

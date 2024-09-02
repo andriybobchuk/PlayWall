@@ -213,27 +213,21 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
                     when (destination) {
                         ProfileDestination.TermsOfService -> {
                             navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TOS.name))
-
                         }
                         ProfileDestination.PrivacyPolicy -> {
                             navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.PP.name))
-
                         }
                         ProfileDestination.ContentPolicy -> {
                             navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.CP.name))
-
                         }
                         ProfileDestination.Faq -> {
                             navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.FAQ.name))
-
                         }
                         ProfileDestination.Instagram -> {
                             navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.IG.name))
-
                         }
                         ProfileDestination.TikTok -> {
                             navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TIKTOK.name))
-
                         }
                     }
                 },

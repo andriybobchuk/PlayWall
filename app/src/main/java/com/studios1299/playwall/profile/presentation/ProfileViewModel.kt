@@ -112,8 +112,7 @@ class ProfileViewModel(
 
     private fun navigateTo(destination: ProfileDestination) {
         viewModelScope.launch {
-            Log.e("fd", destination.toString())
-           // eventChannel.send(ProfileEvent.NavigateTo(destination))
+            eventChannel.send(ProfileEvent.NavigateTo(destination))
         }
     }
 }
