@@ -1,19 +1,31 @@
 package com.studios1299.playwall.core.presentation.components
 
+import android.graphics.ColorFilter
 import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -36,45 +48,71 @@ object Images {
         model: Any?,
         size: Dp = 40.dp,
         onClick: () -> Unit = {}
-        ) {
-        GlideImage(
-            model = model,
-            contentDescription = stringResource(R.string.image),
-            modifier = modifier
-                .width(size)
-                .height(size)
-                .clip(CircleShape)
-                .clickable { onClick() }
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
-            contentScale = ContentScale.Crop,
-            requestBuilderTransform = { requestBuilder ->
-                requestBuilder.addListener(object : RequestListener<Drawable> {
-                    override fun onLoadFailed(
-                        e: GlideException?,
-                        model: Any?,
-                        target: Target<Drawable>,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        Log.e(LOG_TAG, "Image load failed", e)
-                        e?.logRootCauses(LOG_TAG)
-                        e?.causes?.forEach { cause ->
-                            Log.e(LOG_TAG, "Cause: ${cause.message}", cause)
-                        }
-                        return false
-                    }
+    ) {
+        var imageLoadFailed by remember { mutableStateOf(false) }
 
-                    override fun onResourceReady(
-                        resource: Drawable,
-                        model: Any,
-                        target: Target<Drawable>?,
-                        dataSource: DataSource,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        Log.i(LOG_TAG, "Image loaded successfully")
-                        return false
-                    }
-                })
+        if (imageLoadFailed || model == null || model.toString().isEmpty()) {
+            Box(
+                modifier = modifier
+                    .width(size)
+                    .height(size)
+                    .clip(CircleShape)
+                    .clickable { onClick() }
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Image",
+                    modifier = Modifier
+                        .fillMaxSize(0.6f)
+                        .align(Alignment.Center)
+                )
             }
-        )
+        } else {
+            GlideImage(
+                model = model,
+                contentDescription = stringResource(R.string.image),
+                modifier = modifier
+                    .width(size)
+                    .height(size)
+                    .clip(CircleShape)
+                    .clickable { onClick() }
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+                contentScale = ContentScale.Crop,
+                requestBuilderTransform = { requestBuilder ->
+                    requestBuilder.addListener(object : RequestListener<Drawable> {
+                        override fun onLoadFailed(
+                            e: GlideException?,
+                            model: Any?,
+                            target: Target<Drawable>,
+                            isFirstResource: Boolean
+                        ): Boolean {
+                            Log.e(LOG_TAG, "Image load failed", e)
+                            e?.logRootCauses(LOG_TAG)
+                            e?.causes?.forEach { cause ->
+                                Log.e(LOG_TAG, "Cause: ${cause.message}", cause)
+                            }
+                            // Set the flag to true when image loading fails
+                            imageLoadFailed = true
+                            return false
+                        }
+
+                        override fun onResourceReady(
+                            resource: Drawable,
+                            model: Any,
+                            target: Target<Drawable>?,
+                            dataSource: DataSource,
+                            isFirstResource: Boolean
+                        ): Boolean {
+                            Log.i(LOG_TAG, "Image loaded successfully")
+                            // Reset the flag if the image loads successfully
+                            imageLoadFailed = false
+                            return false
+                        }
+                    })
+                }
+            )
+        }
     }
+
 }
