@@ -1,14 +1,11 @@
 package com.studios1299.playwall.core.presentation.components
 
-import android.graphics.ColorFilter
 import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -25,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -49,9 +45,9 @@ object Images {
         size: Dp = 40.dp,
         onClick: () -> Unit = {}
     ) {
-        var imageLoadFailed by remember { mutableStateOf(false) }
+        var imageLoadFailed by remember(model) { mutableStateOf(false) }
 
-        if (imageLoadFailed || model == null || model.toString().isEmpty()) {
+        if (imageLoadFailed) {
             Box(
                 modifier = modifier
                     .width(size)
@@ -92,7 +88,6 @@ object Images {
                             e?.causes?.forEach { cause ->
                                 Log.e(LOG_TAG, "Cause: ${cause.message}", cause)
                             }
-                            // Set the flag to true when image loading fails
                             imageLoadFailed = true
                             return false
                         }
@@ -105,7 +100,6 @@ object Images {
                             isFirstResource: Boolean
                         ): Boolean {
                             Log.i(LOG_TAG, "Image loaded successfully")
-                            // Reset the flag if the image loads successfully
                             imageLoadFailed = false
                             return false
                         }
@@ -114,5 +108,4 @@ object Images {
             )
         }
     }
-
 }

@@ -137,5 +137,5 @@ dependencies {
     implementation(libs.analytics)
 
     // Swipe to reveal
-    implementation (libs.revealswipe)
+    implementation ("de.charlex.compose:revealswipe:2.0.0-beta01")
 }

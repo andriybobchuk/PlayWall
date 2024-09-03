@@ -370,12 +370,12 @@ init {
     _requests.addAll(
         listOf(
             FriendRequest(
-                id = "7",
+                id = "12",
                 name = "David",
                 avatar = "https://comicvine.gamespot.com/a/uploads/scale_small/3/39768/3633678-600full-ian-mckellen.jpg"
             ),
             FriendRequest(
-                id = "8",
+                id = "13",
                 name = "Eva",
                 avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3633865-magneto-daniel%20craig.jpg"
             )

@@ -280,33 +280,9 @@ fun PlayScreen(
                     )
                 }
             }
-//            val friendsWithRevealState = state.friends.map {
-//                FriendWithRevealState(
-//                    friend = it, rememberRevealState()
-//                )}
 
             items(state.friends) { friend ->
                 if (!friend.muted) {
-//                    val revealState = rememberRevealState(
-//                        maxRevealDp = 75.dp,
-//                        directions = setOf(RevealDirection.StartToEnd, RevealDirection.EndToStart)
-//                    )
-//
-//
-//
-//                    val revealState = friendWithState.revealState
-//
-//                    LaunchedEffect(revealState) {
-//                        if (revealState.anchoredDraggableState.targetValue == RevealValue.FullyRevealedStart ||
-//                            revealState.anchoredDraggableState.targetValue == RevealValue.FullyRevealedEnd) {
-//                            // Reset other items' states
-//                            friendsWithRevealState.forEach { otherFriendWithState ->
-//                                if (otherFriendWithState.friend.id != friendWithState.friend.id) {
-//                                    otherFriendWithState.revealState.animateTo(RevealValue.Default)
-//                                }
-//                            }
-//                        }
-//                    }
 
                     RevealSwipe(
                         modifier = Modifier.padding(vertical = 5.dp),
@@ -317,22 +293,10 @@ fun PlayScreen(
                             currentRevealedId.value = friend.id
                             showDialogForFriendId = friend.id
 
-//                            coroutineScope.launch {
-//                                friendWithStates.forEach { state ->
-//                                    if (state.friend.id != friendWithStates.friend.id) {
-//                                        state.revealState.animateTo(RevealValue.Covered)
-//                                    }
-//                                }
-//                            }
-
-
                             true
                         },
                         backgroundEndActionLabel = "Mute",
                         onBackgroundEndClick = {
-//                            coroutineScope.launch {
-//                                revealState.reset()
-//                            }
                             //onAction(PlayAction.OnFriendMute(friend.id))
                             true
                         },
