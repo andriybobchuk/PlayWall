@@ -2,7 +2,10 @@ package com.studios1299.playwall.feature.play.presentation.play
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text2.input.TextFieldState
+import com.studios1299.playwall.explore.presentation.explore.Photo
 import com.studios1299.playwall.feature.play.data.model.User
+import de.charlex.compose.RevealState
+import de.charlex.compose.rememberRevealState
 
 data class PlayState @OptIn(ExperimentalFoundationApi::class) constructor(
     val friends: List<Friend> = emptyList(),
@@ -12,6 +15,7 @@ data class PlayState @OptIn(ExperimentalFoundationApi::class) constructor(
     val searchResults: List<User> = emptyList(),
     val isSelectMode: Boolean = false,
     val selectedFriends: List<String> = emptyList(),
+    val photos: List<Photo> = emptyList(),
 )
 
 data class Friend(
@@ -20,7 +24,7 @@ data class Friend(
     val avatar: String,
     val lastMessage: String?,
     val unreadMessages: Int,
-    val muted: Boolean
+    val muted: Boolean,
 )
 
 data class FriendRequest(

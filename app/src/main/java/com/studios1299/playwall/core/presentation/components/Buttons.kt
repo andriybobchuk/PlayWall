@@ -36,7 +36,7 @@ object Buttons {
         colors: ButtonColors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
-            disabledContainerColor = Color.Gray,
+            disabledContainerColor = Color.Gray.copy(alpha = 0.35f),
             disabledContentColor = Color.Black
         ),
         style: TextStyle = MaterialTheme.typography.bodyMedium

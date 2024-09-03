@@ -136,4 +136,6 @@ dependencies {
     implementation(libs.crashlytics)
     implementation(libs.analytics)
 
+    // Swipe to reveal
+    implementation (libs.revealswipe)
 }

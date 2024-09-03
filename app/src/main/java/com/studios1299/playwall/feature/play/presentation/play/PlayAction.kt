@@ -1,13 +1,14 @@
 package com.studios1299.playwall.feature.play.presentation.play
 
 import android.net.Uri
+import com.studios1299.playwall.explore.presentation.explore.ExploreAction
 
 sealed interface PlayAction {
     data class OnFriendClick(val friendId: String): PlayAction
     data class OnSelectFriend(val friendId: String): PlayAction
-    data object OnFriendMute: PlayAction
-    data object OnFriendUnMute: PlayAction
-    data object OnFriendRemove: PlayAction
+    data class OnFriendMute(val friendId: String): PlayAction
+    data class OnFriendUnMute(val friendId: String): PlayAction
+    data class OnFriendRemove(val friendId: String): PlayAction
     data object OnEnterSelectMode : PlayAction
     data object OnExitSelectMode : PlayAction
 
@@ -21,4 +22,5 @@ sealed interface PlayAction {
 
     data class OnSelectedFromGallery(val uri: Uri) : PlayAction
     data class OnSelectedFromSaved(val selectedWallpaper: String) : PlayAction
+    data object LoadPhotos: PlayAction
 }

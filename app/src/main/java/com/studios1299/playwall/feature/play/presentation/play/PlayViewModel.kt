@@ -40,9 +40,6 @@ class PlayViewModel(
             is PlayAction.OnAcceptFriendRequest -> acceptFriendRequest(action.requestId)
             is PlayAction.OnRejectFriendRequest -> rejectFriendRequest(action.requestId)
             PlayAction.Refresh -> loadFriendsAndRequests()
-            PlayAction.OnFriendMute -> TODO()
-            PlayAction.OnFriendRemove -> TODO()
-            PlayAction.OnFriendUnMute -> TODO()
             PlayAction.OnInviteClick -> TODO()
             is PlayAction.OnSearchUser -> searchUser(action.userEmail)
             is PlayAction.OnSelectFriend -> toggleFriendSelection(action.friendId)
@@ -55,9 +52,12 @@ class PlayViewModel(
                     navigateToChat(action.friendId)
                 }
             }
-
             is PlayAction.OnSelectedFromGallery -> send(action.uri)
             is PlayAction.OnSelectedFromSaved -> send(action.selectedWallpaper)
+            PlayAction.LoadPhotos -> loadPhotos()
+            is PlayAction.OnFriendMute -> TODO()
+            is PlayAction.OnFriendRemove -> TODO()
+            is PlayAction.OnFriendUnMute -> TODO()
         }
     }
 
@@ -94,6 +94,14 @@ class PlayViewModel(
     private fun send(wallpaper: String) {
         viewModelScope.launch {
             eventChannel.send(PlayEvent.WallpaperSent)
+        }
+    }
+
+    private fun loadPhotos() {
+        viewModelScope.launch {
+            state = state.copy(isLoading = true)
+            val photos = repository.getExploreItems()
+            state = state.copy(photos = photos, isLoading = false)
         }
     }
 
