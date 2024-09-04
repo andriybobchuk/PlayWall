@@ -2,23 +2,30 @@ package com.studios1299.playwall.auth.presentation.login
 
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -28,6 +35,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Buttons
@@ -35,6 +43,8 @@ import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.designsystem.EmailIcon
 import com.studios1299.playwall.core.presentation.designsystem.PlayWallTheme
 import com.studios1299.playwall.core.presentation.designsystem.poppins
+//import com.google.android.gms.auth.api.signin.GoogleSignIn
+
 
 @Composable
 fun LoginScreenRoot(
@@ -95,8 +105,8 @@ private fun LoginScreen(
         Text(
             modifier = Modifier.padding(vertical = 16.dp),
             text = stringResource(id = R.string.hi_there),
-            fontWeight = FontWeight.SemiBold,
-            style = MaterialTheme.typography.titleLarge
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.primary
         )
         Text(
             text = stringResource(id = R.string.welcome_text),
@@ -173,12 +183,38 @@ private fun LoginScreen(
                 }
             }
         )
-        Button(
-            onClick = {
-                throw RuntimeException("Test Crash") // Force a crash
-            }
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(
+            modifier = Modifier
+                .padding(
+                    top = 40.dp,
+                )
+                .align(Alignment.CenterHorizontally),
+            text = "Or connect with",
+            color = Color.Gray,
+            fontWeight = FontWeight.Normal, fontFamily = poppins
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp), horizontalArrangement = Arrangement.Center
         ) {
-            Text(text = "Crash")
+            IconButton(onClick = {
+                val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestEmail()
+                    .requestIdToken("247858897065-pavj6enbck6erkubdlqo6p6vovne3utg.apps.googleusercontent.com")
+                    .build()
+
+//                val googleSingInClient = GoogleSignIn.getClient(context, gso)
+//                launcher.launch(googleSingInClient.signInIntent)
+            }) {
+                Icon(
+                    modifier = Modifier.size(50.dp),
+                    painter = painterResource(id = R.drawable.ic_google),
+                    contentDescription = "Google Icon", tint = Color.Unspecified
+                )
+            }
         }
 
     }

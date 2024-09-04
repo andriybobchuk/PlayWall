@@ -31,6 +31,12 @@ private val DarkColorScheme = darkColorScheme(
     surface = Color.Red // For light container elements like textfields backgrounds
 )
 
+
+
+
+
+
+
 //private val LightAndroidBackgroundTheme = BackgroundTheme(color = Color.White)
 //private val DarkAndroidBackgroundTheme = BackgroundTheme(color = DARK_GREEN300)
 

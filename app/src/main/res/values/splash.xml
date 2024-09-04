@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/accent</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/person</item>
-        <item name="postSplashScreenTheme">@style/Theme.PlayWall</item>
-    </style>
+<!-- Splash Screen Theme for Light Mode -->
+<style name="Theme.App.Starting" parent="Theme.SplashScreen">
+    <item name="windowSplashScreenBackground">#EDC45A</item>
+    <item name="windowSplashScreenAnimatedIcon">@drawable/ic_pw</item>
+    <item name="postSplashScreenTheme">@style/Theme.PlayWall</item>
+</style>
 </resources>

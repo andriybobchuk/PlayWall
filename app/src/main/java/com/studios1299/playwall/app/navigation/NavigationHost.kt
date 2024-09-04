@@ -85,13 +85,14 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
             RegisterScreenRoot(
                 onSignInClick = {
                     //TODO Do the same for bottom nav bar
-                    navController.navigate("login") {
-                        popUpTo("register") {
-                            inclusive = true
-                            saveState = true
-                        }
-                        restoreState = true
-                    }
+//                    navController.navigate("login") {
+//                        popUpTo("register") {
+//                            inclusive = true
+//                            saveState = true
+//                        }
+//                        restoreState = true
+//                    }
+                    navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TIKTOK.name))
                 },
                 onSuccessfulRegistration = {
                     navController.navigate("login")
@@ -122,13 +123,14 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
                     }
                 },
                 onSignUpClick = {
-                    navController.navigate("register") {
-                        popUpTo("login") {
-                            inclusive = true
-                            saveState = true
-                        }
-                        restoreState = true
-                    }
+//                    navController.navigate("register") {
+//                        popUpTo("login") {
+//                            inclusive = true
+//                            saveState = true
+//                        }
+//                        restoreState = true
+//                    }
+                    navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TIKTOK.name))
                 },
                 viewModel = viewModel<LoginViewModel>(
                     factory = viewModelFactory {

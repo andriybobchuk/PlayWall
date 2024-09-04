@@ -1,18 +1,20 @@
 package com.studios1299.playwall.auth.presentation.intro
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,7 +54,7 @@ fun IntroScreen(
                 .weight(1f),
             contentAlignment = Alignment.Center
         ) {
-            RuniqueLogoVertical()
+            LogoVertical()
         }
         Column(
             modifier = Modifier
@@ -61,16 +63,15 @@ fun IntroScreen(
                 .padding(bottom = 48.dp)
         ) {
             Text(
-               // text = stringResource(id = R.string.welcome_to_runique),
-                text = "Welcome to app!",
+                text = "Welcome to PlayWall!",
                 color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 20.sp
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                //text = stringResource(id = R.string.runique_description),
                 text = "An incredible app that allows you to send wallpapers",
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
             )
             Spacer(modifier = Modifier.height(32.dp))
             Buttons.Primary(
@@ -78,7 +79,6 @@ fun IntroScreen(
                 isLoading = false,
                 onClick = {
                     onAction(IntroAction.OnSignInClick)
-                    //onAction(IntroAction.onTermsClick)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -97,29 +97,20 @@ fun IntroScreen(
 }
 
 @Composable
-private fun RuniqueLogoVertical(
+private fun LogoVertical(
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-//        Icon(
-//            imageVector = LogoIcon,
-//            contentDescription = "Logo",
-//            tint = MaterialTheme.colorScheme.onBackground
-//        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-           // text = stringResource(id = R.string.runique),
-            text = "PlayWall",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onBackground
+        Image(
+            painter = painterResource(id = R.drawable.pw),
+            contentDescription = "Logo",
+            modifier = Modifier.size(172.dp)
         )
     }
 }
-
 
 @Preview
 @Composable

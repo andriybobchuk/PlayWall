@@ -19,3 +19,17 @@ val NAVY200 = Color(0xFF9290C3)
 // Other:
 val ERROR_RED = Color.Red
 val SUCCESS_GREEN = Color.Green
+
+
+// Light orange theme
+val YELLOW100 = Color(0xFFf7e6ba)
+
+
+// Dark orange theme
+// Dark theme
+val YELLOW800 = Color(0xFF171103)
+val YELLOW600 = Color(0xFFcf9c17)
+val YELLOW500 = Color(0xFFe8b530)
+val YELLOW400 = Color(0xFFedc55e)
+val YELLOW300 = Color(0xFFf2d68c) // only for loading images backgrounds
+val YELLOW200 = Color(0xFFf7e6ba)
