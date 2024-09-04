@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.State
+import com.google.firebase.auth.AuthCredential
 
 @OptIn(ExperimentalFoundationApi::class)
 class LoginViewModel(
@@ -80,4 +82,31 @@ class LoginViewModel(
             }
         }
     }
+
+    fun googleLogin(credential: AuthCredential) {
+        viewModelScope.launch {
+            state = state.copy(isLoggingIn = true)
+            val result = authRepository.googleLogin(credential)
+            state = state.copy(isLoggingIn = false)
+
+            when(result) {
+                is com.studios1299.playwall.core.domain.error_handling.Result.Error -> {
+                    if(result.error == DataError.Network.UNAUTHORIZED) {
+                        eventChannel.send(
+                            LoginEvent.Error(
+                                UiText.StringResource(R.string.error_email_password_incorrect)
+                            )
+                        )
+                    } else {
+                        eventChannel.send(LoginEvent.Error(result.error.asUiText()))
+                    }
+                }
+                is com.studios1299.playwall.core.domain.error_handling.Result.Success -> {
+                    eventChannel.send(LoginEvent.LoginSuccess)
+                }
+            }
+        }
+    }
+
 }
+

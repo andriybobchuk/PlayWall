@@ -1,5 +1,6 @@
 package com.studios1299.playwall.auth.data
 
+import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.studios1299.playwall.auth.domain.AuthRepository
@@ -45,6 +46,26 @@ class FirebaseAuthRepositoryImpl(
         } catch (e: Exception) {
             Result.Error(DataError.Network.UNKNOWN)
         }.asEmptyDataResult()
+    }
+
+    override suspend fun googleLogin(credential: AuthCredential): Result<User, DataError.Network> {
+        return try {
+            val authResult = firebaseAuth.signInWithCredential(credential).await()
+            val firebaseUser = authResult.user
+            if (firebaseUser != null) {
+                Result.Success(User(firebaseUser.uid, firebaseUser.email ?: ""))
+            } else {
+                Result.Error(DataError.Network.UNAUTHORIZED)
+            }
+        } catch (e: FirebaseAuthException) {
+            when (e.errorCode) {
+                "ERROR_INVALID_CREDENTIAL" -> Result.Error(DataError.Network.UNAUTHORIZED)
+                "ERROR_USER_NOT_FOUND" -> Result.Error(DataError.Network.UNAUTHORIZED)
+                else -> Result.Error(DataError.Network.UNKNOWN)
+            }
+        } catch (e: Exception) {
+            Result.Error(DataError.Network.UNKNOWN)
+        }
     }
 
     override fun logOut() {

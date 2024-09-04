@@ -29,7 +29,8 @@ class MyApp: Application() {
     }
 
     private fun initializeCrashlytics() {
-        val isCrashlyticsEnabled = !BuildConfig.DEBUG
+        //val isCrashlyticsEnabled = !BuildConfig.DEBUG
+        val isCrashlyticsEnabled = true
 
         val crashlytics = appModule.crashlytics
         crashlytics.setCrashlyticsCollectionEnabled(isCrashlyticsEnabled)

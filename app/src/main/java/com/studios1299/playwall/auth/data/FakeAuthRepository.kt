@@ -1,5 +1,6 @@
 package com.studios1299.playwall.auth.data
 
+import com.google.firebase.auth.AuthCredential
 import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.EmptyResult
 import com.studios1299.playwall.core.domain.error_handling.Result
@@ -23,6 +24,10 @@ class FakeAuthRepository() : AuthRepository {
         delay(2000)
 
         return Result.Success(Unit)
+    }
+
+    override suspend fun googleLogin(credential: AuthCredential): Result<User, DataError.Network> {
+        TODO("Not yet implemented")
     }
 
 //    override suspend fun register(

@@ -108,8 +108,8 @@ private fun RegisterScreen(
                 .fillMaxSize()
                 .padding(it)
                 .padding(horizontal = 16.dp)
-            //.padding(vertical = 32.dp)
-            //.padding(top = 16.dp)
+            .padding(vertical = 32.dp)
+            .padding(top = 16.dp)
         ) {
             Text(
                 // modifier = Modifier.padding(vertical = 16.dp),
