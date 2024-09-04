@@ -20,7 +20,8 @@ class MainViewModel(
         viewModelScope.launch {
             state = state.copy(isCheckingAuth = true)
             state = state.copy(
-                isLoggedIn = coreRepository.getCurrentUserId() != null
+              //  isLoggedIn = coreRepository.getCurrentUserId() != null
+                isLoggedIn = false
             )
             state = state.copy(isCheckingAuth = false)
         }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.text2.input.textAsFlow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.studios1299.playwall.R
@@ -39,7 +40,7 @@ class RegisterViewModel(
                 state = state.copy(
                     isEmailValid = isValidEmail,
                     canRegister = isValidEmail && state.passwordValidationState.isValidPassword
-                            && !state.isRegistering
+                            && !state.isRegistering && state.isTermsAccepted
                 )
             }
             .launchIn(viewModelScope)
@@ -50,7 +51,16 @@ class RegisterViewModel(
                 state = state.copy(
                     passwordValidationState = passwordValidationState,
                     canRegister = state.isEmailValid && passwordValidationState.isValidPassword
-                            && !state.isRegistering
+                            && !state.isRegistering && state.isTermsAccepted
+                )
+            }
+            .launchIn(viewModelScope)
+
+        snapshotFlow { state.isTermsAccepted }
+            .onEach { isTermsAccepted ->
+                state = state.copy(
+                    canRegister = state.isEmailValid && state.passwordValidationState.isValidPassword
+                            && !state.isRegistering && isTermsAccepted
                 )
             }
             .launchIn(viewModelScope)
@@ -63,6 +73,11 @@ class RegisterViewModel(
                 state = state.copy(
                     isPasswordVisible = !state.isPasswordVisible
                 )
+            }
+            RegisterAction.OnToggleTermsAcceptance -> {
+                state = state.copy(isTermsAccepted = !state.isTermsAccepted)
+
+                //updateCanRegister(isTermsAccepted = !state.isTermsAccepted)
             }
             else -> Unit
         }

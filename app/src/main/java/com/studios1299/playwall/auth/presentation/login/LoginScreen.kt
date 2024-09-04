@@ -92,9 +92,10 @@ private fun LoginScreen(
             .padding(top = 16.dp)
     ) {
         Text(
+            modifier = Modifier.padding(vertical = 16.dp),
             text = stringResource(id = R.string.hi_there),
             fontWeight = FontWeight.SemiBold,
-            style = MaterialTheme.typography.headlineMedium
+            style = MaterialTheme.typography.titleLarge
         )
         Text(
             text = stringResource(id = R.string.welcome_text),
@@ -127,6 +128,7 @@ private fun LoginScreen(
         )
         Spacer(modifier = Modifier.height(32.dp))
         Buttons.Primary(
+            modifier = Modifier.padding(bottom = 16.dp),
             text = stringResource(id = R.string.login),
             isLoading = state.isLoggingIn,
             enabled = state.canLogin && !state.isLoggingIn,

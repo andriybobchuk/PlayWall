@@ -6,9 +6,15 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -29,8 +35,8 @@ enum class WebContent(val title: String, val url: String) {
     TOS("Terms of Service", "https://www.facebook.com/terms.php?paipv=0&eav=AfYpS9BfUgSfKgu2rxjNFVIcBqsbTB9R63KFiuKDFqodvsFu401FYgmpPmrQi5pquFM&_rdr"),
     PP("Privacy Policy", "https://www.facebook.com/privacy/policy/version/7122790421067234"),
     CP("Content Policy", "https://www.instagram.com/"),
-    FAQ("FAQ", "https://www.instagram.com/"),
-    IG("Follow us on IG", "https://www.instagram.com/"),
+    FAQ("FAQ", "https://www.instagram.com/andriybobchuk.bro"),
+    IG("Follow us on IG", "https://www.instagram.com/andriybobchuk"),
     TIKTOK("Follow us on TikTok", "https://www.tiktok.com/"),
 }
 
@@ -53,6 +59,7 @@ fun WebViewComponent(
     onPageFinished: () -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -66,7 +73,10 @@ fun WebViewComponent(
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+
+        Box(modifier = Modifier
+            .padding(padding)
+            .fillMaxSize()) {
             AndroidView(
                 factory = { context ->
                     WebView(context).apply {

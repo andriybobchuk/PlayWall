@@ -17,13 +17,12 @@ class UserDataValidator(
         val hasLowerCaseCharacter = password.any { it.isLowerCase() }
         val hasUpperCaseCharacter = password.any { it.isUpperCase() }
 
-        return PasswordValidationState(true, true, true, true)
-//        return PasswordValidationState(
-//            hasMinLength = hasMinLength,
-//            hasNumber = hasDigit,
-//            hasLowerCaseCharacter = hasLowerCaseCharacter,
-//            hasUpperCaseCharacter = hasUpperCaseCharacter
-//        )
+        return PasswordValidationState(
+            hasMinLength = hasMinLength,
+            hasNumber = hasDigit,
+            hasLowerCaseCharacter = hasLowerCaseCharacter,
+            hasUpperCaseCharacter = hasUpperCaseCharacter
+        )
     }
 
     companion object {

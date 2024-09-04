@@ -96,6 +96,12 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
                 onSuccessfulRegistration = {
                     navController.navigate("login")
                 },
+                onTermsOfServiceClick = {
+                    navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TOS.name))
+                },
+                onPrivacyPolicyClick = {
+                    navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.PP.name))
+                },
                 viewModel = viewModel<RegisterViewModel>(
                     factory = viewModelFactory {
                         RegisterViewModel(
@@ -254,7 +260,7 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
 
 private fun NavGraphBuilder.sharedGraph(navController: NavHostController) {
     composable(Graphs.Shared.Screens.web) { backStackEntry ->
-        val policyType = WebContent.valueOf(backStackEntry.arguments?.getString("policyType") ?: WebContent.TOS.name)
+        val policyType = WebContent.valueOf(backStackEntry.arguments?.getString("webType") ?: WebContent.TOS.name)
         WebViewScreen(
             policyType = policyType,
             onBackClick = {
