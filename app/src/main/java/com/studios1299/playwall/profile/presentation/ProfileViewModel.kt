@@ -11,6 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.studios1299.playwall.R
+import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.presentation.UiText
 import kotlinx.coroutines.channels.Channel
@@ -21,7 +22,8 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 class ProfileViewModel(
-    private val repository: CoreRepository
+    private val repository: CoreRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     var state by mutableStateOf(ProfileState())
@@ -33,18 +35,16 @@ class ProfileViewModel(
     init {
         loadUserProfile()
         onAction(ProfileAction.LoadPhotos)
-
-        //state.userName.textAsFlow()
     }
 
-    init {
-        state.userName.textAsFlow()
-            .onEach { email ->
-               // state = state.copy(userEmail = email)
-            }
-            .launchIn(viewModelScope)
-
-    }
+//    init {
+//        state.userName.textAsFlow()
+//            .onEach { email ->
+//               // state = state.copy(userEmail = email)
+//            }
+//            .launchIn(viewModelScope)
+//
+//    }
 
     fun onAction(action: ProfileAction) {
         when (action) {
@@ -74,6 +74,7 @@ class ProfileViewModel(
             is ProfileAction.OnNameChanged -> state = state.copy(userName = TextFieldState(action.name))
             is ProfileAction.OnEmailChanged -> state = state.copy(userEmail = TextFieldState(action.email))
             ProfileAction.OnEditProfileClick -> openEditProfileDialog()
+            ProfileAction.OnLogOut -> authRepository.logOut()
         }
     }
 

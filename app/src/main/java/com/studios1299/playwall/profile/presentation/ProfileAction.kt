@@ -25,6 +25,7 @@ sealed interface ProfileAction {
 
 
     data object OnEditProfileClick : ProfileAction
+    data object OnLogOut : ProfileAction
     data object OnSaveProfileClick : ProfileAction
     data object OnCancelEditProfileClick : ProfileAction
     data object OnDeletePhotoClick : ProfileAction

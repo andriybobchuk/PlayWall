@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -47,51 +48,54 @@ fun IntroScreenRoot(
 fun IntroScreen(
     onAction: (IntroAction) -> Unit
 ) {
-    Column {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            contentAlignment = Alignment.Center
-        ) {
-            LogoVertical()
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .padding(bottom = 48.dp)
-        ) {
-            Text(
-                text = "Welcome to PlayWall!",
-                color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 20.sp
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "An incredible app that allows you to send wallpapers",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-            Buttons.Primary(
-                text = stringResource(id = R.string.login),
-                isLoading = false,
-                onClick = {
-                    onAction(IntroAction.OnSignInClick)
-                },
+    Scaffold {
+        it
+        Column {
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Buttons.Outlined(
-                text = stringResource(id = R.string.register),
-                isLoading = false,
-                modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    onAction(IntroAction.OnSignUpClick)
-                }
-            )
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                LogoVertical()
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .padding(bottom = 48.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.welcome_to_playwall),
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontSize = 20.sp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.an_incredible_app_that_allows_you_to_send_wallpapers),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                Buttons.Primary(
+                    text = stringResource(id = R.string.login),
+                    isLoading = false,
+                    onClick = {
+                        onAction(IntroAction.OnSignInClick)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Buttons.Outlined(
+                    text = stringResource(id = R.string.register),
+                    isLoading = false,
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        onAction(IntroAction.OnSignUpClick)
+                    }
+                )
+            }
         }
     }
 }

@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text2.input.TextFieldState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EditNote
@@ -43,7 +44,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -70,11 +70,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.listener.single.PermissionListener
+import com.studios1299.playwall.R
 import com.studios1299.playwall.core.data.UserProfile
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Buttons
@@ -91,6 +93,7 @@ fun ProfileScreenRoot(
     viewModel: ProfileViewModel,
     onNavigateTo: (ProfileDestination) -> Unit,
     onNavigateToPhotoDetail: (String) -> Unit,
+    onLogOut: () -> Unit,
     bottomNavbar: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -137,6 +140,10 @@ fun ProfileScreenRoot(
                 ProfileAction.OnHelpClick -> showHelpLegalSheet = true
                 ProfileAction.OnSocialClick -> showSocialMediaSheet = true
                 ProfileAction.OnEditProfileClick -> showEditProfileDialog = true
+                ProfileAction.OnLogOut -> {
+                    onLogOut()
+                    viewModel.onAction(action)
+                }
                 else -> viewModel.onAction(action)
             }
         },
@@ -188,12 +195,17 @@ fun ProfileScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             Toolbars.Primary(
-                title = "Profile",
+                title = stringResource(R.string.profile),
                 actions = listOf(
                     Toolbars.ToolBarAction(
                         icon = Icons.Default.Edit,
-                        contentDescription = "Edit",
+                        contentDescription = stringResource(R.string.edit),
                         onClick = { onAction(ProfileAction.OnEditProfileClick) }
+                    ),
+                    Toolbars.ToolBarAction(
+                        icon = Icons.AutoMirrored.Filled.Logout,
+                        contentDescription = stringResource(R.string.log_out),
+                        onClick = { onAction(ProfileAction.OnLogOut) }
                     )
                 ),
                 scrollBehavior = scrollBehavior
@@ -320,7 +332,7 @@ fun EditProfileDialog(
         onDismissRequest = { onDismiss() },
         confirmButton = {
             TextButton(onClick = { onAction(ProfileAction.OnSaveProfileClick) }) {
-                Text("Save")
+                Text(stringResource(R.string.save))
             }
         },
         dismissButton = {
@@ -329,7 +341,7 @@ fun EditProfileDialog(
             }
         },
         title = {
-            Text(text = "Edit Profile")
+            Text(text = stringResource(R.string.edit_profile))
         },
         text = {
             Column(
@@ -350,7 +362,7 @@ fun EditProfileDialog(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Buttons.Outlined(
-                            text = "Change Photo",
+                            text = stringResource(R.string.change_photo),
                             isLoading = false,
                             onClick = requestImagePicker,
                             modifier = Modifier.fillMaxWidth(),
@@ -358,7 +370,7 @@ fun EditProfileDialog(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Buttons.Primary(
-                            text = "Delete Photo",
+                            text = stringResource(R.string.delete_photo),
                             isLoading = false,
                             onClick = { onAction(ProfileAction.OnDeletePhotoClick) },
                             colors = ButtonDefaults.buttonColors(
@@ -375,8 +387,8 @@ fun EditProfileDialog(
                     state = remember { name },
                     startIcon = Icons.Default.Person,
                     endIcon = null,
-                    hint = "Enter your name",
-                    title = "Name",
+                    hint = stringResource(R.string.enter_your_name),
+                    title = stringResource(R.string.name),
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -384,7 +396,7 @@ fun EditProfileDialog(
                     state = remember { email },
                     startIcon = Icons.Default.Email,
                     endIcon = null,
-                    hint = "Enter your email",
+                    hint = stringResource(R.string.enter_your_email),
                     title = "Email",
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -424,7 +436,6 @@ fun PhotoGridRow(
                 contentScale = ContentScale.Crop
             )
         }
-        // Fill any remaining spaces if less than 3 photos are provided
         repeat(3 - photos.size) {
             Spacer(modifier = Modifier.weight(1f))
         }
@@ -570,7 +581,6 @@ fun SelectorMenuItem(
     }
 }
 
-
 @Composable
 fun SwitchMenuItem(
     icon: ImageVector,
@@ -652,7 +662,6 @@ fun Group(
         }
     }
 }
-
 
 @Composable
 fun ProfileHeader(
@@ -754,7 +763,7 @@ fun SocialMediaBottomSheet(onDismiss: () -> Unit, onNavigateTo: (ProfileDestinat
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column {
             Group(
-                label = "Our Social Media",
+                label = stringResource(R.string.our_social_media),
                 items = listOf(
                     {
                         SettingMenuItem(

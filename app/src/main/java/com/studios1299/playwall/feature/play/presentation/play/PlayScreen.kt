@@ -34,8 +34,6 @@ import androidx.compose.material.icons.filled.PersonAddAlt
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.VolumeMute
-import androidx.compose.material.icons.outlined.VolumeOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
@@ -70,6 +68,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -170,16 +169,16 @@ fun PlayScreen(
                     onAction(PlayAction.OnFriendRemove(showDialogForFriendId!!))
                     showDialogForFriendId = null
                 }) {
-                    Text("Remove")
+                    Text(stringResource(R.string.remove))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDialogForFriendId = null }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             },
-            title = { Text("Remove Friend") },
-            text = { Text("If you remove this friend, you won't be able to communicate and set each other's wallpapers.") }
+            title = { Text(stringResource(R.string.remove_friend)) },
+            text = { Text(stringResource(R.string.remove_friend_alert)) }
         )
     }
 
@@ -235,7 +234,7 @@ fun PlayScreen(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Buttons.Outlined(
-                                text = "Saved in PlayWall",
+                                text = stringResource(R.string.saved_in_playwall),
                                 isLoading = false,
                                 enabled = state.selectedFriends.isNotEmpty(),
                                 modifier = Modifier
@@ -248,7 +247,7 @@ fun PlayScreen(
                                 }
                             )
                             Buttons.Primary(
-                                text = "Device Gallery",
+                                text = stringResource(R.string.device_gallery),
                                 isLoading = false,
                                 enabled = state.selectedFriends.isNotEmpty(),
                                 modifier = Modifier
@@ -286,13 +285,11 @@ fun PlayScreen(
 
                     RevealSwipe(
                         modifier = Modifier.padding(vertical = 5.dp),
-                       // state = revealState,
                         closeOnBackgroundClick = false,
                         backgroundStartActionLabel = "Delete",
                         onBackgroundStartClick = {
                             currentRevealedId.value = friend.id
                             showDialogForFriendId = friend.id
-
                             true
                         },
                         backgroundEndActionLabel = "Mute",
@@ -343,7 +340,6 @@ fun PlayScreen(
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun FriendItem(
     friend: Friend,
@@ -375,7 +371,7 @@ fun FriendItem(
         if (isSelectable) {
             Checkbox(
                 checked = isSelected,
-                onCheckedChange = null, // Clicking is handled by the row itself
+                onCheckedChange = null,
                 modifier = Modifier.padding(end = 8.dp)
             )
         }
@@ -405,18 +401,17 @@ fun FriendItem(
         if (friend.unreadMessages > 0) {
             Box(
                 modifier = Modifier
-                    .size(18.dp) // Size of the circle
+                    .size(18.dp)
                     .background(
-                        color = MaterialTheme.colorScheme.error, // Circle color
-                        shape = CircleShape // Make it circular
+                        color = MaterialTheme.colorScheme.error,
+                        shape = CircleShape
                     ),
-                contentAlignment = Alignment.Center // Center the text inside the circle
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = friend.unreadMessages.toString(),
-                    color = Color.White, // Text color
-                    style = MaterialTheme.typography.bodySmall, // Adjust text style
-                   // fontWeight = FontWeight.Bold // Make the text bold
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodySmall,
                 )
             }
         }
@@ -435,7 +430,7 @@ fun FriendRequestItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)) // Background color
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -453,7 +448,7 @@ fun FriendRequestItem(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = "${friendRequest.name} sent a friend request",
+                text = stringResource(R.string.sent_a_friend_request, friendRequest.name),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -467,14 +462,14 @@ fun FriendRequestItem(
             IconButton(onClick = onAccept) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Accept",
+                    contentDescription = stringResource(R.string.accept),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
             IconButton(onClick = onReject) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Reject",
+                    contentDescription = stringResource(R.string.reject),
                     tint = MaterialTheme.colorScheme.error
                 )
             }
@@ -510,7 +505,7 @@ fun InviteSheet(
                 Text(
                     modifier = Modifier.
                     padding(bottom = 12.dp),
-                    text = "Invite a friend",
+                    text = stringResource(R.string.invite_a_friend),
                     style = MaterialTheme.typography.titleLarge,
 
                 )
@@ -519,7 +514,7 @@ fun InviteSheet(
                     startIcon = Icons.Default.Search,
                     endIcon = null,
                     hint = "jane.doe@gmail.com",
-                    title = "Enter email",
+                    title = stringResource(R.string.enter_email),
                     keyboardType = KeyboardType.Email
                 )
             }
@@ -546,14 +541,12 @@ fun InviteSheet(
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         Button(onClick = {
-                            // Handle invite action here
                         }) {
-                            Text(text = "Invite")
+                            Text(text = stringResource(R.string.invite))
                         }
                     }
                 }
             }
-
             Spacer(modifier = Modifier.height(56.dp))
         }
     }
@@ -577,7 +570,7 @@ fun SavedWallpaperSheet(
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = "Select a wallpaper",
+                    text = stringResource(R.string.select_a_wallpaper),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp)
                 )
@@ -589,13 +582,11 @@ fun SavedWallpaperSheet(
                         )
                     } else if (state.photos.isEmpty()) {
                         Text(
-                            text = "No photos available",
+                            text = stringResource(R.string.no_photos_available),
                             modifier = Modifier.align(Alignment.Center)
                         )
                     }
                 }
-
-
                 ImageGrid(PaddingValues(), state, onWallpaperSelected)
             }
         }
@@ -640,9 +631,3 @@ fun ImageGrid(
         }
     }
 }
-data class FriendWithRevealState(
-    val friend: Friend,
-    val revealState: RevealState
-)
-
-

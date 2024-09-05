@@ -31,16 +31,10 @@ class MyApp: Application() {
     private fun initializeCrashlytics() {
         //val isCrashlyticsEnabled = !BuildConfig.DEBUG
         val isCrashlyticsEnabled = true
-
         val crashlytics = appModule.crashlytics
         crashlytics.setCrashlyticsCollectionEnabled(isCrashlyticsEnabled)
-
         crashlytics.setCustomKey("app_version", BuildConfig.VERSION_NAME)
         crashlytics.setCustomKey("device", android.os.Build.MODEL)
-
         crashlytics.log("Crashlytics initialized")
-
-        //throw RuntimeException("Test Crash for crashlytics")
     }
-
 }

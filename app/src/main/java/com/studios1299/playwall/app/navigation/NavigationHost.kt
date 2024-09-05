@@ -7,6 +7,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -46,12 +50,14 @@ fun NavigationHostLegacy(
     isLoggedIn: Boolean,
 ) {
     val navController = rememberNavController()
+    var selectedItemIndex by rememberSaveable { mutableStateOf(0) }
+
     NavHost(
         navController = navController,
         startDestination = if(isLoggedIn) Graphs.Main.root else Graphs.Auth.root
     ) {
         authGraph(navController)
-        mainGraph(navController)
+        mainGraph(navController, selectedItemIndex)
         sharedGraph(navController)
     }
 }
@@ -85,14 +91,14 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
             RegisterScreenRoot(
                 onSignInClick = {
                     //TODO Do the same for bottom nav bar
-//                    navController.navigate("login") {
-//                        popUpTo("register") {
-//                            inclusive = true
-//                            saveState = true
-//                        }
-//                        restoreState = true
-//                    }
-                    navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TIKTOK.name))
+                    navController.navigate("login") {
+                        popUpTo("register") {
+                            inclusive = true
+                            saveState = true
+                        }
+                        restoreState = true
+                    }
+                    //navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TIKTOK.name))
                 },
                 onSuccessfulRegistration = {
                     navController.navigate("login")
@@ -123,14 +129,14 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
                     }
                 },
                 onSignUpClick = {
-//                    navController.navigate("register") {
-//                        popUpTo("login") {
-//                            inclusive = true
-//                            saveState = true
-//                        }
-//                        restoreState = true
-//                    }
-                    navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TIKTOK.name))
+                    navController.navigate("register") {
+                        popUpTo("login") {
+                            inclusive = true
+                            saveState = true
+                        }
+                        restoreState = true
+                    }
+                   // navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TIKTOK.name))
                 },
                 viewModel = viewModel<LoginViewModel>(
                     factory = viewModelFactory {
@@ -145,7 +151,7 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
     }
 }
 
-private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
+private fun NavGraphBuilder.mainGraph(navController: NavHostController, selectedItemIndex: Int) {
     navigation(
         startDestination = Graphs.Main.Screens.play,
         route = Graphs.Main.root
@@ -162,7 +168,7 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
                 {
                     navController.navigate(Graphs.Main.Screens.play_chat)
                 },
-                bottomNavbar = { BottomNavigationBar(navController = navController) }
+                bottomNavbar = { BottomNavigationBar(navController, selectedItemIndex) }
             )
         }
         composable(Graphs.Main.Screens.explore) {
@@ -177,7 +183,10 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
                 onNavigateToPhotoDetail = { selectedPhoto ->
                     navController.navigate("${Graphs.Main.Screens.explore_image}/${selectedPhoto}")
                 },
-                bottomNavbar = { BottomNavigationBar(navController = navController) }
+                bottomNavbar = { BottomNavigationBar(
+                    navController = navController,
+                    selectedItemIndex = selectedItemIndex
+                ) }
             )
         }
         composable(
@@ -204,7 +213,6 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
             )
         }
 
-
         composable(Graphs.Main.Screens.create) {
             Text(text = "Create Tab!")
         }
@@ -213,7 +221,8 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
                 viewModel = viewModel<ProfileViewModel>(
                     factory = viewModelFactory {
                         ProfileViewModel(
-                            MyApp.appModule.coreRepository
+                            MyApp.appModule.coreRepository,
+                            MyApp.appModule.authRepository
                         )
                     }
                 ),
@@ -242,7 +251,15 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController) {
                 onNavigateToPhotoDetail = { selectedPhoto ->
                     navController.navigate("${Graphs.Main.Screens.explore_image}/${selectedPhoto}")
                 },
-                bottomNavbar = { BottomNavigationBar(navController = navController) }
+                onLogOut = {
+                    navController.navigate("login") {
+                        popUpTo(0)
+                    }
+                },
+                bottomNavbar = { BottomNavigationBar(
+                    navController = navController,
+                    selectedItemIndex = selectedItemIndex
+                ) }
             )
         }
         composable(Graphs.Main.Screens.play_chat) {
@@ -271,7 +288,6 @@ private fun NavGraphBuilder.sharedGraph(navController: NavHostController) {
         )
     }
 }
-
 
 /**
  * Use this navigation host to define your app's screens and pass the ViewModel
@@ -338,42 +354,5 @@ fun NavigationHost(navController: NavHostController, innerPadding: PaddingValues
 //            ProfileScreenContent()
 //        }
 //    }
-}
-
-// For test purposes only:
-@Composable
-fun HomeScreenContent() {
-    // Implement your Home screen UI here
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = "Play Screen")
-    }
-}
-
-@Composable
-fun SettingsScreenContent() {
-    // Implement your Settings screen UI here
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = "Settings Screen")
-    }
-}
-
-@Composable
-fun ProfileScreenContent() {
-    // Implement your Profile screen UI here
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = "Profile Screen")
-    }
 }
 

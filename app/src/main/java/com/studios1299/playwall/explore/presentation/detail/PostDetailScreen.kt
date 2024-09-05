@@ -14,14 +14,13 @@ import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,9 +40,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Toolbars
-
 
 @Composable
 fun PostDetailScreenRoot(
@@ -58,7 +57,6 @@ fun PostDetailScreenRoot(
                 onExit()
             }
             is PostDetailEvent.ShowError -> {
-                // Handle error
             }
         }
     }
@@ -74,8 +72,6 @@ fun PostDetailScreenRoot(
         }
     )
 }
-
-
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalGlideComposeApi::class,
     ExperimentalMaterial3Api::class
@@ -102,7 +98,7 @@ fun PostDetailScreen(
     Scaffold(
         topBar = {
             Toolbars.Primary(
-                title = "Explore",
+                title = "Wallpaper",
                 showBackButton = true,
                 onBackClick = onExit,
                 scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -111,17 +107,20 @@ fun PostDetailScreen(
         bottomBar = {
             BottomAppBar {
                 IconButton(onClick = {
-                    Toast.makeText(context, "Sent to friend", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context,
+                        context.getString(R.string.sent_to_friend), Toast.LENGTH_SHORT).show()
                 }) {
-                    Icon(imageVector = Icons.Outlined.Send, contentDescription = "Send to Friend")
+                    Icon(imageVector = Icons.AutoMirrored.Outlined.Send, contentDescription = "Send to Friend")
                 }
                 IconButton(onClick = {
-                    Toast.makeText(context, "Set my wallpaper", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context,
+                        context.getString(R.string.set_my_wallpaper), Toast.LENGTH_SHORT).show()
                 }) {
                     Icon(imageVector = Icons.Outlined.Image, contentDescription = "Set as Friend's Wallpaper")
                 }
                 IconButton(onClick = {
-                    Toast.makeText(context, "Set friend's wallpaper", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context,
+                        context.getString(R.string.set_friend_s_wallpaper), Toast.LENGTH_SHORT).show()
                 }) {
                     Icon(imageVector = Icons.Default.Wallpaper, contentDescription = "Set as My Wallpaper")
                 }
@@ -134,14 +133,16 @@ fun PostDetailScreen(
                     likeCount = viewModel.getLikeCount(currentPhoto.id),
                     isLiked = viewModel.isLiked(currentPhoto.id)
                 ) {
-                    Toast.makeText(context, "Liked!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.liked), Toast.LENGTH_SHORT).show()
                     viewModel.onAction(PostDetailAction.ToggleLike(currentPhoto.id))
                 }
             }
         },
         floatingActionButtonPosition = FabPosition.EndOverlay // Center the FAB in the bottom app bar
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)) {
             if (state.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)

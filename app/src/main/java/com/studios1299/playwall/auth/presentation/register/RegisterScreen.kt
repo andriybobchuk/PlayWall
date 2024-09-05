@@ -1,6 +1,10 @@
 package com.studios1299.playwall.auth.presentation.register
 
+import android.content.Intent
 import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,7 +46,10 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.GoogleAuthProvider
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.components.Buttons
 import com.studios1299.playwall.core.presentation.components.TextFields
@@ -65,9 +72,26 @@ fun RegisterScreenRoot(
     onPrivacyPolicyClick: () -> Unit,
     viewModel: RegisterViewModel
 ) {
-
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    val launcher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
+            val account = GoogleSignIn.getSignedInAccountFromIntent(it.data)
+            try {
+                val result = account.getResult(ApiException::class.java)
+                val credentials = GoogleAuthProvider.getCredential(result.idToken, null)
+                viewModel.googleRegister(credentials)
+                Toast.makeText(
+                    context,
+                    R.string.registration_successful,
+                    Toast.LENGTH_LONG
+                ).show()
+                onSuccessfulRegistration()
+            } catch (it: ApiException) {
+                print(it)
+            }
+        }
+
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is RegisterEvent.Error -> {
@@ -101,7 +125,8 @@ fun RegisterScreenRoot(
                 else -> Unit
             }
             viewModel.onAction(action)
-        }
+        },
+        launcher = launcher
     )
 }
 
@@ -109,17 +134,19 @@ fun RegisterScreenRoot(
 @Composable
 private fun RegisterScreen(
     state: RegisterState,
-    onAction: (RegisterAction) -> Unit
+    onAction: (RegisterAction) -> Unit,
+    launcher: ManagedActivityResultLauncher<Intent, androidx.activity.result.ActivityResult>
 ) {
-    //Scaffold {
+    val context = LocalContext.current
+    Scaffold {
+        it
         Column(
             modifier = Modifier
                 .verticalScroll(rememberScrollState())
                 .fillMaxSize()
-               // .padding(it)
                 .padding(horizontal = 16.dp)
-            .padding(vertical = 32.dp)
-            .padding(top = 16.dp)
+                .padding(vertical = 32.dp)
+                .padding(top = 16.dp)
         ) {
             Text(
                 modifier = Modifier.padding(bottom = 8.dp),
@@ -233,13 +260,13 @@ private fun RegisterScreen(
                             color = Color.Gray
                         )
                     ) {
-                        append("I agree to the ")
+                        append(stringResource(R.string.i_agree_to_the))
                         pushStringAnnotation(tag = "terms", annotation = "terms_of_service")
                         withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)) {
                             append("Terms of Service")
                         }
                         pop()
-                        append(" and ")
+                        append(stringResource(R.string.and))
                         pushStringAnnotation(tag = "privacy", annotation = "privacy_policy")
                         withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)) {
                             append("Privacy Policy")
@@ -287,11 +314,11 @@ private fun RegisterScreen(
                 IconButton(onClick = {
                     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestEmail()
+                        // TODO TOKEN!!!
                         .requestIdToken("247858897065-pavj6enbck6erkubdlqo6p6vovne3utg.apps.googleusercontent.com")
                         .build()
-
-//                val googleSingInClient = GoogleSignIn.getClient(context, gso)
-//                launcher.launch(googleSingInClient.signInIntent)
+                    val googleSingInClient = GoogleSignIn.getClient(context, gso)
+                    launcher.launch(googleSingInClient.signInIntent)
                 }) {
                     Icon(
                         modifier = Modifier.size(50.dp),
@@ -301,7 +328,7 @@ private fun RegisterScreen(
                 }
             }
         }
-   // }
+    }
 }
 
 @Composable
@@ -328,21 +355,6 @@ fun PasswordRequirement(
             text = text,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun RegisterScreenPreview() {
-    PlayWallTheme {
-        RegisterScreen(
-            state = RegisterState(
-                passwordValidationState = PasswordValidationState(
-                    hasNumber = true,
-                )
-            ),
-            onAction = {}
         )
     }
 }

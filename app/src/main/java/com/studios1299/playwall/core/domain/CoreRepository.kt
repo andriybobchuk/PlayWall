@@ -14,6 +14,7 @@ interface CoreRepository {
 
     // EXPLORE
     suspend fun getExploreItems(): List<Photo>
+    fun getLikeCount(photoId: String): Int
 
     // CHAT
     suspend fun retrieveMessages(page: Int, pageSize: Int): Result<List<Message>>
@@ -31,7 +32,4 @@ interface CoreRepository {
     fun acceptFriendRequest(requestId: String): Boolean
     fun rejectFriendRequest(requestId: String): Boolean
     fun searchUsers(query: String): List<User>
-
-
-    fun getLikeCount(photoId: String): Int
 }

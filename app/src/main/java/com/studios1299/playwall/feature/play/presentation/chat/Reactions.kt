@@ -254,7 +254,7 @@ fun ReplyField(
     viewModel: ChatViewModel,
     isSheetOpen: MutableState<Boolean>,
 ) {
-    var text by remember { mutableStateOf(message.caption ?: "") }
+    var text by remember { mutableStateOf(message.caption) }
     val roundedShape = RoundedCornerShape(14.dp)
     val maxCharacters = 200
     val context = LocalContext.current

@@ -135,7 +135,8 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(libs.crashlytics)
     implementation(libs.analytics)
+    implementation (libs.play.services.auth)
 
     // Swipe to reveal
-    implementation ("de.charlex.compose:revealswipe:2.0.0-beta01")
+    implementation (libs.revealswipe)
 }

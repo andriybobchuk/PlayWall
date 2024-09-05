@@ -525,7 +525,7 @@ override fun searchUsers(query: String): List<User> {
     }
 }
     override fun getLikeCount(photoId: String): Int {
-        return 11;
+        return 11
     }
 }
 

@@ -81,13 +81,6 @@ interface AppModule {
 class AppModuleImpl(
     private val appContext: Context
 ): AppModule {
-//    override val authApi: AuthApi by lazy {
-//        Retrofit.Builder()
-//            .baseUrl("https://my-url.com")
-//            .addConverterFactory(GsonConverterFactory.create())
-//            .build()
-//            .create()
-//    }
 
     override val coreRepository: CoreRepository by lazy {
         FirebaseCoreRepositoryImpl(firebaseAuth = firebaseAuth)
@@ -104,16 +97,4 @@ class AppModuleImpl(
     override val emailPatternValidator: PatternValidator by lazy {
         EmailPatternValidator
     }
-
-
 }
-
-//class TestAppModuleImpl: AppModule {
-//    override val chatRepository: ChatRepository by lazy {
-//        TODO("Not yet implemented")
-//    }
-//    override val emailPatternValidator: PatternValidator
-//        get() = TODO("Not yet implemented")
-//    override val userDataValidator: UserDataValidator
-//        get() = TODO("Not yet implemented")
-//}

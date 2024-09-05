@@ -8,12 +8,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.AuthCredential
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.presentation.UiText
 import com.studios1299.playwall.core.presentation.asUiText
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.data.UserDataValidator
+import com.studios1299.playwall.auth.presentation.login.LoginEvent
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -108,6 +110,31 @@ class RegisterViewModel(
                     eventChannel.send(RegisterEvent.RegistrationSuccess)
                 }
 
+            }
+        }
+    }
+
+    fun googleRegister(credential: AuthCredential) {
+        viewModelScope.launch {
+            state = state.copy(isRegistering = true)
+            val result = repository.googleLogin(credential)
+            state = state.copy(isRegistering = false)
+
+            when(result) {
+                is com.studios1299.playwall.core.domain.error_handling.Result.Error -> {
+                    if(result.error == DataError.Network.UNAUTHORIZED) {
+                        eventChannel.send(
+                            RegisterEvent.Error(
+                                UiText.StringResource(R.string.error_email_password_incorrect)
+                            )
+                        )
+                    } else {
+                        eventChannel.send(RegisterEvent.Error(result.error.asUiText()))
+                    }
+                }
+                is com.studios1299.playwall.core.domain.error_handling.Result.Success -> {
+                    eventChannel.send(RegisterEvent.RegistrationSuccess)
+                }
             }
         }
     }

@@ -23,7 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 
 @Composable
-fun BottomNavigationBar(navController: NavHostController) {
+fun BottomNavigationBar(navController: NavHostController, selectedItemIndex: Int) {
 
     // todo ("Chnage the routes with classes")
     val items = listOf(
@@ -41,10 +41,10 @@ fun BottomNavigationBar(navController: NavHostController) {
                 onClick = {
                     selectedItemIndex = index
                     when (index) {
-                        0 -> navController.navigate("play")
-                        1 -> navController.navigate("explore")
-                        2 -> navController.navigate("create")
-                        3 -> navController.navigate("profile")
+                        0 -> navController.navigate("play") { popUpTo(0) }
+                        1 -> navController.navigate("explore") { popUpTo(0) }
+                        2 -> navController.navigate("create") { popUpTo(0) }
+                        3 -> navController.navigate("profile") { popUpTo(0) }
                     }
                 },
                 label = { Text(text = item.title) },

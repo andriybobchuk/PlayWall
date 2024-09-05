@@ -25,7 +25,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -321,7 +321,7 @@ fun ReplyButton(onClick: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            imageVector = Icons.Filled.Send,
+            imageVector = Icons.AutoMirrored.Filled.Send,
             contentDescription = stringResource(R.string.reply),
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(16.dp)

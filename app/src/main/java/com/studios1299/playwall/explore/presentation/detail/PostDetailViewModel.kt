@@ -26,7 +26,6 @@ class PostDetailViewModel(
     val events = eventChannel.receiveAsFlow()
 
     init {
-        Log.e("PostDetailViewModel", "Initialized with photoId: $photoId")
         loadPhotos()
     }
 
@@ -41,7 +40,6 @@ class PostDetailViewModel(
                 photos.forEach {
                     Log.e("PostDetailViewModel", "Photos ${it.id} ")
                 }
-
 
                 val initialPhotoIndex = photos.indexOfFirst { it.id == photoId }
                 Log.e("PostDetailViewModel", "Initial photo index for photoId $photoId: $initialPhotoIndex")
@@ -61,8 +59,6 @@ class PostDetailViewModel(
             }
         }
     }
-
-
 
     fun onAction(action: PostDetailAction) {
         when (action) {
@@ -87,7 +83,6 @@ class PostDetailViewModel(
     private fun toggleLike(photoId: String) {
         viewModelScope.launch {
           //  repository.toggleLike(photoId)
-            // You can emit a new state or handle any errors here
         }
     }
 
