@@ -98,6 +98,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.android)
+    implementation(libs.firebase.config.ktx)
 
     // Test:
     testImplementation(libs.junit)

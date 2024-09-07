@@ -6,13 +6,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.compose.rememberNavController
-import com.studios1299.playwall.app.navigation.BottomNavigationBar
+import com.studios1299.playwall.app.config.AppConfigManager
 import com.studios1299.playwall.core.presentation.designsystem.PlayWallTheme
 import com.studios1299.playwall.app.navigation.NavigationHostLegacy
 
@@ -30,15 +26,19 @@ class MainActivity : ComponentActivity() {
         actionBar?.hide()
         installSplashScreen().apply {
             setKeepOnScreenCondition {
-                viewModel.state.isCheckingAuth
+                viewModel.state.keepSplashScreen
             }
         }
         setContent {
             PlayWallTheme {
-                if(!viewModel.state.isCheckingAuth) {
+                if(!viewModel.state.keepSplashScreen) {
                     NavigationHostLegacy(
                         isLoggedIn = viewModel.state.isLoggedIn
                     )
+                    // Check App Config for Ads or Firebase setup
+//                    if (AppConfigManager.enableAppOpenAd) {
+//                        // Load App Open Ad here
+//                    }
                 }
             }
         }
