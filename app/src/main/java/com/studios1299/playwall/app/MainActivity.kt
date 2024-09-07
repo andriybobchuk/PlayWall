@@ -35,10 +35,9 @@ class MainActivity : ComponentActivity() {
                     NavigationHostLegacy(
                         isLoggedIn = viewModel.state.isLoggedIn
                     )
-                    // Check App Config for Ads or Firebase setup
-//                    if (AppConfigManager.enableAppOpenAd) {
-//                        // Load App Open Ad here
-//                    }
+                    if (AppConfigManager.enableAppOpenAd) {
+                        // Load App Open Ad here
+                    }
                 }
             }
         }

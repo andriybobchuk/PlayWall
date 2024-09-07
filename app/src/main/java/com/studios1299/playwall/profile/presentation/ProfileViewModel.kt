@@ -37,15 +37,6 @@ class ProfileViewModel(
         onAction(ProfileAction.LoadPhotos)
     }
 
-//    init {
-//        state.userName.textAsFlow()
-//            .onEach { email ->
-//               // state = state.copy(userEmail = email)
-//            }
-//            .launchIn(viewModelScope)
-//
-//    }
-
     fun onAction(action: ProfileAction) {
         when (action) {
             ProfileAction.ToggleSaveWallpapers -> toggleSaveWallpapers()

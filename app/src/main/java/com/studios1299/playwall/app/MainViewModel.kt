@@ -34,10 +34,10 @@ class MainViewModel(
             state = state.copy(isLoggedIn = coreRepository.getCurrentUserId() != null)
 
             // Wait until Firebase is done initializing
-            while (!FirebaseManager.isFirebaseSetupComplete()) {
-                delay(100) // Poll every 100ms until Firebase setup is complete
-            }
-            logConfigValues()
+//            while (!FirebaseManager.isFirebaseSetupComplete()) {
+//                delay(100) // Poll every 100ms until Firebase setup is complete
+//            }
+//            logConfigValues()
 
             state = state.copy(keepSplashScreen = false)
         }
