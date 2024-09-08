@@ -32,6 +32,8 @@ import com.studios1299.playwall.auth.presentation.register.RegisterScreenRoot
 import com.studios1299.playwall.auth.presentation.register.RegisterViewModel
 import com.studios1299.playwall.core.presentation.components.WebViewScreen
 import com.studios1299.playwall.core.presentation.components.WebContent
+import com.studios1299.playwall.create.presentation.CreateScreenRoot
+import com.studios1299.playwall.create.presentation.CreateViewModel
 import com.studios1299.playwall.explore.presentation.explore.ExploreScreenRoot
 import com.studios1299.playwall.explore.presentation.explore.ExploreViewModel
 import com.studios1299.playwall.explore.presentation.detail.PostDetailScreenRoot
@@ -214,7 +216,17 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
         }
 
         composable(Graphs.Main.Screens.create) {
-            Text(text = "Create Tab!")
+            CreateScreenRoot(
+                viewModel = viewModel<CreateViewModel>(
+                    factory = viewModelFactory {
+                        CreateViewModel()
+                    }
+                ),
+                bottomNavbar = { BottomNavigationBar(
+                    navController = navController,
+                    selectedItemIndex = selectedItemIndex
+                ) }
+            )
         }
         composable(Graphs.Main.Screens.profile) {
             ProfileScreenRoot(

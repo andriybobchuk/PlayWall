@@ -140,4 +140,7 @@ dependencies {
 
     // Swipe to reveal
     implementation (libs.revealswipe)
+
+    // XML Photo Editor
+    implementation (libs.photoeditor)
 }
