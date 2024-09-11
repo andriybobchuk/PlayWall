@@ -3,12 +3,14 @@ package com.studios1299.playwall.core.presentation.components
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.studios1299.playwall.R
@@ -43,7 +45,16 @@ object Toolbars {
             },
             actions = {
                 actions.take(3).forEach { actionIcon ->
-                    IconButton(onClick = actionIcon.onClick) {
+                    IconButton(
+                        onClick = actionIcon.onClick,
+                        enabled = actionIcon.enabled,
+                        colors = IconButtonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = Color.Black,
+                            disabledContentColor = Color.Gray,
+                            disabledContainerColor = Color.Transparent
+                        )
+                    ) {
                         Icon(
                             imageVector = actionIcon.icon,
                             contentDescription = actionIcon.contentDescription,
@@ -58,6 +69,7 @@ object Toolbars {
     data class ToolBarAction(
         val icon: ImageVector,
         val contentDescription: String,
-        val onClick: () -> Unit
+        val onClick: () -> Unit,
+        val enabled: Boolean = true
     )
 }

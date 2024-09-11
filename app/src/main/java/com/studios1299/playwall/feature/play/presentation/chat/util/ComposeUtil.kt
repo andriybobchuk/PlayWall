@@ -2,6 +2,7 @@ package com.studios1299.playwall.feature.play.presentation.chat.util
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
@@ -14,7 +15,9 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,6 +44,7 @@ import com.karumi.dexter.listener.PermissionDeniedResponse
 import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.single.PermissionListener
 import com.studios1299.playwall.R
+import android.provider.Settings
 
 
 private const val LOG_TAG = "ComposeUtil"
@@ -61,6 +65,7 @@ fun rememberRequestPermissionAndPickImage(
     onImagePicked: (Uri) -> Unit
 ): () -> Unit {
     val context = LocalContext.current
+    var showPermissionDialog by remember { mutableStateOf(false) }
 
     val getContentLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -68,6 +73,20 @@ fun rememberRequestPermissionAndPickImage(
                 onImagePicked(it)
             }
         }
+
+    if (showPermissionDialog) {
+        PermissionSettingsDialog(
+            onDismiss = { showPermissionDialog = false },
+            onConfirm = {
+                showPermissionDialog = false
+                val intent = Intent(
+                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.fromParts("package", "com.studios1299.playwall", null)
+                )
+                context.startActivity(intent)
+            }
+        )
+    }
 
     return remember {
         {
@@ -87,12 +106,15 @@ fun rememberRequestPermissionAndPickImage(
                         }
 
                         override fun onPermissionDenied(response: PermissionDeniedResponse) {
-                            Log.e(LOG_TAG, "Permission denied")
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.permission_denied_cannot_pick_images),
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            if (response.isPermanentlyDenied) {
+                                showPermissionDialog = true
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.permission_denied_cannot_pick_images),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }
 
                         override fun onPermissionRationaleShouldBeShown(
@@ -107,6 +129,28 @@ fun rememberRequestPermissionAndPickImage(
             }
         }
     }
+}
+
+@Composable
+fun PermissionSettingsDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Go to Settings")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+        title = { Text("Permission Required") },
+        text = { Text("Please enable the permission in settings to pick an image.") }
+    )
 }
 
 /**

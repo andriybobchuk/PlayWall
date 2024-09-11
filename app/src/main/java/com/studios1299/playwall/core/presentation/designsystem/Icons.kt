@@ -7,7 +7,7 @@ import com.studios1299.playwall.R
 
 val ArrowLeftIcon: ImageVector
     @Composable
-    get() = ImageVector.vectorResource(id = R.drawable.arrow_left)
+    get() = ImageVector.vectorResource(id = R.drawable.heart)
 
 val ArrowRightIcon: ImageVector
     @Composable
