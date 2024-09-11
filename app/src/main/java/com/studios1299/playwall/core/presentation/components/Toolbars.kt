@@ -58,7 +58,6 @@ object Toolbars {
                         Icon(
                             imageVector = actionIcon.icon,
                             contentDescription = actionIcon.contentDescription,
-                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }

@@ -13,9 +13,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +41,13 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.StickyNote2
 import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.outlined.Brush
+import androidx.compose.material.icons.outlined.EmojiEmotions
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.Redo
+import androidx.compose.material.icons.outlined.Send
+import androidx.compose.material.icons.outlined.TextFields
+import androidx.compose.material.icons.outlined.Undo
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
@@ -104,31 +113,27 @@ fun CreateScreenRoot(
     CreateScreen(
         state = state,
       //  onAction = { action -> viewModel.onAction(action) },
-        //bottomNavbar = bottomNavbar
+        bottomNavbar = bottomNavbar
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateScreen(
-    state: CreateScreenState
+    state: CreateScreenState,
+    bottomNavbar: @Composable () -> Unit
 ) {
     val context = LocalContext.current
     var selectedImageUri by remember { mutableStateOf<Uri>(Uri.EMPTY) }
     var pendingImageUri by remember { mutableStateOf<Uri?>(null) }
     var photoEditorView: PhotoEditorView? by remember { mutableStateOf(null) }
     var photoEditor: PhotoEditor? by remember { mutableStateOf(null) }
-
     var showAddTextSheet by remember { mutableStateOf(false) }
     var previousTextColor: Color? = null
-
     var showStickerSheet by remember { mutableStateOf(false) }
-
     var showDrawModeSheet by remember { mutableStateOf(false) }
     var selectedColor by remember { mutableStateOf<Color?>(null) } // Start with no color selected
     var brushSize by remember { mutableStateOf<Float?>(null) } // Start with default brush size
-
-
     val isImageSelected = selectedImageUri != Uri.EMPTY
     var showReplacePhotoDialog by remember { mutableStateOf(false) }
 
@@ -139,7 +144,6 @@ fun CreateScreen(
         return mimeType == "image/gif"
     }
 
-    // Clear the photo editor view when a new image is selected
     fun resetPhotoEditor() {
         photoEditor?.clearAllViews()  // Clears all drawings, text, and stickers
     }
@@ -177,7 +181,6 @@ fun CreateScreen(
             }
         }
     }
-
 
     LaunchedEffect(selectedImageUri) {
         if (selectedImageUri != Uri.EMPTY) {
@@ -222,21 +225,17 @@ fun CreateScreen(
                 title = "Create",
                 actions = listOf(
                     Toolbars.ToolBarAction(
-                        icon = Icons.AutoMirrored.Filled.Undo,
-                        contentDescription = "Undo",
-                        onClick = { photoEditor?.undo() },
-                        enabled = isImageSelected
-                    ),
-                    Toolbars.ToolBarAction(
-                        icon = Icons.AutoMirrored.Filled.Redo,
-                        contentDescription = "Redo",
-                        onClick = { photoEditor?.redo() },
-                        enabled = isImageSelected
-                    ),
-                    Toolbars.ToolBarAction(
                         icon = Icons.Default.Save,
                         contentDescription = "Save Image",
                         onClick = { requestSave() },
+                        enabled = isImageSelected
+                    ),
+                    Toolbars.ToolBarAction(
+                        icon = Icons.Outlined.Send,
+                        contentDescription = "Send Image",
+                        onClick = {
+                            // ask viewmodel to send the image
+                        },
                         enabled = isImageSelected
                     )
                 ),
@@ -244,30 +243,50 @@ fun CreateScreen(
             )
         },
         bottomBar = {
-            CustomBottomToolbar(
-                onChooseImage = requestImagePicker,
-                onAddText = { showAddTextSheet = true },
-                onAddSticker = { showStickerSheet = true },
-                onDraw = { showDrawModeSheet = true },
-                enabled = isImageSelected
-            )
+            Column {
+                CustomBottomToolbar(
+                    onChooseImage = requestImagePicker,
+                    onAddText = { showAddTextSheet = true },
+                    onAddSticker = { showStickerSheet = true },
+                    onDraw = { showDrawModeSheet = true },
+                    onUndo = { photoEditor?.undo() },
+                    onRedo = { photoEditor?.redo() },
+                    enabled = isImageSelected
+                )
+                bottomNavbar()
+            }
         }
     ) { paddingValues ->
         if (!isImageSelected) {
-            Column(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize(),
-            ) {
-                Text(
-                    text = "Select an image to start editing",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(16.dp)
-                )
-                Button(onClick = requestImagePicker) {
-                    Text("Select Image")
+
+                Box(Modifier.fillMaxSize().padding(paddingValues)) {
+                    Column(
+                        modifier = Modifier
+                            //.fillMaxSize()
+                            .align(Alignment.Center)
+                    ) {
+                        Text(
+                            text = "No Image",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                        )
+                        Text(
+                            text = "Select an image to start editing!",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .align(Alignment.CenterHorizontally)
+                        )
+                        Button(
+                            onClick = requestImagePicker,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        ) {
+                            Text(text = "Select Image")
+                        }
+                    }
+
                 }
-            }
         } else {
             Column(
                 modifier = Modifier
@@ -309,22 +328,6 @@ fun CreateScreen(
 
         if (showStickerSheet) {
             StickerBottomSheet(
-                stickers = listOf(
-                    R.drawable.heart,
-                    R.drawable.pw,
-                    R.drawable.heart,
-                    R.drawable.pw,
-                    R.drawable.heart,
-                    R.drawable.pw,
-                    R.drawable.heart,
-                    R.drawable.pw,
-                    R.drawable.heart,
-                    R.drawable.pw,
-                    R.drawable.heart,
-                    R.drawable.pw,
-                    R.drawable.heart,
-                    R.drawable.pw
-                ),
                 onDismiss = { showStickerSheet = false },
                 onStickerSelected = { stickerResourceId ->
                     val bitmap = BitmapFactory.decodeResource(context.resources, stickerResourceId)
@@ -335,13 +338,6 @@ fun CreateScreen(
 
         if (showDrawModeSheet) {
             DrawModeBottomSheet(
-                availableColors = listOf(
-                    Color.Red,
-                    Color.Blue,
-                    Color.Green,
-                    Color.Yellow,
-                    Color.Black
-                ),
                 initialColor = selectedColor, // Pass the previously selected color
                 initialBrushSize = brushSize, // Pass the previously selected brush size
                 onDismiss = { showDrawModeSheet = false },
@@ -370,34 +366,62 @@ fun CustomBottomToolbar(
     onAddText: () -> Unit,
     onAddSticker: () -> Unit,
     onDraw: () -> Unit,
-    enabled: Boolean // Pass this to conditionally enable/disable buttons
+    onUndo: () -> Unit,
+    onRedo: () -> Unit,
+    enabled: Boolean
 ) {
-    BottomAppBar {
-        IconButton(
-            onClick = onChooseImage
+    Box(
+        modifier = Modifier
+            .padding(12.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Icon(Icons.Default.Image, contentDescription = "Choose Image")
-        }
-        IconButton(
-            onClick = onAddText,
-            enabled = enabled // Disable if no image is selected
-        ) {
-            Icon(Icons.Default.TextFields, contentDescription = "Add Text")
-        }
-        IconButton(
-            onClick = onAddSticker,
-            enabled = enabled // Disable if no image is selected
-        ) {
-            Icon(Icons.Default.StickyNote2, contentDescription = "Add Sticker")
-        }
-        IconButton(
-            onClick = onDraw,
-            enabled = enabled // Disable if no image is selected
-        ) {
-            Icon(Icons.Default.Brush, contentDescription = "Draw")
+            IconButton(
+                onClick = onChooseImage
+            ) {
+                Icon(Icons.Outlined.Image, contentDescription = "Choose Image")
+            }
+            IconButton(
+                onClick = onAddText,
+                enabled = enabled
+            ) {
+                Icon(Icons.Outlined.TextFields, contentDescription = "Add Text")
+            }
+            IconButton(
+                onClick = onAddSticker,
+                enabled = enabled
+            ) {
+                Icon(Icons.Outlined.EmojiEmotions, contentDescription = "Add Sticker")
+            }
+            IconButton(
+                onClick = onDraw,
+                enabled = enabled
+            ) {
+                Icon(Icons.Outlined.Brush, contentDescription = "Draw")
+            }
+            IconButton(
+                onClick = onUndo,
+                enabled = enabled
+            ) {
+                Icon(Icons.Outlined.Undo, contentDescription = "Undo")
+            }
+            IconButton(
+                onClick = onRedo,
+                enabled = enabled
+            ) {
+                Icon(Icons.Outlined.Redo, contentDescription = "Redo")
+            }
         }
     }
 }
+
+
 
 
 private fun saveImageToGallery(
@@ -422,195 +446,7 @@ private fun saveImageToGallery(
     })
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
-@Composable
-fun AddTextBottomSheet(
-    onDismiss: () -> Unit,
-    onTextAdded: (inputText: String, textColor: Int) -> Unit,
-    initialColor: Color? = null // Add parameter for initial color
-) {
-    val textFieldState = remember { TextFieldState("") } // Initialize your TextFieldState
-    var selectedColor by remember { mutableStateOf(initialColor ?: Color.Blue) } // Set initial color
 
-    // Available colors for text
-    val availableColors = listOf(
-        Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Black
-    )
-
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // Use custom text field
-            TextFields.Primary(
-                state = textFieldState,
-                startIcon = null,
-                endIcon = null,
-                hint = "Enter text",
-                title = "Add label",
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(text = "Select label color")
-
-            // Color selection panel with rounded corners
-            LazyRow(
-                modifier = Modifier
-                    .padding(vertical = 16.dp)
-                    .clip(RoundedCornerShape(100f))
-                    .background(MaterialTheme.colorScheme.surface) // Background color
-            ) {
-                items(availableColors) { color ->
-                    Column(
-                        modifier = Modifier.padding(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(100f))
-                                .background(color)
-                                .clickable { selectedColor = color }
-                        )
-                        if (color == selectedColor) {
-                            // Mark the selected color with a small gray dot
-                            Box(
-                                modifier = Modifier
-                                    .size(6.dp)
-                                    .clip(RoundedCornerShape(100f))
-                                    .background(MaterialTheme.colorScheme.primary)
-                                    .align(Alignment.CenterHorizontally)
-                            )
-                        }
-                    }
-                }
-            }
-
-            Button(
-                onClick = {
-                    val selectedTextColor = android.graphics.Color.parseColor(
-                        "#" + Integer.toHexString(selectedColor.hashCode())
-                    )
-                    onTextAdded(textFieldState.text.toString(), selectedTextColor)
-                    onDismiss()
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Add Text")
-            }
-        }
-    }
-}
-
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun StickerBottomSheet(
-    stickers: List<Int>, // List of drawable resource IDs for stickers
-    onDismiss: () -> Unit,
-    onStickerSelected: (stickerResourceId: Int) -> Unit
-) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3), // 3 stickers per row
-            contentPadding = PaddingValues(16.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            items(stickers) { stickerResourceId ->
-                val context = LocalContext.current
-                Image(
-                    painter = painterResource(id = stickerResourceId),
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit, // Scale to fit within the cell
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .fillMaxWidth() // Make stickers take even space horizontally
-                        .aspectRatio(1f) // Ensure stickers maintain a square ratio
-                        .clickable {
-                            onStickerSelected(stickerResourceId)
-                            onDismiss()
-                        }
-                )
-            }
-        }
-    }
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DrawModeBottomSheet(
-    availableColors: List<Color>,
-    initialColor: Color? = null, // Pass previously selected color
-    initialBrushSize: Float? = null, // Pass previously selected brush size
-    onDismiss: () -> Unit,
-    onDrawSettingsSelected: (selectedColor: Color, brushSize: Float) -> Unit
-) {
-    var selectedDrawColor by remember { mutableStateOf(initialColor ?: Color.Red) }
-    var brushSize by remember { mutableStateOf(initialBrushSize ?: 10f) } // Brush size state
-
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Choose Brush Color")
-
-            // Color selection panel with rounded corners
-            LazyRow(
-                modifier = Modifier
-                    .padding(vertical = 16.dp)
-                    .clip(RoundedCornerShape(100f))
-                    .background(MaterialTheme.colorScheme.surface) // Background color
-            ) {
-                items(availableColors) { color ->
-                    Column(
-                        modifier = Modifier.padding(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(100f))
-                                .background(color)
-                                .clickable { selectedDrawColor = color }
-                        )
-                        if (color == selectedDrawColor) {
-                            // Mark the selected color with a small gray dot
-                            Box(
-                                modifier = Modifier
-                                    .size(6.dp)
-                                    .clip(RoundedCornerShape(100f))
-                                    .background(MaterialTheme.colorScheme.primary)
-                                    .align(Alignment.CenterHorizontally)
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Brush Size Slider
-            Text("Brush Size: ${brushSize.toInt()}")
-            Slider(
-                value = brushSize,
-                onValueChange = { brushSize = it },
-                valueRange = 1f..50f, // Range for brush size
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
-
-            Button(
-                onClick = {
-                    onDrawSettingsSelected(selectedDrawColor, brushSize)
-                    onDismiss()
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Save")
-            }
-        }
-    }
-}
 
 
 
