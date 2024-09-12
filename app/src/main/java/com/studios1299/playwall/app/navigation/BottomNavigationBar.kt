@@ -24,27 +24,23 @@ import androidx.navigation.NavHostController
 
 @Composable
 fun BottomNavigationBar(navController: NavHostController, selectedItemIndex: Int) {
-
-    // todo ("Chnage the routes with classes")
     val items = listOf(
-        BottomNavigationItem("Play", Icons.Filled.ChatBubble, Icons.Outlined.ChatBubbleOutline, false, 4),
+        BottomNavigationItem("Play", Icons.Filled.ChatBubble, Icons.Outlined.ChatBubbleOutline, false),
         BottomNavigationItem("Explore", Icons.Filled.Search, Icons.Outlined.Search, false),
         BottomNavigationItem("Create", Icons.Filled.AddCircle, Icons.Outlined.AddCircleOutline, false),
         BottomNavigationItem("Profile", Icons.Filled.Person, Icons.Outlined.Person, false)
     )
-    var selectedItemIndex by rememberSaveable { mutableStateOf(0) }
 
     NavigationBar {
         items.forEachIndexed { index, item ->
             NavigationBarItem(
                 selected = selectedItemIndex == index,
                 onClick = {
-                    selectedItemIndex = index
                     when (index) {
-                        0 -> navController.navigate("play") { popUpTo(0) }
-                        1 -> navController.navigate("explore") { popUpTo(0) }
-                        2 -> navController.navigate("create") { popUpTo(0) }
-                        3 -> navController.navigate("profile") { popUpTo(0) }
+                        0 -> navController.navigate(Graphs.Main.Screens.play) { popUpTo(Graphs.Main.root) }
+                        1 -> navController.navigate(Graphs.Main.Screens.explore) { popUpTo(Graphs.Main.root) }
+                        2 -> navController.navigate(Graphs.Main.Screens.create) { popUpTo(Graphs.Main.root) }
+                        3 -> navController.navigate(Graphs.Main.Screens.profile) { popUpTo(Graphs.Main.root) }
                     }
                 },
                 label = { Text(text = item.title) },
@@ -61,7 +57,7 @@ fun BottomNavigationBar(navController: NavHostController, selectedItemIndex: Int
                         }
                     ) {
                         Icon(
-                            imageVector = if (index == selectedItemIndex) {
+                            imageVector = if (selectedItemIndex == index) {
                                 item.selectedIcon
                             } else item.unselectedIcon,
                             contentDescription = item.title

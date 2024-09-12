@@ -1,10 +1,8 @@
 package com.studios1299.playwall.profile.presentation
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text2.input.TextFieldState
-import androidx.compose.foundation.text2.input.textAsFlow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -15,8 +13,6 @@ import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.presentation.UiText
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -63,7 +59,7 @@ class ProfileViewModel(
             ProfileAction.OnDeletePhotoClick -> deletePhoto()
             is ProfileAction.OnPhotoSelected -> updatePhoto(action.uri)
             is ProfileAction.OnNameChanged -> state = state.copy(userName = TextFieldState(action.name))
-            is ProfileAction.OnEmailChanged -> state = state.copy(userEmail = TextFieldState(action.email))
+            is ProfileAction.OnEmailChanged -> state = state.copy(password = TextFieldState(action.email))
             ProfileAction.OnEditProfileClick -> openEditProfileDialog()
             ProfileAction.OnLogOut -> authRepository.logOut()
         }
@@ -111,7 +107,7 @@ class ProfileViewModel(
             val profile = repository.getUserProfile()
             state = state.copy(
                 userName = TextFieldState(profile.name),
-                userEmail = TextFieldState(profile.email),
+                password = TextFieldState(""),
                 userAvatar = profile.avatarUrl
             )
         }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -52,7 +53,7 @@ fun NavigationHostLegacy(
     isLoggedIn: Boolean,
 ) {
     val navController = rememberNavController()
-    var selectedItemIndex by rememberSaveable { mutableStateOf(0) }
+    val selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
 
     NavHost(
         navController = navController,
@@ -92,7 +93,6 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
         composable(route = "register") {
             RegisterScreenRoot(
                 onSignInClick = {
-                    //TODO Do the same for bottom nav bar
                     navController.navigate("login") {
                         popUpTo("register") {
                             inclusive = true
@@ -170,7 +170,7 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
                 {
                     navController.navigate(Graphs.Main.Screens.play_chat)
                 },
-                bottomNavbar = { BottomNavigationBar(navController, selectedItemIndex) }
+                bottomNavbar = { BottomNavigationBar(navController, 0) }
             )
         }
         composable(Graphs.Main.Screens.explore) {
@@ -187,7 +187,7 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
                 },
                 bottomNavbar = { BottomNavigationBar(
                     navController = navController,
-                    selectedItemIndex = selectedItemIndex
+                    selectedItemIndex = 1
                 ) }
             )
         }
@@ -224,7 +224,7 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
                 ),
                 bottomNavbar = { BottomNavigationBar(
                     navController = navController,
-                    selectedItemIndex = selectedItemIndex
+                    selectedItemIndex = 2
                 ) }
             )
         }
@@ -270,7 +270,7 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
                 },
                 bottomNavbar = { BottomNavigationBar(
                     navController = navController,
-                    selectedItemIndex = selectedItemIndex
+                    selectedItemIndex = 3
                 ) }
             )
         }

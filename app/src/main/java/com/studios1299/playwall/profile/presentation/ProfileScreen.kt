@@ -1,7 +1,5 @@
 package com.studios1299.playwall.profile.presentation
 
-import android.content.Context
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -20,17 +18,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text2.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Facebook
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.PrivacyTip
@@ -47,7 +42,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -55,7 +49,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -74,16 +67,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.listener.single.PermissionListener
 import com.studios1299.playwall.R
-import com.studios1299.playwall.core.data.UserProfile
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Buttons
 import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.Toolbars
-import com.studios1299.playwall.core.presentation.components.image_grid.ImageGrid
 import com.studios1299.playwall.explore.presentation.explore.Photo
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
 
@@ -223,7 +212,7 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(10.dp))
                 ProfileHeader(
                     name = state.userName.text.toString(),
-                    email = state.userEmail.text.toString(),
+                    email = state.password.text.toString(),
                     avatar = state.userAvatar
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -323,7 +312,7 @@ fun EditProfileDialog(
     onDismiss: () -> Unit
 ) {
     val name by remember { mutableStateOf(state.userName) }
-    val email by remember { mutableStateOf(state.userEmail) }
+    val password by remember { mutableStateOf(state.password) }
 
     val requestImagePicker = rememberRequestPermissionAndPickImage { uri ->
         onAction(ProfileAction.OnPhotoSelected(uri))
@@ -393,11 +382,11 @@ fun EditProfileDialog(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 TextFields.Primary(
-                    state = remember { email },
-                    startIcon = Icons.Default.Email,
+                    state = remember { password },
+                    startIcon = Icons.Default.Password,
                     endIcon = null,
-                    hint = stringResource(R.string.enter_your_email),
-                    title = "Email",
+                    hint = "Enter new password",
+                    title = "Change password",
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(16.dp))
