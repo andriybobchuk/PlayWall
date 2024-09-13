@@ -1,5 +1,6 @@
 package com.studios1299.playwall.profile.presentation
 
+import android.app.WallpaperManager
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text2.input.TextFieldState
@@ -11,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.studios1299.playwall.R
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.core.domain.CoreRepository
+import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.core.presentation.UiText
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -108,7 +110,9 @@ class ProfileViewModel(
             state = state.copy(
                 userName = TextFieldState(profile.name),
                 password = TextFieldState(""),
-                userAvatar = profile.avatarUrl
+                userAvatar = profile.avatarUrl,
+                selectedWallpaperOption = repository.getWallpaperDestination(),
+                isSaveWallpapersEnabled = repository.shouldSaveIncomingWallpapers()
             )
         }
     }
@@ -143,16 +147,21 @@ class ProfileViewModel(
 
     private fun rollbackWallpaper() {
         viewModelScope.launch {
-            // Logic to rollback wallpaper
             eventChannel.send(ProfileEvent.WallpaperRolledBack)
         }
     }
 
     private fun changeWallpaper(option: WallpaperOption) {
+        repository.setWallpaperDestination(option)
         state = state.copy(selectedWallpaperOption = option)
     }
 
     private fun toggleSaveWallpapers() {
+        if (repository.shouldSaveIncomingWallpapers()) {
+            repository.setSaveIncomingWallpapers(false)
+        } else {
+            repository.setSaveIncomingWallpapers(true)
+        }
         state = state.copy(isSaveWallpapersEnabled = !state.isSaveWallpapersEnabled)
         viewModelScope.launch {
             // Logic to save this preference in repository

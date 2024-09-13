@@ -2,7 +2,9 @@ package com.studios1299.playwall.core.data
 
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
+import com.studios1299.playwall.core.data.data_source.PreferencesDataSource
 import com.studios1299.playwall.core.domain.CoreRepository
+import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.explore.presentation.explore.Photo
 import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.data.model.MessageStatus
@@ -14,7 +16,8 @@ import kotlinx.coroutines.delay
 import java.util.UUID
 
 class FirebaseCoreRepositoryImpl(
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val preferencesDataSource: PreferencesDataSource
 ) : CoreRepository {
     companion object {
         private const val LOG_TAG = "FirebaseCoreRepositoryImpl"
@@ -527,7 +530,50 @@ override fun searchUsers(query: String): List<User> {
     override fun getLikeCount(photoId: String): Int {
         return 11
     }
+
+    // WALLPAPER MANAGEMENT
+    override fun isLiked(wallpaperId: String): Boolean {
+        return preferencesDataSource.isWallpaperLiked(wallpaperId)
+    }
+
+    override fun setLiked(wallpaperId: String, isLiked: Boolean) {
+        preferencesDataSource.setWallpaperLiked(wallpaperId, isLiked)
+    }
+
+    override fun getWallpaperDestination(): WallpaperOption {
+        return preferencesDataSource.getWallpaperDestination()
+    }
+
+    override fun setWallpaperDestination(option: WallpaperOption) {
+        preferencesDataSource.setWallpaperDestination(option)
+    }
+
+    override fun getCurrentWallpaperId(): String? {
+        return preferencesDataSource.getCurrentWallpaperId()
+    }
+
+    override fun setCurrentWallpaperId(id: String) {
+        preferencesDataSource.setCurrentWallpaperId(id)
+    }
+
+    override fun getPreviousWallpaperId(): String? {
+        return preferencesDataSource.getPreviousWallpaperId()
+    }
+
+    override fun setPreviousWallpaperId(id: String) {
+        preferencesDataSource.setPreviousWallpaperId(id)
+    }
+
+    override fun shouldSaveIncomingWallpapers(): Boolean {
+        return preferencesDataSource.isSavingIncomingWallpapersEnabled()
+    }
+
+    override fun setSaveIncomingWallpapers(shouldSave: Boolean) {
+        preferencesDataSource.setSaveIncomingWallpapers(shouldSave)
+    }
 }
+
+
 
 
 data class UserProfile(

@@ -1,5 +1,7 @@
 package com.studios1299.playwall.profile.presentation
 
+import android.app.WallpaperManager
+import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -68,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.R
+import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Buttons
 import com.studios1299.playwall.core.presentation.components.Images
@@ -177,6 +180,7 @@ fun ProfileScreen(
     onAction: (ProfileAction) -> Unit,
     bottomNavbar: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(
         modifier = Modifier
@@ -263,14 +267,21 @@ fun ProfileScreen(
                             SettingMenuItem(
                                 icon = Icons.Default.Restore,
                                 label = "Rollback to previous wallpaper",
-                                onClick = { onAction(ProfileAction.RollbackPreviousWallpaper) }
+                                onClick = {
+                                    onAction(ProfileAction.RollbackPreviousWallpaper)
+                                }
                             )
                         },
                         {
                             SettingMenuItem(
                                 icon = Icons.Default.Restore,
                                 label = "Rollback to default wallpaper",
-                                onClick = { onAction(ProfileAction.RollbackDefaultWallpaper) }
+                                onClick = {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                        WallpaperManager.getInstance(context).clearWallpaper()
+                                    }
+                                    onAction(ProfileAction.RollbackDefaultWallpaper)
+                                }
                             )
                         }
                     )

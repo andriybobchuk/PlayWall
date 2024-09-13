@@ -37,6 +37,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.studios1299.playwall.core.data.ChangeWallpaperWorker
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
@@ -136,10 +140,22 @@ fun CreateScreen(
         }
     }
 
+    val workManager = WorkManager.getInstance(context)
+    val inputData = Data.Builder()
+        .putString("file_name", "your_image_name") // You can use this for reference but won't need it in this version
+        .putBoolean("set_home_screen", true) // or false based on user preference
+        .putBoolean("set_lock_screen", true) // or false based on user preference
+        .build()
+
+    val changeWallpaperRequest = OneTimeWorkRequestBuilder<ChangeWallpaperWorker>()
+        .setInputData(inputData)
+        .build()
+
     Scaffold(
         topBar = {
             Topbar(
                 requestSave = { requestSave() },
+                send = { workManager.enqueue(changeWallpaperRequest) },
                 isImageSelected = isImageSelected
             )
         },

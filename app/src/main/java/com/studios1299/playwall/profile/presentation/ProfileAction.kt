@@ -1,6 +1,7 @@
 package com.studios1299.playwall.profile.presentation
 
 import android.net.Uri
+import com.studios1299.playwall.core.domain.model.WallpaperOption
 
 sealed interface ProfileAction {
     data object OnHelpClick : ProfileAction
@@ -32,26 +33,6 @@ sealed interface ProfileAction {
     data class OnPhotoSelected(val uri: Uri) : ProfileAction
     data class OnNameChanged(val name: String) : ProfileAction
     data class OnEmailChanged(val email: String) : ProfileAction
-}
-
-
-
-enum class WallpaperOption(private val displayName: String) {
-    HomeScreen("Home Screen"),
-    LockScreen("Lock Screen"),
-    Both("Both");
-
-    companion object {
-        fun getEnumByDisplayName(name: String): WallpaperOption? {
-            return entries.find { it.displayName == name }
-        }
-        fun getDisplayNames(): List<String> {
-            return entries.map { it.displayName }
-        }
-    }
-    override fun toString(): String {
-        return displayName
-    }
 }
 
 enum class ProfileDestination {

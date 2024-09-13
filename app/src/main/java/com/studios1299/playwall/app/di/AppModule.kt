@@ -1,13 +1,16 @@
 package com.studios1299.playwall.app.di
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.crashlytics.BuildConfig
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.studios1299.playwall.auth.data.EmailPatternValidator
 import com.studios1299.playwall.auth.data.FirebaseAuthRepositoryImpl
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.domain.PatternValidator
 import com.studios1299.playwall.core.data.FirebaseCoreRepositoryImpl
+import com.studios1299.playwall.core.data.data_source.PreferencesDataSourceImpl
 import com.studios1299.playwall.core.domain.CoreRepository
 
 /**
@@ -76,14 +79,24 @@ interface AppModule {
     val emailPatternValidator: PatternValidator
     val firebaseAuth: FirebaseAuth
     val crashlytics: FirebaseCrashlytics
+    val sharedPreferences: SharedPreferences
 }
 
 class AppModuleImpl(
     private val appContext: Context
 ): AppModule {
 
+    override val sharedPreferences: SharedPreferences by lazy {
+        appContext.getSharedPreferences("playwall", Context.MODE_PRIVATE)
+    }
+
     override val coreRepository: CoreRepository by lazy {
-        FirebaseCoreRepositoryImpl(firebaseAuth = firebaseAuth)
+        FirebaseCoreRepositoryImpl(
+            firebaseAuth = firebaseAuth,
+            preferencesDataSource = PreferencesDataSourceImpl(
+                sharedPreferences = sharedPreferences
+            )
+        )
     }
     override val authRepository: AuthRepository by lazy {
         FirebaseAuthRepositoryImpl(firebaseAuth = firebaseAuth)

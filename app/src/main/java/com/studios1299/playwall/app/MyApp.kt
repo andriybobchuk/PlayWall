@@ -9,9 +9,6 @@ import com.studios1299.playwall.app.di.AppModuleImpl
 
 class MyApp: Application() {
 
-    lateinit var sharedPrefs: SharedPreferences
-        private set
-
     companion object {
         lateinit var appModule: AppModule
     }
@@ -24,7 +21,5 @@ class MyApp: Application() {
 
         // Initialize Firebase and app config
         FirebaseManager.init(this)
-
-        sharedPrefs = getSharedPreferences("playwall", Context.MODE_PRIVATE)
     }
 }

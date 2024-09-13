@@ -2,6 +2,7 @@ package com.studios1299.playwall.profile.presentation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text2.input.TextFieldState
+import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.core.presentation.components.image_grid.ImageGridState
 import com.studios1299.playwall.explore.presentation.explore.Photo
 

@@ -99,6 +99,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.android)
     implementation(libs.firebase.config.ktx)
+    implementation(libs.androidx.work.runtime.ktx)
 
     // Test:
     testImplementation(libs.junit)
@@ -139,8 +140,10 @@ dependencies {
     implementation (libs.play.services.auth)
 
     // Swipe to reveal
-    implementation (libs.revealswipe)
+    implementation (libs.swipe)
+    //implementation (libs.revealswipe)
 
     // XML Photo Editor
     implementation (libs.photoeditor)
+
 }

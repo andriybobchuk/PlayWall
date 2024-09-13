@@ -65,7 +65,7 @@ fun NoImagePlaceholder(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun Topbar(requestSave: () -> Unit, isImageSelected: Boolean) {
+fun Topbar(requestSave: () -> Unit, send: () -> Unit, isImageSelected: Boolean) {
     Toolbars.Primary(
         title = "Create",
         actions = listOf(
@@ -78,9 +78,7 @@ fun Topbar(requestSave: () -> Unit, isImageSelected: Boolean) {
             Toolbars.ToolBarAction(
                 icon = Icons.Outlined.Send,
                 contentDescription = "Send Image",
-                onClick = {
-                    // ask viewmodel to send the image
-                },
+                onClick = send,
                 enabled = isImageSelected
             )
         ),

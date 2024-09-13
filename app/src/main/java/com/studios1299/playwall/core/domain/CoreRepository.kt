@@ -1,6 +1,7 @@
 package com.studios1299.playwall.core.domain
 
 import com.studios1299.playwall.core.data.UserProfile
+import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.explore.presentation.explore.Photo
 import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.data.model.User
@@ -32,4 +33,16 @@ interface CoreRepository {
     fun acceptFriendRequest(requestId: String): Boolean
     fun rejectFriendRequest(requestId: String): Boolean
     fun searchUsers(query: String): List<User>
+
+    // WALLPAPER MANAGEMENT
+    fun isLiked(wallpaperId: String): Boolean
+    fun setLiked(wallpaperId: String, isLiked: Boolean)
+    fun getWallpaperDestination(): WallpaperOption
+    fun setWallpaperDestination(option: WallpaperOption)
+    fun getCurrentWallpaperId(): String?
+    fun setCurrentWallpaperId(id: String)
+    fun getPreviousWallpaperId(): String?
+    fun setPreviousWallpaperId(id: String)
+    fun shouldSaveIncomingWallpapers(): Boolean
+    fun setSaveIncomingWallpapers(shouldSave: Boolean)
 }

@@ -23,21 +23,17 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.VolumeMute
-import androidx.compose.material.icons.automirrored.outlined.VolumeOff
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PersonAddAlt
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.outlined.Cancel
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,15 +48,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -80,17 +73,11 @@ import com.studios1299.playwall.core.presentation.components.Buttons
 import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.Toolbars
-import com.studios1299.playwall.core.presentation.components.image_grid.ImageGridState
-import com.studios1299.playwall.explore.presentation.explore.ExploreAction
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
-import de.charlex.compose.RevealDirection
-import de.charlex.compose.RevealState
-import de.charlex.compose.RevealSwipe
-import de.charlex.compose.RevealValue
-import de.charlex.compose.rememberRevealState
-import de.charlex.compose.reset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import me.saket.swipe.SwipeAction
+import me.saket.swipe.SwipeableActionsBox
 
 @Composable
 fun PlayScreenRoot(
@@ -141,8 +128,8 @@ fun PlayScreen(
     val inviteSheetState = rememberModalBottomSheetState()
     val savedWallpaperSheetState = rememberModalBottomSheetState()
 
-    val currentRevealedId = remember { mutableStateOf<String?>(null) }
-    var showDialogForFriendId by remember { mutableStateOf<String?>(null) }
+    var showUnfriendDialog by remember { mutableStateOf(false) }
+    var showMuteDialog by remember { mutableStateOf(false) }
 
     InviteSheet(
         state = state,
@@ -161,24 +148,53 @@ fun PlayScreen(
         }
     )
 
-    if (showDialogForFriendId != null) {
+    if (showUnfriendDialog) {
         AlertDialog(
-            onDismissRequest = { showDialogForFriendId = null },
+            onDismissRequest = { showUnfriendDialog = false },
             confirmButton = {
                 TextButton(onClick = {
-                    onAction(PlayAction.OnFriendRemove(showDialogForFriendId!!))
-                    showDialogForFriendId = null
+                    onAction(PlayAction.OnFriendRemove(""))
+                    showUnfriendDialog = false
                 }) {
                     Text(stringResource(R.string.remove))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDialogForFriendId = null }) {
+                TextButton(onClick = { showUnfriendDialog = false }) {
                     Text(stringResource(R.string.cancel))
                 }
             },
             title = { Text(stringResource(R.string.remove_friend)) },
             text = { Text(stringResource(R.string.remove_friend_alert)) }
+        )
+    }
+
+    if (showMuteDialog) {
+        AlertDialog(
+            onDismissRequest = { showMuteDialog = false },
+            title = { Text(text = "Mute Friend?") },
+            text = {
+                Text(text = "You are about to mute this friend. They will go to the bottom of the list and neither of you will be able to set wallpapers for each other. Are you sure?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                      //  selectedFriendId?.let { friendId ->
+                            onAction(PlayAction.OnFriendMute("friendId"))
+                       // }
+                        showMuteDialog = false
+                    }
+                ) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showMuteDialog = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
         )
     }
 
@@ -270,7 +286,7 @@ fun PlayScreen(
                 .padding(combinedPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            if(!state.isSelectMode) {
+            if (!state.isSelectMode) {
                 items(state.friendRequests) { request ->
                     FriendRequestItem(
                         friendRequest = request,
@@ -279,42 +295,39 @@ fun PlayScreen(
                     )
                 }
             }
-
             items(state.friends) { friend ->
                 if (!friend.muted) {
-
-                    RevealSwipe(
-                        modifier = Modifier.padding(vertical = 5.dp),
-                        closeOnBackgroundClick = false,
-                        backgroundStartActionLabel = "Delete",
-                        onBackgroundStartClick = {
-                            currentRevealedId.value = friend.id
-                            showDialogForFriendId = friend.id
-                            true
-                        },
-                        backgroundEndActionLabel = "Mute",
-                        onBackgroundEndClick = {
-                            //onAction(PlayAction.OnFriendMute(friend.id))
-                            true
-                        },
-                        backgroundCardStartColor = MaterialTheme.colorScheme.error,
-                        backgroundCardEndColor = MaterialTheme.colorScheme.primary,
-                        hiddenContentStart = {
+                    val mute = SwipeAction(
+                        icon = {
                             Icon(
-                                modifier = Modifier.padding(horizontal = 25.dp),
-                                imageVector = Icons.Outlined.Delete,
-                                contentDescription = null,
+                                modifier = Modifier.padding(end = 16.dp),
+                                imageVector = Icons.Default.VolumeOff,
+                                contentDescription = "Mute",
                                 tint = Color.White
                             )
                         },
-                        hiddenContentEnd = {
-                            Icon(
-                                modifier = Modifier.padding(horizontal = 25.dp),
-                                imageVector = Icons.AutoMirrored.Outlined.VolumeOff,
-                                contentDescription = null
-                            )
-                        },
-                        closeOnContentClick = true,
+                        background = MaterialTheme.colorScheme.primary,
+                        onSwipe = { showMuteDialog = true }
+                    )
+
+                    val unfriend = SwipeAction(
+                        icon = {
+                            Text(
+                                modifier = Modifier.padding(start = 16.dp),
+                                text = "Unfriend",
+                                color = Color.White
+                            ) },
+                        background = Color.Red,
+                        isUndo = true,
+                        onSwipe = { showUnfriendDialog = true },
+                    )
+
+                    SwipeableActionsBox(
+                        modifier = Modifier
+                            .padding(vertical = 5.dp),
+                        startActions = listOf(mute),
+                        endActions = listOf(unfriend),
+                        swipeThreshold = 120.dp,
                     ) {
                         FriendItem(
                             friend = friend,
