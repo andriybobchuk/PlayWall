@@ -1,3 +1,4 @@
+import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 import java.util.Properties
 
 plugins {
@@ -7,7 +8,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.firebase.plugin)
     alias(libs.plugins.crashlytics)
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
+    id("org.jlleitschuh.gradle.ktlint") version "11.0.0"
 }
 
 android {
@@ -60,8 +61,10 @@ android {
     }
 }
 
-val counterFile = file("$projectDir/src/main/assets/build_counter.properties")
+// === MY CUSTOM GRADLE TASKS ===
 
+// Build counter:
+val counterFile = file("$projectDir/src/main/assets/build_counter.properties")
 tasks.register("incrementBuildCounter") {
     doLast {
         if (!counterFile.exists()) {
@@ -79,8 +82,23 @@ tasks.register("incrementBuildCounter") {
     }
 }
 
+// Linter:
+ktlint {
+    version = "0.22.0"
+    android = true
+    ignoreFailures = false
+    disabledRules.set(listOf("final-newline", "no-wildcard-imports"))
+    reporters {
+        reporter (ReporterType.PLAIN)
+        reporter (ReporterType.SARIF)
+        reporter (ReporterType.CHECKSTYLE)
+    }
+}
+
+// Run my tasks before build:
 tasks.named("preBuild") {
     dependsOn("incrementBuildCounter")
+    dependsOn("ktlintFormat")
 }
 
 dependencies {

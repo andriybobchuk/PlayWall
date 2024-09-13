@@ -62,7 +62,8 @@ fun LoginScreenRoot(
     onLoginSuccess: () -> Unit,
     onSignUpClick: () -> Unit,
     viewModel: LoginViewModel
-) {
+)
+{
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val launcher =
