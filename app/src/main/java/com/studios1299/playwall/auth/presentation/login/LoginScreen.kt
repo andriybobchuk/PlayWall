@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -52,6 +54,8 @@ import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.designsystem.EmailIcon
 import com.studios1299.playwall.core.presentation.designsystem.PlayWallTheme
 import com.studios1299.playwall.core.presentation.designsystem.poppins
+
+private const val REQUEST_ID_TOKEN = "247858897065-pavj6enbck6erkubdlqo6p6vovne3utg.apps.googleusercontent.com"
 
 @Composable
 fun LoginScreenRoot(
@@ -225,11 +229,17 @@ private fun LoginScreen(
                     .fillMaxWidth()
                     .padding(top = 10.dp), horizontalArrangement = Arrangement.Center
             ) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(15.dp)
+                        .alpha(if (state.isLoggingIn) 1f else 0f),
+                    strokeWidth = 1.5.dp,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
                 IconButton(onClick = {
                     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestEmail()
-                        // TODO: Extract token to CONST:
-                        .requestIdToken("247858897065-pavj6enbck6erkubdlqo6p6vovne3utg.apps.googleusercontent.com")
+                        .requestIdToken(REQUEST_ID_TOKEN)
                         .build()
                 val googleSingInClient = GoogleSignIn.getClient(context, gso)
                 launcher.launch(googleSingInClient.signInIntent)

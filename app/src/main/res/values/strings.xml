@@ -49,7 +49,7 @@
     <string name="contains_lowercase_char">Contains lowercase character</string>
     <string name="contains_uppercase_char">Contains uppercase character</string>
     <string name="error_email_exists">A user with this email already exists.</string>
-    <string name="registration_successful">Registration successful! You can now log in.</string>
+    <string name="registration_successful">Registration successful!</string>
     <string name="error_email_password_incorrect">Email or password entered is not correct.</string>
     <string name="youre_logged_in">Logged in successfully!</string>
     <string name="welcome_text">Welcome to PlayWall!</string>

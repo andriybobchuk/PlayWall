@@ -103,7 +103,11 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
                     //navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TIKTOK.name))
                 },
                 onSuccessfulRegistration = {
-                    navController.navigate("login")
+                    navController.navigate("main") {
+                        popUpTo("auth") {
+                            inclusive = true
+                        }
+                    }
                 },
                 onTermsOfServiceClick = {
                     navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TOS.name))

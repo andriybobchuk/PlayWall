@@ -107,9 +107,36 @@ class RegisterViewModel(
                     }
                 }
                 is com.studios1299.playwall.core.domain.error_handling.Result.Success -> {
+                    loginAfterRegister()
+                }
+            }
+        }
+    }
+
+    private fun loginAfterRegister() {
+        viewModelScope.launch {
+            state = state.copy(isRegistering = true)
+            val result = repository.login(
+                email = state.email.text.toString().trim(),
+                password = state.password.text.toString()
+            )
+            state = state.copy(isRegistering = false)
+
+            when(result) {
+                is com.studios1299.playwall.core.domain.error_handling.Result.Error -> {
+                    if(result.error == DataError.Network.UNAUTHORIZED) {
+                        eventChannel.send(
+                            RegisterEvent.Error(
+                                UiText.StringResource(R.string.error_email_password_incorrect)
+                            )
+                        )
+                    } else {
+                        eventChannel.send(RegisterEvent.Error(result.error.asUiText()))
+                    }
+                }
+                is com.studios1299.playwall.core.domain.error_handling.Result.Success -> {
                     eventChannel.send(RegisterEvent.RegistrationSuccess)
                 }
-
             }
         }
     }
