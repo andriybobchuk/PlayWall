@@ -2,7 +2,7 @@ package com.studios1299.playwall.core.data
 
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
-import com.studios1299.playwall.core.data.data_source.PreferencesDataSource
+import com.studios1299.playwall.core.data.local.PreferencesDataSource
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.explore.presentation.explore.Photo

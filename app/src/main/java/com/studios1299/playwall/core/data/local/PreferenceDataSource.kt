@@ -1,4 +1,4 @@
-package com.studios1299.playwall.core.data.data_source
+package com.studios1299.playwall.core.data.local
 
 import android.content.SharedPreferences
 import com.studios1299.playwall.core.domain.model.WallpaperOption
@@ -18,6 +18,9 @@ interface PreferencesDataSource {
 
     fun getPreviousWallpaperId(): String?
     fun setPreviousWallpaperId(wallpaperId: String)
+
+    fun getAuthToken(): String?
+    fun setAuthToken(token: String)
 }
 
 class PreferencesDataSourceImpl(private val sharedPreferences: SharedPreferences) : PreferencesDataSource {
@@ -28,6 +31,7 @@ class PreferencesDataSourceImpl(private val sharedPreferences: SharedPreferences
         private const val KEY_SAVE_INCOMING_WALLPAPERS = "save_incoming_wallpapers"
         private const val KEY_CURRENT_WALLPAPER_ID = "current_wallpaper_id"
         private const val KEY_PREVIOUS_WALLPAPER_ID = "previous_wallpaper_id"
+        private const val KEY_TOKEN = "auth_token"
     }
 
     override fun isWallpaperLiked(wallpaperId: String): Boolean {
@@ -69,5 +73,13 @@ class PreferencesDataSourceImpl(private val sharedPreferences: SharedPreferences
 
     override fun setPreviousWallpaperId(wallpaperId: String) {
         sharedPreferences.edit().putString(KEY_PREVIOUS_WALLPAPER_ID, wallpaperId).apply()
+    }
+
+    override fun getAuthToken(): String? {
+        return sharedPreferences.getString(KEY_TOKEN, null)
+    }
+
+    override fun setAuthToken(token: String) {
+        sharedPreferences.edit().putString(KEY_TOKEN, token).apply()
     }
 }

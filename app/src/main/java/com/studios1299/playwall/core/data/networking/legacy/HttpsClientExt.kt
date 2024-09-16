@@ -1,4 +1,4 @@
-package com.studios1299.playwall.core.data.networking
+package com.studios1299.playwall.core.data.networking.legacy
 
 import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.Result

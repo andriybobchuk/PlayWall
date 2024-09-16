@@ -55,15 +55,15 @@ import com.studios1299.playwall.core.presentation.designsystem.EmailIcon
 import com.studios1299.playwall.core.presentation.designsystem.PlayWallTheme
 import com.studios1299.playwall.core.presentation.designsystem.poppins
 
-private const val REQUEST_ID_TOKEN = "247858897065-pavj6enbck6erkubdlqo6p6vovne3utg.apps.googleusercontent.com"
+private const val REQUEST_ID_TOKEN =
+    "247858897065-pavj6enbck6erkubdlqo6p6vovne3utg.apps.googleusercontent.com"
 
 @Composable
 fun LoginScreenRoot(
     onLoginSuccess: () -> Unit,
     onSignUpClick: () -> Unit,
     viewModel: LoginViewModel
-)
-{
+) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val launcher =
@@ -80,7 +80,7 @@ fun LoginScreenRoot(
         }
 
     ObserveAsEvents(viewModel.events) { event ->
-        when(event) {
+        when (event) {
             is LoginEvent.Error -> {
                 keyboardController?.hide()
                 Toast.makeText(
@@ -89,6 +89,7 @@ fun LoginScreenRoot(
                     Toast.LENGTH_LONG
                 ).show()
             }
+
             LoginEvent.LoginSuccess -> {
                 keyboardController?.hide()
                 Toast.makeText(
@@ -104,7 +105,7 @@ fun LoginScreenRoot(
     LoginScreen(
         state = viewModel.state,
         onAction = { action ->
-            when(action) {
+            when (action) {
                 is LoginAction.OnRegisterClick -> onSignUpClick()
                 else -> Unit
             }
@@ -242,13 +243,14 @@ private fun LoginScreen(
                         .requestEmail()
                         .requestIdToken(REQUEST_ID_TOKEN)
                         .build()
-                val googleSingInClient = GoogleSignIn.getClient(context, gso)
-                launcher.launch(googleSingInClient.signInIntent)
+                    val googleSingInClient = GoogleSignIn.getClient(context, gso)
+                    launcher.launch(googleSingInClient.signInIntent)
                 }) {
                     Icon(
                         modifier = Modifier.size(50.dp),
                         painter = painterResource(id = R.drawable.ic_google),
-                        contentDescription = stringResource(R.string.google_icon), tint = Color.Unspecified
+                        contentDescription = stringResource(R.string.google_icon),
+                        tint = Color.Unspecified
                     )
                 }
             }

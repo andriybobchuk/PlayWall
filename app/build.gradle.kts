@@ -1,4 +1,3 @@
-import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 import java.util.Properties
 
 plugins {
@@ -8,7 +7,6 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.firebase.plugin)
     alias(libs.plugins.crashlytics)
-    id("org.jlleitschuh.gradle.ktlint") version "11.0.0"
 }
 
 android {
@@ -82,23 +80,9 @@ tasks.register("incrementBuildCounter") {
     }
 }
 
-// Linter:
-ktlint {
-    version = "0.22.0"
-    android = true
-    ignoreFailures = false
-    disabledRules.set(listOf("final-newline", "no-wildcard-imports"))
-    reporters {
-        reporter (ReporterType.PLAIN)
-        reporter (ReporterType.SARIF)
-        reporter (ReporterType.CHECKSTYLE)
-    }
-}
-
 // Run my tasks before build:
 tasks.named("preBuild") {
     dependsOn("incrementBuildCounter")
-    dependsOn("ktlintFormat")
 }
 
 dependencies {
@@ -119,6 +103,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.android)
     implementation(libs.firebase.config.ktx)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.firebase.messaging.ktx)
 
     // Test:
     testImplementation(libs.junit)
@@ -165,4 +150,9 @@ dependencies {
     // XML Photo Editor
     implementation (libs.photoeditor)
 
+    // Retrofit
+    implementation(libs.retrofit)
+
+    // Retrofit Gson:
+    implementation (libs.converter.gson)
 }

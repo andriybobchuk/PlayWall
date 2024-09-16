@@ -1,4 +1,4 @@
-package com.studios1299.playwall.core.data.networking
+package com.studios1299.playwall.core.data.networking.legacy
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO

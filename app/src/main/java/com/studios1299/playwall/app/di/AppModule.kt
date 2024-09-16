@@ -3,14 +3,14 @@ package com.studios1299.playwall.app.di
 import android.content.Context
 import android.content.SharedPreferences
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.crashlytics.BuildConfig
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.messaging.FirebaseMessaging
 import com.studios1299.playwall.auth.data.EmailPatternValidator
 import com.studios1299.playwall.auth.data.FirebaseAuthRepositoryImpl
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.domain.PatternValidator
 import com.studios1299.playwall.core.data.FirebaseCoreRepositoryImpl
-import com.studios1299.playwall.core.data.data_source.PreferencesDataSourceImpl
+import com.studios1299.playwall.core.data.local.PreferencesDataSourceImpl
 import com.studios1299.playwall.core.domain.CoreRepository
 
 /**
@@ -79,6 +79,7 @@ interface AppModule {
     val emailPatternValidator: PatternValidator
     val firebaseAuth: FirebaseAuth
     val crashlytics: FirebaseCrashlytics
+    val firebaseMessaging: FirebaseMessaging
     val sharedPreferences: SharedPreferences
 }
 
@@ -99,13 +100,22 @@ class AppModuleImpl(
         )
     }
     override val authRepository: AuthRepository by lazy {
-        FirebaseAuthRepositoryImpl(firebaseAuth = firebaseAuth)
+        FirebaseAuthRepositoryImpl(
+            firebaseAuth = firebaseAuth,
+            firebaseMessaging = firebaseMessaging,
+            preferencesDataSource = PreferencesDataSourceImpl(
+                sharedPreferences = sharedPreferences
+            )
+        )
     }
     override val firebaseAuth: FirebaseAuth by lazy {
         FirebaseAuth.getInstance()
     }
     override val crashlytics: FirebaseCrashlytics by lazy {
         FirebaseCrashlytics.getInstance()
+    }
+    override val firebaseMessaging: FirebaseMessaging by lazy {
+        FirebaseMessaging.getInstance()
     }
     override val emailPatternValidator: PatternValidator by lazy {
         EmailPatternValidator

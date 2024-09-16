@@ -1,6 +1,7 @@
 [versions]
 agp = "8.2.2"
 androidTools = "31.2.2"
+converterGson = "2.9.0"
 core = "1.10.3"
 #noinspection RiskyLibrary
 firebaseBom = "33.2.0"
@@ -24,6 +25,7 @@ composeBom = "2024.02.02"
 materialIconsExtended = "1.6.3"
 navigationCompose = "2.7.7"#"2.8.0-alpha08" # Type safe navigation was firtly released in this version
 playServicesAuth = "15.0.1"
+retrofit = "2.11.0"
 revealswipe = "2.0.0-beta01"
 securityCryptoKtx = "1.1.0-alpha06"
 swipe = "1.3.0"
@@ -64,6 +66,7 @@ projectVersionCode = "1"
 lifecycleViewmodelAndroid = "2.8.4"
 firebaseConfigKtx = "22.0.0"
 workRuntimeKtx = "2.9.1"
+firebaseMessagingKtx = "24.0.1"
 
 
 
@@ -75,6 +78,7 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-security-crypto-ktx = { module = "androidx.security:security-crypto-ktx", version.ref = "securityCryptoKtx" }
+converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 core = { module = "com.google.android.play:core", version.ref = "playCore" }
 core-testing = { module = "com.google.android.play:core-testing", version.ref = "playCore" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
@@ -109,6 +113,7 @@ ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "k
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 photoeditor = { module = "com.burhanrashid52:photoeditor", version.ref = "photoeditor" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 revealswipe = { module = "de.charlex.compose:revealswipe", version.ref = "revealswipe" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
@@ -136,6 +141,7 @@ analytics = { module = "com.google.firebase:firebase-analytics-ktx", version.ref
 androidx-lifecycle-viewmodel-android = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-android", version.ref = "lifecycleViewmodelAndroid" }
 firebase-config-ktx = { group = "com.google.firebase", name = "firebase-config-ktx", version.ref = "firebaseConfigKtx" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
+firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
 
 
 
