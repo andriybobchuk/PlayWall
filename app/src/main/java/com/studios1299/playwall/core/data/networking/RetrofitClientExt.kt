@@ -1,5 +1,6 @@
 package com.studios1299.playwall.core.data.networking
 
+import android.util.Log
 import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import retrofit2.Response
@@ -13,7 +14,7 @@ object RetrofitClientExt {
             val response = call()
             responseToSmartResult(response)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("RetrofitClientExt.safeCall()", "safeCall just saved you from exception.")
             SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }

@@ -1,5 +1,7 @@
 package com.studios1299.playwall.core.data.networking
 
-data class PushTokenRequest(
+data class CreateUserRequest(
+    val firebaseId: String,
+    val email: String,
     val pushToken: String
 )

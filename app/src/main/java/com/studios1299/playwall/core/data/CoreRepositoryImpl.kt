@@ -36,27 +36,27 @@ class FirebaseCoreRepositoryImpl(
         return firebaseAuth.currentUser?.uid
     }
 
-//    suspend fun getFirebaseToken(): String? {
-//        return preferencesDataSource.getAuthToken() ?: refreshFirebaseToken().let {
-//            if (it is SmartResult.Success) it.data else null
-//        }
-//    }
-//
-//    suspend fun refreshFirebaseToken(): SmartResult<String, DataError.Network> {
-//        return try {
-//            val user = firebaseAuth.currentUser ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
-//
-//            val token = user.getIdToken(true).await().token
-//            if (token != null) {
-//                preferencesDataSource.setAuthToken(token)
-//                SmartResult.Success(token)
-//            } else {
-//                SmartResult.Error(DataError.Network.UNAUTHORIZED)
-//            }
-//        } catch (e: Exception) {
-//            SmartResult.Error(DataError.Network.UNKNOWN)
-//        }
-//    }
+    suspend fun getFirebaseToken(): String? {
+        return preferencesDataSource.getAuthToken() ?: refreshFirebaseToken().let {
+            if (it is SmartResult.Success) it.data else null
+        }
+    }
+
+    suspend fun refreshFirebaseToken(): SmartResult<String, DataError.Network> {
+        return try {
+            val user = firebaseAuth.currentUser ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
+
+            val token = user.getIdToken(true).await().token
+            if (token != null) {
+                preferencesDataSource.setAuthToken(token)
+                SmartResult.Success(token)
+            } else {
+                SmartResult.Error(DataError.Network.UNAUTHORIZED)
+            }
+        } catch (e: Exception) {
+            SmartResult.Error(DataError.Network.UNKNOWN)
+        }
+    }
 
 //    var KEY = ""
 //

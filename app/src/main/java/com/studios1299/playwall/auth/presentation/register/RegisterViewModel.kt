@@ -77,8 +77,6 @@ class RegisterViewModel(
             }
             RegisterAction.OnToggleTermsAcceptance -> {
                 state = state.copy(isTermsAccepted = !state.isTermsAccepted)
-
-                //updateCanRegister(isTermsAccepted = !state.isTermsAccepted)
             }
             else -> Unit
         }

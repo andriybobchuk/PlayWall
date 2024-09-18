@@ -159,8 +159,8 @@ dependencies {
 
     // Retrofit
     implementation(libs.retrofit)
-
-    // Retrofit Gson:
+//    implementation (libs.kotlinx.coroutines.core)
+//    implementation (libs.kotlinx.coroutines.android)
     implementation (libs.converter.gson)
 
     // Amazon S3

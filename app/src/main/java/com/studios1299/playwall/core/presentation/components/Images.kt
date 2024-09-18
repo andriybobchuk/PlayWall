@@ -83,11 +83,7 @@ object Images {
                             target: Target<Drawable>,
                             isFirstResource: Boolean
                         ): Boolean {
-                            Log.e(LOG_TAG, "Image load failed", e)
-                            e?.logRootCauses(LOG_TAG)
-                            e?.causes?.forEach { cause ->
-                                Log.e(LOG_TAG, "Cause: ${cause.message}", cause)
-                            }
+                            Log.d(LOG_TAG, "Image load failed: ${model}")
                             imageLoadFailed = true
                             return false
                         }
@@ -99,7 +95,7 @@ object Images {
                             dataSource: DataSource,
                             isFirstResource: Boolean
                         ): Boolean {
-                            Log.i(LOG_TAG, "Image loaded successfully")
+                            Log.v(LOG_TAG, "Image loaded successfully: ${model}")
                             imageLoadFailed = false
                             return false
                         }
