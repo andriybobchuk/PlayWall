@@ -9,10 +9,13 @@ import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.domain.User
 import com.studios1299.playwall.core.data.local.PreferencesDataSource
 import com.studios1299.playwall.core.data.networking.PushTokenRequest
-import com.studios1299.playwall.core.data.networking.RetrofitClient.userService
+import com.studios1299.playwall.core.data.networking.RetrofitClientExt
+import com.studios1299.playwall.core.data.networking.TokenManager
+import com.studios1299.playwall.core.data.remote.RetrofitClient
+import com.studios1299.playwall.core.data.remote.RetrofitClient.userService
 import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.EmptyResult
-import com.studios1299.playwall.core.domain.error_handling.Result
+import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.error_handling.asEmptyDataResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
@@ -23,25 +26,25 @@ class FirebaseAuthRepositoryImpl(
     private val firebaseMessaging: FirebaseMessaging,
     private val preferencesDataSource: PreferencesDataSource
 ) : AuthRepository {
-    override suspend fun login(email: String, password: String): Result<User, DataError.Network> {
+    override suspend fun login(email: String, password: String): SmartResult<User, DataError.Network> {
         return try {
             val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
             val firebaseUser = authResult.user
             if (firebaseUser != null) {
                 val idToken = firebaseUser.getIdToken(false).await().token
                 preferencesDataSource.setAuthToken(idToken!!)
-                Result.Success(User(firebaseUser.uid, firebaseUser.email ?: ""))
+                SmartResult.Success(User(firebaseUser.uid, firebaseUser.email ?: ""))
             } else {
-                Result.Error(DataError.Network.UNAUTHORIZED)
+                SmartResult.Error(DataError.Network.UNAUTHORIZED)
             }
         } catch (e: FirebaseAuthException) {
             when (e.errorCode) {
-                "ERROR_INVALID_CREDENTIAL" -> Result.Error(DataError.Network.UNAUTHORIZED)
-                "ERROR_USER_NOT_FOUND" -> Result.Error(DataError.Network.UNAUTHORIZED)
-                else -> Result.Error(DataError.Network.UNKNOWN)
+                "ERROR_INVALID_CREDENTIAL" -> SmartResult.Error(DataError.Network.UNAUTHORIZED)
+                "ERROR_USER_NOT_FOUND" -> SmartResult.Error(DataError.Network.UNAUTHORIZED)
+                else -> SmartResult.Error(DataError.Network.UNKNOWN)
             }
         } catch (e: Exception) {
-            Result.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }
 
@@ -60,36 +63,36 @@ class FirebaseAuthRepositoryImpl(
                     createUser(firebaseUid, PushTokenRequest(pushToken))
                 }
             }
-            Result.Success(Unit)
+            SmartResult.Success(Unit)
         } catch (e: FirebaseAuthException) {
             when (e.errorCode) {
-                "ERROR_EMAIL_ALREADY_IN_USE" -> Result.Error(DataError.Network.CONFLICT)
-                else -> Result.Error(DataError.Network.UNKNOWN)
+                "ERROR_EMAIL_ALREADY_IN_USE" -> SmartResult.Error(DataError.Network.CONFLICT)
+                else -> SmartResult.Error(DataError.Network.UNKNOWN)
             }
         } catch (e: Exception) {
-            Result.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(DataError.Network.UNKNOWN)
         }.asEmptyDataResult()
     }
 
-    override suspend fun googleLogin(credential: AuthCredential): Result<User, DataError.Network> {
+    override suspend fun googleLogin(credential: AuthCredential): SmartResult<User, DataError.Network> {
         return try {
             val authResult = firebaseAuth.signInWithCredential(credential).await()
             val firebaseUser = authResult.user
             if (firebaseUser != null) {
                 val idToken = firebaseUser.getIdToken(false).await().token
                 preferencesDataSource.setAuthToken(idToken!!)
-                Result.Success(User(firebaseUser.uid, firebaseUser.email ?: ""))
+                SmartResult.Success(User(firebaseUser.uid, firebaseUser.email ?: ""))
             } else {
-                Result.Error(DataError.Network.UNAUTHORIZED)
+                SmartResult.Error(DataError.Network.UNAUTHORIZED)
             }
         } catch (e: FirebaseAuthException) {
             when (e.errorCode) {
-                "ERROR_INVALID_CREDENTIAL" -> Result.Error(DataError.Network.UNAUTHORIZED)
-                "ERROR_USER_NOT_FOUND" -> Result.Error(DataError.Network.UNAUTHORIZED)
-                else -> Result.Error(DataError.Network.UNKNOWN)
+                "ERROR_INVALID_CREDENTIAL" -> SmartResult.Error(DataError.Network.UNAUTHORIZED)
+                "ERROR_USER_NOT_FOUND" -> SmartResult.Error(DataError.Network.UNAUTHORIZED)
+                else -> SmartResult.Error(DataError.Network.UNKNOWN)
             }
         } catch (e: Exception) {
-            Result.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }
 
@@ -97,24 +100,41 @@ class FirebaseAuthRepositoryImpl(
         firebaseAuth.signOut()
     }
 
-    override fun createUser(firebaseId: String, pushTokenRequest: PushTokenRequest): Result<Void?, DataError.Network> {
+    override fun createUser(firebaseId: String, pushTokenRequest: PushTokenRequest): SmartResult<Void?, DataError.Network> {
         val authHeader = "Bearer $firebaseId"
 
         return try {
             Log.e("CreateUser", "Sending request to create user with token: $authHeader and pushToken: ${pushTokenRequest.pushToken}")
 
-            val response = userService.createUser(authHeader, pushTokenRequest).execute()
+            //val response = userService.createUser(authHeader, pushTokenRequest).execute()
+            val response = userService.createUser(authHeader, pushTokenRequest)
 
             if (response.isSuccessful) {
                 Log.e("CreateUser", "Backend user creation successful")
-                Result.Success(response.body())
+                SmartResult.Success(response.body())
             } else {
                 Log.e("CreateUser", "Backend user creation failed with code: ${response.code()} and message: ${response.message()}")
-                Result.Error(DataError.Network.SERVER_ERROR)
+                SmartResult.Error(DataError.Network.SERVER_ERROR)
             }
         } catch (e: Exception) {
             Log.e("CreateUser", "Exception occurred during backend user creation", e)
-            Result.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }
+
+//    suspend fun createUser(): SmartResult<Void, DataError.Network> {
+//
+//        val result = RetrofitClientExt.safeCall {
+//            RetrofitClient.userService.createUser("Bearer " + TokenManager.getFirebaseToken()!!, "")
+//        }
+//        return when (result) {
+//            is SmartResult.Success -> SmartResult.Success()
+//            is SmartResult.Error -> TODO()
+//
+//        }
+//
+//        return RetrofitClientExt.safeCall {
+//            RetrofitClient.userService.createUser("Bearer " + TokenManager.getFirebaseToken()!!, "")
+//        }
+//    }
 }

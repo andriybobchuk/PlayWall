@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.State
 import com.google.firebase.auth.AuthCredential
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -65,7 +64,7 @@ class LoginViewModel(
             state = state.copy(isLoggingIn = false)
 
             when(result) {
-                is com.studios1299.playwall.core.domain.error_handling.Result.Error -> {
+                is com.studios1299.playwall.core.domain.error_handling.SmartResult.Error -> {
                     if(result.error == DataError.Network.UNAUTHORIZED) {
                         eventChannel.send(
                             LoginEvent.Error(
@@ -76,7 +75,7 @@ class LoginViewModel(
                         eventChannel.send(LoginEvent.Error(result.error.asUiText()))
                     }
                 }
-                is com.studios1299.playwall.core.domain.error_handling.Result.Success -> {
+                is com.studios1299.playwall.core.domain.error_handling.SmartResult.Success -> {
                     eventChannel.send(LoginEvent.LoginSuccess)
                 }
             }
@@ -90,7 +89,7 @@ class LoginViewModel(
             state = state.copy(isLoggingIn = false)
 
             when(result) {
-                is com.studios1299.playwall.core.domain.error_handling.Result.Error -> {
+                is com.studios1299.playwall.core.domain.error_handling.SmartResult.Error -> {
                     if(result.error == DataError.Network.UNAUTHORIZED) {
                         eventChannel.send(
                             LoginEvent.Error(
@@ -101,7 +100,7 @@ class LoginViewModel(
                         eventChannel.send(LoginEvent.Error(result.error.asUiText()))
                     }
                 }
-                is com.studios1299.playwall.core.domain.error_handling.Result.Success -> {
+                is com.studios1299.playwall.core.domain.error_handling.SmartResult.Success -> {
                     eventChannel.send(LoginEvent.LoginSuccess)
                 }
             }

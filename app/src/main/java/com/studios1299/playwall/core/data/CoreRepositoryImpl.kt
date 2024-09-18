@@ -1,9 +1,12 @@
 package com.studios1299.playwall.core.data
 
+import android.os.Build
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.studios1299.playwall.core.data.local.PreferencesDataSource
 import com.studios1299.playwall.core.domain.CoreRepository
+import com.studios1299.playwall.core.domain.error_handling.DataError
+import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.explore.presentation.explore.Photo
 import com.studios1299.playwall.feature.play.data.model.Message
@@ -13,6 +16,12 @@ import com.studios1299.playwall.feature.play.data.model.User
 import com.studios1299.playwall.feature.play.presentation.play.Friend
 import com.studios1299.playwall.feature.play.presentation.play.FriendRequest
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.tasks.await
+//import software.amazon.awssdk.core.sync.RequestBody
+//import software.amazon.awssdk.services.s3.model.GetObjectRequest
+//import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import java.io.File
+import java.nio.file.Paths
 import java.util.UUID
 
 class FirebaseCoreRepositoryImpl(
@@ -26,6 +35,64 @@ class FirebaseCoreRepositoryImpl(
     override suspend fun getCurrentUserId(): String? {
         return firebaseAuth.currentUser?.uid
     }
+
+//    suspend fun getFirebaseToken(): String? {
+//        return preferencesDataSource.getAuthToken() ?: refreshFirebaseToken().let {
+//            if (it is SmartResult.Success) it.data else null
+//        }
+//    }
+//
+//    suspend fun refreshFirebaseToken(): SmartResult<String, DataError.Network> {
+//        return try {
+//            val user = firebaseAuth.currentUser ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
+//
+//            val token = user.getIdToken(true).await().token
+//            if (token != null) {
+//                preferencesDataSource.setAuthToken(token)
+//                SmartResult.Success(token)
+//            } else {
+//                SmartResult.Error(DataError.Network.UNAUTHORIZED)
+//            }
+//        } catch (e: Exception) {
+//            SmartResult.Error(DataError.Network.UNKNOWN)
+//        }
+//    }
+
+//    var KEY = ""
+//
+//    fun uploadWallpaper(file: File): String {
+//        val uuid = UUID.randomUUID().toString() // Use UUID v4 or v7
+//        val key = "wallpapers/$uuid v4"
+//        KEY = key
+//        Log.e("WALL", "KEY: " + key)
+//
+//        val putObjectRequest = PutObjectRequest.builder()
+//            .bucket("playwall-dev")
+//            .key(key)
+//            .build()
+//
+//        S3ClientProvider.s3Client.putObject(putObjectRequest, RequestBody.fromFile(file))
+//
+//        return key // Return the key for future reference (e.g., for downloading)
+//    }
+//
+//
+//    fun downloadWallpaper(key: String, downloadPath: String) {
+//
+//        val getObjectRequest = GetObjectRequest.builder()
+//            .bucket("playwall-dev")
+//            .key(KEY)
+//            .build()
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            S3ClientProvider.s3Client.getObject(getObjectRequest, Paths.get(downloadPath))
+//        }
+//    }
+
+
+
+
+
 
     override suspend fun getUserProfile(): UserProfile {
         return UserProfile(

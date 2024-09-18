@@ -1,6 +1,9 @@
 package com.studios1299.playwall.feature.play.presentation.play
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -65,6 +68,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat.startActivityForResult
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.R
@@ -75,9 +79,16 @@ import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
+import java.io.File
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
+import java.nio.file.Paths
+import java.util.UUID
 
 @Composable
 fun PlayScreenRoot(
@@ -114,8 +125,11 @@ fun PlayScreenRoot(
     )
 }
 
+
+
+
 @SuppressLint("RememberReturnType")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayScreen(
     state: PlayState,
@@ -632,6 +646,7 @@ fun ImageGrid(
                             .aspectRatio(1f)
                             .clickable {
                                 if (state.photos.isNotEmpty()) {
+                                    //downloadAndUploadImage(photo.url)
                                     onWallpaperSelected(photo.id)
                                 }
                             }
@@ -644,3 +659,67 @@ fun ImageGrid(
         }
     }
 }
+
+//fun downloadAndUploadImage(imageUrl: String) {
+//    CoroutineScope(Dispatchers.IO).launch {
+//        try {
+//            Log.e("WALL", "Downloading image from URL: $imageUrl")
+//            val file = downloadImageFromUrl(imageUrl)
+//            Log.e("WALL", "Downloaded image, now uploading...")
+//
+//            val key = uploadWallpaper(file)
+//            Log.e("WALL", "Image uploaded with key: $key")
+//
+//        } catch (e: Exception) {
+//            Log.e("WALL", "Error during download or upload: ${e.message}")
+//        }
+//    }
+//}
+//
+//fun downloadImageFromUrl(imageUrl: String): File {
+//    Log.e("WALL", "Starting image download from: $imageUrl")
+//    val url = URL(imageUrl)
+//    val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
+//    connection.doInput = true
+//    connection.connect()
+//
+//    val inputStream: InputStream = connection.inputStream
+//    val tempFile = File.createTempFile("downloaded_image", ".jpg") // Save as temp file
+//    tempFile.outputStream().use { outputStream ->
+//        inputStream.copyTo(outputStream)
+//    }
+//    inputStream.close()
+//
+//    Log.e("WALL", "Image successfully downloaded and saved to temp file: ${tempFile.absolutePath}")
+//    return tempFile
+//}
+//
+//fun uploadWallpaper(file: File): String {
+//    val uuid = UUID.randomUUID().toString() // Use UUID v4 or v7
+//    val key = "wallpapers/$uuid v4"
+//    Log.e("WALL", "Uploading file with key: $key")
+//
+//    val putObjectRequest = PutObjectRequest.builder()
+//        .bucket("playwall-dev")
+//        .key(key)
+//        .build()
+//
+//    S3ClientProvider.s3Client.putObject(putObjectRequest, RequestBody.fromFile(file))
+//
+//    Log.e("WALL", "File uploaded successfully with key: $key")
+//    return key // Return the key for future reference
+//}
+//
+//fun downloadWallpaper(key: String, downloadPath: String) {
+//    Log.e("WALL", "Downloading wallpaper with key: $key to path: $downloadPath")
+//
+//    val getObjectRequest = GetObjectRequest.builder()
+//        .bucket("playwall-dev")
+//        .key(key)
+//        .build()
+//
+//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//        S3ClientProvider.s3Client.getObject(getObjectRequest, Paths.get(downloadPath))
+//        Log.e("WALL", "Wallpaper successfully downloaded to: $downloadPath")
+//    }
+//}

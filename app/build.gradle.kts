@@ -25,7 +25,7 @@ android {
             useSupportLibrary = true
         }
 
-        buildConfigField ("String", "BASE_URL", "\"baseurl\"")
+        buildConfigField ("String", "BASE_URL", "\"http://77.237.234.47:3000/\"")
     }
 
     buildTypes {
@@ -55,6 +55,13 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+//            excludes += "META-INF/INDEX.LIST"
+//            excludes += "META-INF/LICENSE"
+//            excludes += "META-INF/LICENSE.txt"
+//            excludes += "META-INF/NOTICE"
+//            excludes += "META-INF/NOTICE.txt"
+//            excludes += "META-INF/DEPENDENCIES"
+//            excludes += "META-INF/io.netty.versions.properties"
         }
     }
 }
@@ -155,4 +162,9 @@ dependencies {
 
     // Retrofit Gson:
     implementation (libs.converter.gson)
+
+    // Amazon S3
+//    implementation(libs.s3)
+    implementation("aws.sdk.kotlin:s3:1.0.0")
+
 }

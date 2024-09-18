@@ -1,13 +1,5 @@
 package com.studios1299.playwall.auth.data
 
-import com.google.firebase.auth.AuthCredential
-import com.studios1299.playwall.core.domain.error_handling.DataError
-import com.studios1299.playwall.core.domain.error_handling.EmptyResult
-import com.studios1299.playwall.core.domain.error_handling.Result
-import com.studios1299.playwall.auth.domain.AuthRepository
-import com.studios1299.playwall.auth.domain.User
-import kotlinx.coroutines.delay
-
 //class FakeAuthRepository : AuthRepository {
 //    override suspend fun login(email: String, password: String): Result<User, DataError.Network> {
 //        delay(2000)

@@ -15,7 +15,6 @@ import com.studios1299.playwall.core.presentation.UiText
 import com.studios1299.playwall.core.presentation.asUiText
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.data.UserDataValidator
-import com.studios1299.playwall.auth.presentation.login.LoginEvent
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -95,7 +94,7 @@ class RegisterViewModel(
             state = state.copy(isRegistering = false)
 
             when(result) {
-                is com.studios1299.playwall.core.domain.error_handling.Result.Error -> {
+                is com.studios1299.playwall.core.domain.error_handling.SmartResult.Error -> {
                     if(result.error == DataError.Network.CONFLICT) {
                         eventChannel.send(
                             RegisterEvent.Error(
@@ -106,7 +105,7 @@ class RegisterViewModel(
                         eventChannel.send(RegisterEvent.Error(result.error.asUiText()))
                     }
                 }
-                is com.studios1299.playwall.core.domain.error_handling.Result.Success -> {
+                is com.studios1299.playwall.core.domain.error_handling.SmartResult.Success -> {
                     loginAfterRegister()
                 }
             }
@@ -123,7 +122,7 @@ class RegisterViewModel(
             state = state.copy(isRegistering = false)
 
             when(result) {
-                is com.studios1299.playwall.core.domain.error_handling.Result.Error -> {
+                is com.studios1299.playwall.core.domain.error_handling.SmartResult.Error -> {
                     if(result.error == DataError.Network.UNAUTHORIZED) {
                         eventChannel.send(
                             RegisterEvent.Error(
@@ -134,7 +133,7 @@ class RegisterViewModel(
                         eventChannel.send(RegisterEvent.Error(result.error.asUiText()))
                     }
                 }
-                is com.studios1299.playwall.core.domain.error_handling.Result.Success -> {
+                is com.studios1299.playwall.core.domain.error_handling.SmartResult.Success -> {
                     eventChannel.send(RegisterEvent.RegistrationSuccess)
                 }
             }
@@ -148,7 +147,7 @@ class RegisterViewModel(
             state = state.copy(isRegistering = false)
 
             when(result) {
-                is com.studios1299.playwall.core.domain.error_handling.Result.Error -> {
+                is com.studios1299.playwall.core.domain.error_handling.SmartResult.Error -> {
                     if(result.error == DataError.Network.UNAUTHORIZED) {
                         eventChannel.send(
                             RegisterEvent.Error(
@@ -159,7 +158,7 @@ class RegisterViewModel(
                         eventChannel.send(RegisterEvent.Error(result.error.asUiText()))
                     }
                 }
-                is com.studios1299.playwall.core.domain.error_handling.Result.Success -> {
+                is com.studios1299.playwall.core.domain.error_handling.SmartResult.Success -> {
                     eventChannel.send(RegisterEvent.RegistrationSuccess)
                 }
             }

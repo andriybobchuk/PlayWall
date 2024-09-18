@@ -1,12 +1,4 @@
-package com.studios1299.playwall.core.data.networking
-
-import retrofit2.Call
-import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.POST
-import retrofit2.http.Path
+package com.studios1299.playwall.core.data.remote.api
 
 interface FriendsApi {
 //    @POST("api/friendship")
