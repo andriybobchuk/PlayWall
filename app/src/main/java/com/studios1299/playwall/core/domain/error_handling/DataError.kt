@@ -3,6 +3,8 @@ package com.studios1299.playwall.core.domain.error_handling
 sealed interface DataError: Error {
     enum class Network: DataError {
         REQUEST_TIMEOUT,
+        FORBIDDEN,
+        NOT_FOUND,
         TOO_MANY_REQUESTS,
         NO_INTERNET,
         PAYLOAD_TOO_LARGE,
@@ -10,15 +12,14 @@ sealed interface DataError: Error {
         SERIALIZATION,
         UNAUTHORIZED,
         CONFLICT,
+        INTERNAL_SERVER_ERROR,
+        NOT_IMPLEMENTED,
+        BAD_GATEWAY,
+        SERVICE_UNAVAILABLE,
+        GATEWAY_TIMEOUT,
         UNKNOWN
     }
     enum class Local: DataError {
         DISK_FULL
     }
 }
-
-
-//enum class Network: DataError {
-//    WRONG_CREDENTIALS,
-//    // write more here
-//}

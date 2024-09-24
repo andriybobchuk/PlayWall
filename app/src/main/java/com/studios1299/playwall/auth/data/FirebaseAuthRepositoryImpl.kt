@@ -8,10 +8,9 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.domain.User
 import com.studios1299.playwall.core.data.local.PreferencesDataSource
-import com.studios1299.playwall.core.data.networking.CreateUserRequest
+import com.studios1299.playwall.core.data.networking.request.user.CreateUserRequest
 import com.studios1299.playwall.core.data.networking.RetrofitClientExt
-import com.studios1299.playwall.core.data.networking.TokenManager
-import com.studios1299.playwall.core.data.remote.RetrofitClient
+import com.studios1299.playwall.core.data.networking.RetrofitClient
 import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.EmptyResult
 import com.studios1299.playwall.core.domain.error_handling.SmartResult

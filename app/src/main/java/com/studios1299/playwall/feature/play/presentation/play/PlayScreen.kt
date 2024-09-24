@@ -449,7 +449,7 @@ fun FriendItem(
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun FriendRequestItem(
-    friendRequest: FriendRequest,
+    friendRequest: Friend,
     onAccept: () -> Unit,
     onReject: () -> Unit,
     modifier: Modifier = Modifier
@@ -544,36 +544,45 @@ fun InviteSheet(
                     title = stringResource(R.string.enter_email),
                     keyboardType = KeyboardType.Email
                 )
-            }
-            LazyColumn {
-                items(state.searchResults) { user ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        GlideImage(
-                            model = user.profilePictureUrl,
-                            contentDescription = user.name,
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.outline)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text(text = user.name, style = MaterialTheme.typography.bodyMedium)
-                            Text(text = user.email, style = MaterialTheme.typography.bodySmall)
-                        }
-                        Spacer(modifier = Modifier.weight(1f))
-                        Button(onClick = {
-                        }) {
-                            Text(text = stringResource(R.string.invite))
-                        }
+                Spacer(modifier = Modifier.height(8.dp))
+                Buttons.Primary(
+                    text = "Invite",
+                    isLoading = state.isLoading,
+                    onClick = {
+                        Log.e("TAG", "On invite clicked shallow")
+                        PlayAction.OnInviteFriend(userEmail = state.friendId.toString())
                     }
-                }
+                )
             }
+//            LazyColumn {
+//                items(state.searchResults) { user ->
+//                    Row(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(16.dp),
+//                        verticalAlignment = Alignment.CenterVertically
+//                    ) {
+//                        GlideImage(
+//                            model = user.profilePictureUrl,
+//                            contentDescription = user.name,
+//                            modifier = Modifier
+//                                .size(40.dp)
+//                                .clip(CircleShape)
+//                                .background(MaterialTheme.colorScheme.outline)
+//                        )
+//                        Spacer(modifier = Modifier.width(16.dp))
+//                        Column {
+//                            Text(text = user.name, style = MaterialTheme.typography.bodyMedium)
+//                            Text(text = user.email, style = MaterialTheme.typography.bodySmall)
+//                        }
+//                        Spacer(modifier = Modifier.weight(1f))
+//                        Button(onClick = {
+//                        }) {
+//                            Text(text = stringResource(R.string.invite))
+//                        }
+//                    }
+//                }
+//            }
             Spacer(modifier = Modifier.height(56.dp))
         }
     }

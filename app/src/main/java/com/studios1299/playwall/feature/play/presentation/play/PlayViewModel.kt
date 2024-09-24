@@ -1,6 +1,7 @@
 package com.studios1299.playwall.feature.play.presentation.play
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text2.input.textAsFlow
 import androidx.compose.runtime.mutableStateOf
@@ -8,7 +9,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
+import com.studios1299.playwall.core.data.networking.request.friendships.DeclineRequest
 import com.studios1299.playwall.core.domain.CoreRepository
+import com.studios1299.playwall.core.domain.error_handling.DataError
+import com.studios1299.playwall.core.domain.error_handling.SmartResult
+import com.studios1299.playwall.core.domain.error_handling.asEmptyDataResult
+import com.studios1299.playwall.core.presentation.UiText
+import com.studios1299.playwall.core.presentation.asUiText
+import io.ktor.util.Identity.decode
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -29,19 +38,18 @@ class PlayViewModel(
     init {
         loadFriendsAndRequests()
 
-        state.friendId.textAsFlow()
-            .onEach { email ->
-                onAction(PlayAction.OnSearchUser(email.toString()))
-            }.launchIn(viewModelScope)
+//        state.friendId.textAsFlow()
+//            .onEach { email ->
+//                onAction(PlayAction.OnInviteFriend(email.toString()))
+//            }.launchIn(viewModelScope)
     }
 
     fun onAction(action: PlayAction) {
         when(action) {
             is PlayAction.OnAcceptFriendRequest -> acceptFriendRequest(action.requestId)
-            is PlayAction.OnRejectFriendRequest -> rejectFriendRequest(action.requestId)
+            is PlayAction.OnRejectFriendRequest -> declineFriendRequest(action.requestId)
             PlayAction.Refresh -> loadFriendsAndRequests()
-            PlayAction.OnInviteClick -> TODO()
-            is PlayAction.OnSearchUser -> searchUser(action.userEmail)
+            is PlayAction.OnInviteFriend -> inviteFriend(action.userEmail)
             is PlayAction.OnSelectFriend -> toggleFriendSelection(action.friendId)
             is PlayAction.OnEnterSelectMode -> enterSelectMode()
             is PlayAction.OnExitSelectMode -> exitSelectMode()
@@ -105,53 +113,86 @@ class PlayViewModel(
         }
     }
 
-    @OptIn(ExperimentalFoundationApi::class)
-    private fun searchUser(userEmail: String) {
+    private fun inviteFriend(email: String) {
         viewModelScope.launch {
-            state = state.copy(isLoading = true)
-            val searchResults = repository.searchUsers(userEmail)
-            state = state.copy(searchResults = searchResults, isLoading = false)
-        }
-    }
 
-    private fun getSortedFriends(friends: List<Friend>): List<Friend> {
-        return friends.sortedWith(compareBy({ it.muted }, { it.name })) // Mute friends last
+            Log.e("TAG", "On invite clicked deep")
+            state = state.copy(isLoading = true)
+            val inviteFriend = repository.inviteFriend(email)
+            if (inviteFriend is SmartResult.Success) {
+                // say success
+                eventChannel.send(PlayEvent.ShowError(UiText.DynamicString("Friend invited successfully!")))
+            } else {
+                // say error
+                val errorMessage = when (inviteFriend) {
+                    is SmartResult.Error -> {
+                        when (inviteFriend.error) {
+                            DataError.Network.NOT_FOUND -> "User not found, is the email correct?"
+                            else -> "An unknown error occurred. Please try again."
+                        }
+                    }
+                    else -> "An unexpected error occurred. Please try again."
+                }
+                eventChannel.send(PlayEvent.ShowError(UiText.DynamicString(errorMessage)))
+            }
+            state = state.copy(
+                isLoading = false
+            )
+        }
     }
 
     @OptIn(ExperimentalFoundationApi::class)
     private fun loadFriendsAndRequests() {
         viewModelScope.launch {
             state = state.copy(isLoading = true)
-            val friendsResult = repository.getFriends()
-            val friendRequestsResult = repository.getFriendRequests()
-            state = state.copy(
-                friends = getSortedFriends(friendsResult),
-                friendRequests = friendRequestsResult,
-                isLoading = false
-            )
+            //val friendRequestsResult = repository.getFriendRequests()
+
+            when (val friendsResult = repository.getFriends()) {
+                is SmartResult.Success -> {
+                    state = state.copy(
+                        friends = friendsResult.data,
+                        isLoading = false
+                    )
+                }
+                is SmartResult.Error -> {
+                    eventChannel.send(PlayEvent.ShowError(friendsResult.error.asUiText()))
+                }
+            }
+
+//            when (friendRequestsResult) {
+//                is SmartResult.Success -> {
+//                    state = state.copy(
+//                        friendRequests = friendRequestsResult.data,
+//                        isLoading = false
+//                    )
+//                }
+//                is SmartResult.Error -> {
+//                    eventChannel.send(PlayEvent.ShowError(friendRequestsResult.error.asUiText()))
+//                }
+//            }
         }
     }
 
     private fun acceptFriendRequest(requestId: String) {
         viewModelScope.launch {
-            val result = repository.acceptFriendRequest(requestId)
-            if (result) {
+            val result = repository.acceptFriendRequest(AcceptRequest(requestId.toInt()))
+            if (result is SmartResult.Success) {
                 eventChannel.send(PlayEvent.FriendRequestAccepted)
                 loadFriendsAndRequests()
             } else {
-              // eventChannel.send(PlayEvent.ShowError(UiText.StringResource(R.string.error_accepting_request)))
+                eventChannel.send(PlayEvent.ShowError(UiText.DynamicString("Error accepting request")))
             }
         }
     }
 
-    private fun rejectFriendRequest(requestId: String) {
+    private fun declineFriendRequest(requestId: String) {
         viewModelScope.launch {
-            val result = repository.rejectFriendRequest(requestId)
-            if (result) {
+            val result = repository.declineFriendRequest(DeclineRequest(requestId.toInt()))
+            if (result is SmartResult.Success) {
                 eventChannel.send(PlayEvent.FriendRequestRejected)
                 loadFriendsAndRequests()
             } else {
-                //eventChannel.send(PlayEvent.ShowError(UiText.StringResource(R.string.error_rejecting_request)))
+                eventChannel.send(PlayEvent.ShowError(UiText.DynamicString("Error declining request")))
             }
         }
     }

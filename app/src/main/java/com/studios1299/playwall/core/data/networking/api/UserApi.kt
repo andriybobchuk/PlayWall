@@ -1,7 +1,6 @@
-package com.studios1299.playwall.core.data.remote.api
+package com.studios1299.playwall.core.data.networking.api
 
-import com.studios1299.playwall.core.data.networking.CreateUserRequest
-import retrofit2.Call
+import com.studios1299.playwall.core.data.networking.request.user.CreateUserRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.Header

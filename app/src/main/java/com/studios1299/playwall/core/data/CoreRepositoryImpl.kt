@@ -4,6 +4,11 @@ import android.os.Build
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.studios1299.playwall.core.data.local.PreferencesDataSource
+import com.studios1299.playwall.core.data.networking.RetrofitClient
+import com.studios1299.playwall.core.data.networking.RetrofitClientExt
+import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
+import com.studios1299.playwall.core.data.networking.request.friendships.DeclineRequest
+import com.studios1299.playwall.core.data.networking.request.friendships.InviteRequest
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
@@ -14,9 +19,9 @@ import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.data.model.Reaction
 import com.studios1299.playwall.feature.play.data.model.User
 import com.studios1299.playwall.feature.play.presentation.play.Friend
-import com.studios1299.playwall.feature.play.presentation.play.FriendRequest
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.tasks.await
+import retrofit2.Response
 //import software.amazon.awssdk.core.sync.RequestBody
 //import software.amazon.awssdk.services.s3.model.GetObjectRequest
 //import software.amazon.awssdk.services.s3.model.PutObjectRequest
@@ -36,13 +41,13 @@ class FirebaseCoreRepositoryImpl(
         return firebaseAuth.currentUser?.uid
     }
 
-    suspend fun getFirebaseToken(): String? {
+    private suspend fun getFirebaseToken(): String? {
         return preferencesDataSource.getAuthToken() ?: refreshFirebaseToken().let {
             if (it is SmartResult.Success) it.data else null
         }
     }
 
-    suspend fun refreshFirebaseToken(): SmartResult<String, DataError.Network> {
+    private suspend fun refreshFirebaseToken(): SmartResult<String, DataError.Network> {
         return try {
             val user = firebaseAuth.currentUser ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
 
@@ -58,6 +63,105 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
+    /**
+     * This function wraps network calls with the token management and safeCall logic.
+     * It first tries with the current token, and if a 401 error occurs, it refreshes the token and retries once.
+     * All calls are also wrapped in safeCall to handle exceptions and avoid crashes.
+     */
+    private suspend inline fun <reified T> performAuthRequest(
+        request: (authHeader: String) -> Response<T>
+    ): SmartResult<T, DataError.Network> {
+        val token = getFirebaseToken() ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
+
+        return RetrofitClientExt.safeCall {
+            val result = request("Bearer $token")
+            if (result.code() == 401) {
+                val refreshedToken = refreshFirebaseToken()
+                if (refreshedToken is SmartResult.Success) {
+                    request("Bearer ${refreshedToken.data}")
+                } else {
+                    return@safeCall result // Return the original unauthorized result
+                }
+            } else {
+                result
+            }
+        }
+    }
+
+    override suspend fun inviteFriend(email: String): SmartResult<Unit, DataError.Network> {
+        return performAuthRequest { token ->
+            val inviteRequest = InviteRequest(email = email)
+            RetrofitClient.friendsApi.inviteFriend(token, inviteRequest)
+        }
+    }
+
+    override suspend fun getFriends(): SmartResult<List<Friend>, DataError.Network> {
+        return performAuthRequest { token ->
+            RetrofitClient.friendsApi.getFriends(token)
+        }
+    }
+
+    override suspend fun getFriendRequests(): SmartResult<List<Friend>, DataError.Network> {
+        return performAuthRequest { token ->
+            RetrofitClient.friendsApi.getFriendRequests(token)
+        }
+    }
+
+    override suspend fun acceptFriendRequest(acceptRequest: AcceptRequest): SmartResult<Unit, DataError.Network> {
+        return performAuthRequest { token ->
+            RetrofitClient.friendsApi.acceptFriendRequest(token, acceptRequest)
+        }
+    }
+
+    override suspend fun declineFriendRequest(declineRequest: DeclineRequest): SmartResult<Unit, DataError.Network> {
+        return performAuthRequest { token ->
+            RetrofitClient.friendsApi.declineFriendRequest(token, declineRequest)
+        }
+    }
+
+//    override suspend fun inviteFriend(authHeader: String, email: String): SmartResult<Unit, DataError.Network> {
+//        return RetrofitClientExt.safeCall {
+//            val inviteRequest = InviteRequest(email = email)
+//            RetrofitClient.friendsApi.inviteFriend(authHeader, inviteRequest)
+//        }
+//    }
+//
+//    override suspend fun getFriends(authHeader: String): SmartResult<List<Friend>, DataError.Network> {
+//        return RetrofitClientExt.safeCall {
+//            RetrofitClient.friendsApi.getFriends(authHeader)
+//        }
+//    }
+//
+//    override suspend fun getFriendRequests(authHeader: String): SmartResult<List<Friend>, DataError.Network> {
+//        return RetrofitClientExt.safeCall {
+//            RetrofitClient.friendsApi.getFriendRequests(authHeader)
+//        }
+//    }
+//
+//    override suspend fun acceptFriendRequest(authHeader: String, acceptRequest: AcceptRequest): SmartResult<Unit, DataError.Network> {
+//        return RetrofitClientExt.safeCall {
+//            RetrofitClient.friendsApi.acceptFriendRequest(authHeader, acceptRequest)
+//        }
+//    }
+//
+//    override suspend fun declineFriendRequest(authHeader: String, declineRequest: DeclineRequest): SmartResult<Unit, DataError.Network> {
+//        return RetrofitClientExt.safeCall {
+//            RetrofitClient.friendsApi.declineFriendRequest(authHeader, declineRequest)
+//        }
+//    }
+
+
+
+
+
+
+
+
+
+
+//    override fun getFriends(): List<Friend> {
+//        TODO("remove")
+//    }
 //    var KEY = ""
 //
 //    fun uploadWallpaper(file: File): String {
@@ -133,8 +237,7 @@ class FirebaseCoreRepositoryImpl(
 
 
 private val _messages = mutableListOf<Message>()
-private val _friends = mutableListOf<Friend>()
-private val _requests = mutableListOf<FriendRequest>()
+
 
 private val _currentUser = User(
     id = "user1",
@@ -344,129 +447,8 @@ init {
             )
         )
     )
-    _friends.addAll(
-        listOf(
-            Friend(
-                id = "1",
-                name = "Alice",
-                avatar = "https://www.shutterstock.com/image-photo/adult-female-avatar-image-on-260nw-2420293027.jpg",
-                lastMessage = "Sent you a wallpaper · 1m",
-                unreadMessages = 2,
-                muted = false,
-            ),
-            Friend(
-                id = "2",
-                name = "Bob",
-                avatar = "https://www.dell.com/wp-uploads/2022/11/Human-like-Avatar-2-640x480.jpg",
-                lastMessage = "Sent you a wallpaper · 5h",
-                unreadMessages = 99,
-                muted = false,
-            ),
-            Friend(
-                id = "3",
-                name = "Charlie",
-                avatar = "https://www.researchgate.net/profile/Kai-Riemer/publication/313794667/figure/fig4/AS:462513214103554@1487283151275/The-same-image-as-Figure-3-rotated-180-degrees-note-how-crude-the-composite-seems_Q320.jpg",
-                lastMessage = "Sent you a wallpaper · 1m",
-                unreadMessages = 0,
-                muted = true,
-            ),
-            Friend(
-                id = "4",
-                name = "Derek",
-                avatar = "https://www.cgw.com/images/Media/PublicationsArticle/pg30b.jpg",
-                lastMessage = "You sent a wallpaper · 1d",
-                unreadMessages = 0,
-                muted = false,
-            ),
-            Friend(
-                id = "5",
-                name = "John",
-                avatar = "-3-rotated-180-degrees-note-how-crude-the-composite-seems_Q320.jpg",
-                lastMessage = "Sent you a wallpaper · 5mo",
-                unreadMessages = 0,
-                muted = false,
-            ),
-            Friend(
-                id = "6",
-                name = "Tim",
-                avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
-                lastMessage = "You sent a wallpaper · 5d",
-                unreadMessages = 0,
-                muted = true,
-            ),
-            Friend(
-                id = "7",
-                name = "Chuck",
-                avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
-                lastMessage = null,
-                unreadMessages = 0,
-                muted = false,
-            ),
-            Friend(
-                id = "8",
-                name = "Tristan",
-                avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
-                lastMessage = null,
-                unreadMessages = 0,
-                muted = false,
-            ),
-            Friend(
-                id = "9",
-                name = "Andrew",
-                avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
-                lastMessage = null,
-                unreadMessages = 0,
-                muted = false,
-            ),
-            Friend(
-                id = "10",
-                name = "Sam",
-                avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
-                lastMessage = null,
-                unreadMessages = 0,
-                muted = false,
-            ),
-            Friend(
-                id = "11",
-                name = "Bob",
-                avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3639665-temp4521.jpg",
-                lastMessage = null,
-                unreadMessages = 0,
-                muted = false,
-            )
 
-        )
-    )
-    _requests.addAll(
-        listOf(
-            FriendRequest(
-                id = "12",
-                name = "David",
-                avatar = "https://comicvine.gamespot.com/a/uploads/scale_small/3/39768/3633678-600full-ian-mckellen.jpg"
-            ),
-            FriendRequest(
-                id = "13",
-                name = "Eva",
-                avatar = "https://comicvine.gamespot.com/a/uploads/original/3/39768/3633865-magneto-daniel%20craig.jpg"
-            )
-        )
-    )
 }
-private val _users = listOf(
-    User(
-        id = "user1",
-        name = "Viktor Didyk",
-        email = "vi.didyk@gmail.com",
-        profilePictureUrl = "https://media.licdn.com/dms/image/D4D03AQG510ilgQaD_g/profile-displayphoto-shrink_200_200/0/1709116748493?e=2147483647&v=beta&t=rfehlo_FlkkyBXfptFpsVWBUcNnQbID_dR0Ght21TTw"
-    ),
-    User(
-        id = "user2",
-        name = "Andrii White",
-        email = "ww@gmail.com",
-        profilePictureUrl = "https://lithelper.com/wp-content/uploads/2020/05/tom1.jpeg"
-    ),
-    // Add more users as needed
-)
 
 override suspend fun retrieveMessages(page: Int, pageSize: Int): Result<List<Message>> {
     Log.d(LOG_TAG, "retrieveMessages called with page: $page, pageSize: $pageSize")
@@ -545,55 +527,15 @@ override fun getUserNameById(userId: String): String {
 }
 
 
-
-
-override fun getFriends(): List<Friend> {
-    return _friends
-}
-
-override fun getFriendRequests(): List<FriendRequest> {
-    return _requests
-}
-
-override fun acceptFriendRequest(requestId: String): Boolean {
-    val request = _requests.find { it.id == requestId }
-    return if (request != null) {
-        _requests.remove(request)
-        _friends.add(
-            Friend(
-                id = request.id,
-                name = request.name,
-                avatar = request.avatar,
-                lastMessage = null,
-                unreadMessages = 0,
-                muted = false
-            )
-        )
-        true
-    } else {
-        false
-    }
-}
-
-override fun rejectFriendRequest(requestId: String): Boolean {
-    val request = _requests.find { it.id == requestId }
-    return if (request != null) {
-        _requests.remove(request)
-        true
-    } else {
-        false
-    }
-}
-
-override fun searchUsers(query: String): List<User> {
-    if (query.length < 3) {
-        return emptyList()
-    }
-    return _users.filter {
-        it.email.contains(query, ignoreCase = true) ||
-                it.name.contains(query, ignoreCase = true)
-    }
-}
+//override fun searchUsers(query: String): List<User> {
+//    if (query.length < 3) {
+//        return emptyList()
+//    }
+//    return _users.filter {
+//        it.email.contains(query, ignoreCase = true) ||
+//                it.name.contains(query, ignoreCase = true)
+//    }
+//}
     override fun getLikeCount(photoId: String): Int {
         return 11
     }

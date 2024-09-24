@@ -7,7 +7,7 @@ import com.studios1299.playwall.feature.play.data.model.User
 
 data class PlayState @OptIn(ExperimentalFoundationApi::class) constructor(
     val friends: List<Friend> = emptyList(),
-    val friendRequests: List<FriendRequest> = emptyList(),
+    val friendRequests: List<Friend> = emptyList(),
     val isLoading: Boolean = false,
     val friendId: TextFieldState = TextFieldState(),
     val searchResults: List<User> = emptyList(),
@@ -25,8 +25,8 @@ data class Friend(
     val muted: Boolean,
 )
 
-data class FriendRequest(
-    val id: String,
-    val name: String,
-    val avatar: String
-)
+//data class FriendRequest(
+//    val id: String,
+//    val name: String,
+//    val avatar: String
+//)

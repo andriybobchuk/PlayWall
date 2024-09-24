@@ -44,5 +44,13 @@ fun DataError.asUiText(): UiText {
         DataError.Network.CONFLICT -> UiText.StringResource(
             R.string.error_conflict
         )
+
+        DataError.Network.NOT_FOUND -> TODO()
+        DataError.Network.INTERNAL_SERVER_ERROR -> TODO()
+        DataError.Network.NOT_IMPLEMENTED -> TODO()
+        DataError.Network.BAD_GATEWAY -> TODO()
+        DataError.Network.SERVICE_UNAVAILABLE -> TODO()
+        DataError.Network.GATEWAY_TIMEOUT -> TODO()
+        DataError.Network.FORBIDDEN -> UiText.DynamicString("Forbidden")
     }
 }

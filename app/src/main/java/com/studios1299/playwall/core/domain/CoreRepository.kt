@@ -1,12 +1,15 @@
 package com.studios1299.playwall.core.domain
 
 import com.studios1299.playwall.core.data.UserProfile
+import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
+import com.studios1299.playwall.core.data.networking.request.friendships.DeclineRequest
+import com.studios1299.playwall.core.domain.error_handling.DataError
+import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.explore.presentation.explore.Photo
 import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.data.model.User
 import com.studios1299.playwall.feature.play.presentation.play.Friend
-import com.studios1299.playwall.feature.play.presentation.play.FriendRequest
 
 interface CoreRepository {
     // CORE
@@ -28,11 +31,17 @@ interface CoreRepository {
     fun getUserNameById(userId: String): String
 
     // FRIENDS
-    fun getFriends(): List<Friend>
-    fun getFriendRequests(): List<FriendRequest>
-    fun acceptFriendRequest(requestId: String): Boolean
-    fun rejectFriendRequest(requestId: String): Boolean
-    fun searchUsers(query: String): List<User>
+    suspend fun inviteFriend(email: String): SmartResult<Unit, DataError.Network>
+    suspend fun getFriends(): SmartResult<List<Friend>, DataError.Network>
+    suspend fun getFriendRequests(): SmartResult<List<Friend>, DataError.Network>
+    suspend fun acceptFriendRequest(acceptRequest: AcceptRequest): SmartResult<Unit, DataError.Network>
+    suspend fun declineFriendRequest(declineRequest: DeclineRequest): SmartResult<Unit, DataError.Network>
+    // legacy
+    //fun getFriends(): List<Friend>
+    //fun getFriendRequests(): List<FriendRequest>
+//    fun acceptFriendRequest(requestId: String): Boolean
+//    fun rejectFriendRequest(requestId: String): Boolean
+//    fun searchUsers(query: String): List<User>
 
     // WALLPAPER MANAGEMENT
     fun isLiked(wallpaperId: String): Boolean

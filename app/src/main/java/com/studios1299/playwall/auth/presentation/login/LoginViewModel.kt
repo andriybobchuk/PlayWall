@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import com.google.firebase.auth.AuthCredential
+import com.studios1299.playwall.core.domain.error_handling.SmartResult
 
 @OptIn(ExperimentalFoundationApi::class)
 class LoginViewModel(
@@ -64,7 +65,7 @@ class LoginViewModel(
             state = state.copy(isLoggingIn = false)
 
             when(result) {
-                is com.studios1299.playwall.core.domain.error_handling.SmartResult.Error -> {
+                is SmartResult.Error -> {
                     if(result.error == DataError.Network.UNAUTHORIZED) {
                         eventChannel.send(
                             LoginEvent.Error(
@@ -75,7 +76,7 @@ class LoginViewModel(
                         eventChannel.send(LoginEvent.Error(result.error.asUiText()))
                     }
                 }
-                is com.studios1299.playwall.core.domain.error_handling.SmartResult.Success -> {
+                is SmartResult.Success -> {
                     eventChannel.send(LoginEvent.LoginSuccess)
                 }
             }
@@ -89,7 +90,7 @@ class LoginViewModel(
             state = state.copy(isLoggingIn = false)
 
             when(result) {
-                is com.studios1299.playwall.core.domain.error_handling.SmartResult.Error -> {
+                is SmartResult.Error -> {
                     if(result.error == DataError.Network.UNAUTHORIZED) {
                         eventChannel.send(
                             LoginEvent.Error(
@@ -100,7 +101,7 @@ class LoginViewModel(
                         eventChannel.send(LoginEvent.Error(result.error.asUiText()))
                     }
                 }
-                is com.studios1299.playwall.core.domain.error_handling.SmartResult.Success -> {
+                is SmartResult.Success -> {
                     eventChannel.send(LoginEvent.LoginSuccess)
                 }
             }

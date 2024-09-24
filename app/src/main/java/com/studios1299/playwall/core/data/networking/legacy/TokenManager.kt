@@ -1,8 +1,6 @@
-package com.studios1299.playwall.core.data.networking
+package com.studios1299.playwall.core.data.networking.legacy
 
-import com.google.firebase.auth.FirebaseAuth
 import com.studios1299.playwall.app.MyApp
-import com.studios1299.playwall.core.data.local.PreferencesDataSource
 import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import kotlinx.coroutines.tasks.await

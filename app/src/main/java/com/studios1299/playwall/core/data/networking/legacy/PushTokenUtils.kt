@@ -1,8 +1,4 @@
-package com.studios1299.playwall.core.data.networking
-
-import android.util.Log
-import com.google.firebase.messaging.FirebaseMessaging
-import retrofit2.Call
+package com.studios1299.playwall.core.data.networking.legacy
 
 class PushTokenUtils {
     companion object {

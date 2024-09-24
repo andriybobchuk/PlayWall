@@ -1,8 +1,8 @@
-package com.studios1299.playwall.core.data.remote
+package com.studios1299.playwall.core.data.networking
 
 import com.studios1299.playwall.BuildConfig
-import com.studios1299.playwall.core.data.remote.api.FriendsApi
-import com.studios1299.playwall.core.data.remote.api.UserApi
+import com.studios1299.playwall.core.data.networking.api.FriendsApi
+import com.studios1299.playwall.core.data.networking.api.UserApi
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
