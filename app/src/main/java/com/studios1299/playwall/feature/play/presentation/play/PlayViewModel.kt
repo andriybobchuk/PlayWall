@@ -116,7 +116,6 @@ class PlayViewModel(
     private fun inviteFriend(email: String) {
         viewModelScope.launch {
 
-            Log.e("TAG", "On invite clicked deep")
             state = state.copy(isLoading = true)
             val inviteFriend = repository.inviteFriend(email)
             if (inviteFriend is SmartResult.Success) {
@@ -145,7 +144,6 @@ class PlayViewModel(
     private fun loadFriendsAndRequests() {
         viewModelScope.launch {
             state = state.copy(isLoading = true)
-            //val friendRequestsResult = repository.getFriendRequests()
 
             when (val friendsResult = repository.getFriends()) {
                 is SmartResult.Success -> {
@@ -159,17 +157,17 @@ class PlayViewModel(
                 }
             }
 
-//            when (friendRequestsResult) {
-//                is SmartResult.Success -> {
-//                    state = state.copy(
-//                        friendRequests = friendRequestsResult.data,
-//                        isLoading = false
-//                    )
-//                }
-//                is SmartResult.Error -> {
-//                    eventChannel.send(PlayEvent.ShowError(friendRequestsResult.error.asUiText()))
-//                }
-//            }
+            when (val friendRequestsResult = repository.getFriendRequests()) {
+                is SmartResult.Success -> {
+                    state = state.copy(
+                        friendRequests = friendRequestsResult.data,
+                        isLoading = false
+                    )
+                }
+                is SmartResult.Error -> {
+                    eventChannel.send(PlayEvent.ShowError(friendRequestsResult.error.asUiText()))
+                }
+            }
         }
     }
 

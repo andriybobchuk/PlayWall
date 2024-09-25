@@ -18,8 +18,9 @@ data class PlayState @OptIn(ExperimentalFoundationApi::class) constructor(
 
 data class Friend(
     val id: String,
-    val name: String,
-    val avatar: String,
+    val nick: String?,
+    val email: String,
+    val avatarId: String?,
     val lastMessage: String?,
     val unreadMessages: Int,
     val muted: Boolean,

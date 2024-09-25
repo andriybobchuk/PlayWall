@@ -171,8 +171,8 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
                         )
                     }
                 ),
-                {
-                    navController.navigate(Graphs.Main.Screens.play_chat)
+                onNavigateToChat = { friendId ->
+                    navController.navigate("${Graphs.Main.Screens.play_chat}/$friendId")
                 },
                 bottomNavbar = { BottomNavigationBar(navController, 0) }
             )
@@ -278,17 +278,21 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
                 ) }
             )
         }
-        composable(Graphs.Main.Screens.play_chat) {
-            MessengerScreen(
-                viewModel = viewModel<ChatViewModel>(
-                    factory = viewModelFactory {
-                        ChatViewModel(
-                            MyApp.appModule.coreRepository
-                        )
-                    }
-                ),
-                onBackClick = { navController.popBackStack() }
-            )
+        composable("${Graphs.Main.Screens.play_chat}/{friendId}") { backStackEntry ->
+            val friendId = backStackEntry.arguments?.getString("friendId")
+            if (friendId != null) {
+                MessengerScreen(
+                    viewModel = viewModel<ChatViewModel>(
+                        factory = viewModelFactory {
+                            ChatViewModel(
+                                MyApp.appModule.coreRepository
+                            )
+                        }
+                    ),
+                    friendId = friendId,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
         }
     }
 }

@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text2.input.clearText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircleOutline
@@ -149,7 +150,8 @@ fun PlayScreen(
         state = state,
         sheetState = inviteSheetState,
         isSheetOpen = isInviteSheetOpen,
-        coroutineScope = coroutineScope
+        coroutineScope = coroutineScope,
+        onAction = onAction
     )
 
     SavedWallpaperSheet(
@@ -370,7 +372,7 @@ fun PlayScreen(
 @Composable
 fun FriendItem(
     friend: Friend,
-    onClick: () -> Unit,
+    onClick: (friendId: String) -> Unit,
     modifier: Modifier = Modifier,
     isSelectable: Boolean = false,
     isSelected: Boolean = false
@@ -391,7 +393,7 @@ fun FriendItem(
         modifier = modifier
             .fillMaxWidth()
             .background(backgroundColor)
-            .clickable { onClick() }
+            .clickable { onClick(friend.id) }
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -403,7 +405,7 @@ fun FriendItem(
             )
         }
         Images.Circle(
-            model = friend.avatar,
+            model = friend.avatarId,
             size = 40.dp
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -411,7 +413,7 @@ fun FriendItem(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = friend.name,
+                text = friend.email,
                 style = MaterialTheme.typography.titleSmall,
                 color = textColor
             )
@@ -461,21 +463,14 @@ fun FriendRequestItem(
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        GlideImage(
-            model = friendRequest.avatar,
-            contentDescription = friendRequest.name,
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.outline)
-        )
+        Images.Circle(model = friendRequest.avatarId)
         Spacer(modifier = Modifier.width(8.dp))
 
         Column(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = stringResource(R.string.sent_a_friend_request, friendRequest.name),
+                text = stringResource(R.string.sent_a_friend_request, friendRequest.email),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -505,7 +500,6 @@ fun FriendRequestItem(
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
-    ExperimentalGlideComposeApi::class
 )
 @Composable
 fun InviteSheet(
@@ -513,6 +507,7 @@ fun InviteSheet(
     sheetState: SheetState,
     isSheetOpen: MutableState<Boolean>,
     coroutineScope: CoroutineScope,
+    onAction: (PlayAction) -> Unit,
 ) {
     if (isSheetOpen.value) {
         ModalBottomSheet(
@@ -544,13 +539,14 @@ fun InviteSheet(
                     title = stringResource(R.string.enter_email),
                     keyboardType = KeyboardType.Email
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Buttons.Primary(
                     text = "Invite",
                     isLoading = state.isLoading,
                     onClick = {
-                        Log.e("TAG", "On invite clicked shallow")
-                        PlayAction.OnInviteFriend(userEmail = state.friendId.toString())
+                        onAction(PlayAction.OnInviteFriend(userEmail = state.friendId.text.toString()))
+                        state.friendId.clearText()
+                        isSheetOpen.value = false
                     }
                 )
             }

@@ -48,6 +48,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MessengerScreen(
     viewModel: ChatViewModel,
+    friendId: String,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -74,36 +75,38 @@ fun MessengerScreen(
 
     FullscreenOverlays(uiState, currentUserId, viewModel)
 
-    Column(modifier = modifier.fillMaxSize()) {
-        MessengerScreenHeader(recipient = uiState.recipient!!, onBackClick = onBackClick)
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxSize()
-        ) {
-            MessagesList(
-                viewModel = viewModel,
-                uiState = uiState,
-                scrollState = scrollState
-            )
-            Row(
+    Scaffold {
+        Column(modifier = modifier.fillMaxSize().padding(it)) {
+            MessengerScreenHeader(recipient = uiState.recipient!!, onBackClick = onBackClick)
+            Box(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(8.dp)
+                    .weight(1f)
+                    .fillMaxSize()
             ) {
-                SendImageButton(
-                    onClick = { requestPermissionAndPickImage() },
-                    modifier = Modifier
-                        .padding(end = 8.dp)
+                MessagesList(
+                    viewModel = viewModel,
+                    uiState = uiState,
+                    scrollState = scrollState
                 )
-                if (!isAtBottom) {
-                    ScrollToBottomButton(
-                        onClick = {
-                            coroutineScope.launch {
-                                scrollState.animateScrollToItem(0)
-                            }
-                        }
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(8.dp)
+                ) {
+                    SendImageButton(
+                        onClick = { requestPermissionAndPickImage() },
+                        modifier = Modifier
+                            .padding(end = 8.dp)
                     )
+                    if (!isAtBottom) {
+                        ScrollToBottomButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    scrollState.animateScrollToItem(0)
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }

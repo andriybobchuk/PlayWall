@@ -17,7 +17,7 @@ object RetrofitClientExt {
             val response = call()
             responseToSmartResult(response)
         } catch (e: Exception) {
-            Log.e("RetrofitClientExt.safeCall()", "safeCall just saved you from exception.")
+            Log.e("RetrofitClientExt.safeCall()", "safeCall just saved you from exception: ${e.message}")
             SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }

@@ -42,6 +42,10 @@ class FirebaseCoreRepositoryImpl(
         return firebaseAuth.currentUser?.uid
     }
 
+    private fun getCurrentUserEmail(): String? {
+        return firebaseAuth.currentUser?.email
+    }
+
     private suspend fun getFirebaseToken(): String? {
         return preferencesDataSource.getAuthToken() ?: refreshFirebaseToken().let {
             if (it is SmartResult.Success) it.data else null
@@ -76,9 +80,11 @@ class FirebaseCoreRepositoryImpl(
 
         return RetrofitClientExt.safeCall {
             val result = request("Bearer $token")
+            Log.e(LOG_TAG, "Token: ${token}")
             if (result.code() == 401 || result.code() == 403) {
                 val refreshedToken = refreshFirebaseToken()
                 if (refreshedToken is SmartResult.Success) {
+                    Log.e(LOG_TAG, "Refreshed token: ${refreshedToken.data}")
                     request("Bearer ${refreshedToken.data}")
                 } else {
                     return@safeCall result // Return the original unauthorized result
@@ -91,20 +97,71 @@ class FirebaseCoreRepositoryImpl(
 
     override suspend fun inviteFriend(email: String): SmartResult<Unit, DataError.Network> {
         return performAuthRequest { token ->
+            if (getCurrentUserEmail() == email) {
+                return SmartResult.Error(DataError.Network.BAD_REQUEST)
+            }
             val inviteRequest = InviteRequest(email = email)
             RetrofitClient.friendsApi.inviteFriend(token, inviteRequest)
         }
     }
 
     override suspend fun getFriends(): SmartResult<List<Friend>, DataError.Network> {
-        return performAuthRequest { token ->
-            RetrofitClient.friendsApi.getFriends(token)
+        return try {
+            val result = performAuthRequest { token ->
+                RetrofitClient.friendsApi.getFriends(token)
+            }
+            if (result is SmartResult.Success) {
+                val friendsWithAvatars = result.data.map { friend ->
+                    if (friend.avatarId == null) {
+                        friend.copy(avatarId = "")
+                    } else {
+                        val avatarUrlResult = loadAvatar(friend.avatarId)
+                        val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
+                            avatarUrlResult.data
+                        } else {
+                            ""
+                        }
+                        friend.copy(avatarId = avatarUrl)
+                    }
+                }
+
+                SmartResult.Success(friendsWithAvatars)
+            } else {
+                SmartResult.Error(DataError.Network.UNKNOWN)
+            }
+        } catch (e: Exception) {
+            SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }
 
     override suspend fun getFriendRequests(): SmartResult<List<Friend>, DataError.Network> {
-        return performAuthRequest { token ->
-            RetrofitClient.friendsApi.getFriendRequests(token)
+        return try {
+            val result = performAuthRequest { token ->
+                RetrofitClient.friendsApi.getFriendRequests(token)
+            }
+
+            if (result is SmartResult.Success) {
+                val friendsWithAvatars = result.data.map { friend ->
+
+                    if (friend.avatarId == null) {
+                        friend.copy(avatarId = "")
+                    } else {
+                        val avatarUrlResult = loadAvatar(friend.avatarId)
+                        val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
+                            avatarUrlResult.data
+                        } else {
+                            ""
+                        }
+                        friend.copy(avatarId = avatarUrl)
+                    }
+                }
+                SmartResult.Success(friendsWithAvatars)
+            } else {
+                SmartResult.Error(DataError.Network.UNKNOWN)
+            }
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, "Exception: " + e.message)
+            SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }
 

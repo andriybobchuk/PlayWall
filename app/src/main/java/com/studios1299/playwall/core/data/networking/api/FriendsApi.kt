@@ -12,7 +12,7 @@ import retrofit2.http.POST
 
 interface FriendsApi {
     @POST("api/friendship")
-    fun inviteFriend(
+    suspend fun inviteFriend(
         @Header("Authorization") authHeader: String,
         @Body inviteRequest: InviteRequest
     ): Response<Unit>
