@@ -9,7 +9,7 @@ import com.studios1299.playwall.explore.presentation.explore.Photo
 data class ProfileState @OptIn(ExperimentalFoundationApi::class) constructor(
     val userName: TextFieldState = TextFieldState(),
     val password: TextFieldState = TextFieldState(),
-
+    val email: TextFieldState = TextFieldState(),
     val userAvatar: String = "",
     val isSaveWallpapersEnabled: Boolean = false,
     val selectedWallpaperOption: WallpaperOption = WallpaperOption.HomeScreen,

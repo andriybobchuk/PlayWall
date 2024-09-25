@@ -1,7 +1,9 @@
 package com.studios1299.playwall.profile.presentation
 
 import android.app.WallpaperManager
+import android.net.Uri
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -21,6 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text2.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Edit
@@ -53,6 +56,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -155,7 +159,7 @@ fun ProfileScreenRoot(
             state = state,
             onAction = { action ->
                 when (action) {
-                    ProfileAction.OnSaveProfileClick -> {
+                    is ProfileAction.OnSaveProfileClick -> {
                         viewModel.onAction(action)
                         showEditProfileDialog = false
                     }
@@ -214,11 +218,32 @@ fun ProfileScreen(
         ) {
             item {
                 Spacer(modifier = Modifier.height(10.dp))
-                ProfileHeader(
-                    name = state.userName.text.toString(),
-                    email = state.password.text.toString(),
-                    avatar = state.userAvatar
-                )
+                Box(Modifier.fillMaxSize()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .align(Alignment.Center)
+                    ) {
+                        Images.Circle(
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                            model = state.userAvatar,
+                            size = 70.dp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        if (state.userName.text.isNotEmpty()) {
+                            Text(
+                                modifier = Modifier.align(Alignment.CenterHorizontally),
+                                text = state.userName.text.toString(),
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        }
+                        Text(
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                            text = state.email.text.toString(),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(16.dp))
             }
             item {
@@ -324,14 +349,15 @@ fun EditProfileDialog(
 ) {
     val name by remember { mutableStateOf(state.userName) }
     val password by remember { mutableStateOf(state.password) }
+    val context = LocalContext.current
 
     val requestImagePicker = rememberRequestPermissionAndPickImage { uri ->
-        onAction(ProfileAction.OnPhotoSelected(uri))
+        onAction(ProfileAction.OnSaveProfileClick(context, null, uri))
     }
     AlertDialog(
         onDismissRequest = { onDismiss() },
         confirmButton = {
-            TextButton(onClick = { onAction(ProfileAction.OnSaveProfileClick) }) {
+            TextButton(onClick = { onAction(ProfileAction.OnSaveProfileClick(context, name.text.toString(), null)) }) {
                 Text(stringResource(R.string.save))
             }
         },
@@ -372,7 +398,7 @@ fun EditProfileDialog(
                         Buttons.Primary(
                             text = stringResource(R.string.delete_photo),
                             isLoading = false,
-                            onClick = { onAction(ProfileAction.OnDeletePhotoClick) },
+                            onClick = { onAction(ProfileAction.OnSaveProfileClick(context, null, Uri.parse(""))) },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.error,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -659,38 +685,6 @@ fun Group(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun ProfileHeader(
-    name: String,
-    email: String,
-    avatar: String,
-) {
-    Box(Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .align(Alignment.Center)
-        ) {
-            Images.Circle(
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                model = avatar,
-                size = 70.dp
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                text = name,
-                style = MaterialTheme.typography.titleLarge
-            )
-            Text(
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                text = email,
-                style = MaterialTheme.typography.bodyMedium
-            )
         }
     }
 }

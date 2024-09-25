@@ -1,8 +1,8 @@
 package com.studios1299.playwall.core.domain
 
-import com.studios1299.playwall.core.data.UserProfile
 import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.DeclineRequest
+import com.studios1299.playwall.core.data.networking.response.UserDataResponse
 import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.model.WallpaperOption
@@ -10,11 +10,13 @@ import com.studios1299.playwall.explore.presentation.explore.Photo
 import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.data.model.User
 import com.studios1299.playwall.feature.play.presentation.play.Friend
+import java.io.File
 
 interface CoreRepository {
     // CORE
     suspend fun getCurrentUserId(): String?
-    suspend fun getUserProfile(): UserProfile
+    suspend fun getUserData(): SmartResult<UserDataResponse, DataError.Network>
+    suspend fun updateProfile(avatarId: String?, nick: String?): SmartResult<Unit, DataError.Network>
 
     // EXPLORE
     suspend fun getExploreItems(): List<Photo>
@@ -29,6 +31,10 @@ interface CoreRepository {
     fun getCurrentUser(): User
     fun getRecipient(): User
     fun getUserNameById(userId: String): String
+
+    // S3
+    suspend fun uploadAvatar(file: File): SmartResult<String, DataError.Network>
+    suspend fun loadAvatar(avatarId: String): SmartResult<String, DataError.Network>
 
     // FRIENDS
     suspend fun inviteFriend(email: String): SmartResult<Unit, DataError.Network>

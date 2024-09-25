@@ -1,6 +1,5 @@
 package com.studios1299.playwall.profile.presentation
 
-import com.studios1299.playwall.core.data.UserProfile
 import com.studios1299.playwall.core.presentation.UiText
 
 sealed interface ProfileEvent {

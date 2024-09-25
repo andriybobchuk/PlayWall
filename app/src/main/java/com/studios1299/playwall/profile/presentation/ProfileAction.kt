@@ -1,5 +1,6 @@
 package com.studios1299.playwall.profile.presentation
 
+import android.content.Context
 import android.net.Uri
 import com.studios1299.playwall.core.domain.model.WallpaperOption
 
@@ -27,7 +28,7 @@ sealed interface ProfileAction {
 
     data object OnEditProfileClick : ProfileAction
     data object OnLogOut : ProfileAction
-    data object OnSaveProfileClick : ProfileAction
+    data class OnSaveProfileClick(val context: Context, val nick: String?, val avatar: Uri?) : ProfileAction
     data object OnCancelEditProfileClick : ProfileAction
     data object OnDeletePhotoClick : ProfileAction
     data class OnPhotoSelected(val uri: Uri) : ProfileAction

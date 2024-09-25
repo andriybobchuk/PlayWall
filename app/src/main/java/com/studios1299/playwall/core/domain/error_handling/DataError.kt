@@ -17,6 +17,7 @@ sealed interface DataError: Error {
         BAD_GATEWAY,
         SERVICE_UNAVAILABLE,
         GATEWAY_TIMEOUT,
+        BAD_REQUEST,
         UNKNOWN
     }
     enum class Local: DataError {

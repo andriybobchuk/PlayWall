@@ -1,7 +1,8 @@
 package com.studios1299.playwall.profile.presentation
 
-import android.app.WallpaperManager
+import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text2.input.TextFieldState
 import androidx.compose.runtime.getValue
@@ -12,11 +13,15 @@ import androidx.lifecycle.viewModelScope
 import com.studios1299.playwall.R
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.core.domain.CoreRepository
+import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.core.presentation.UiText
+import com.studios1299.playwall.core.presentation.asUiText
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.InputStream
 
 @OptIn(ExperimentalFoundationApi::class)
 class ProfileViewModel(
@@ -56,7 +61,7 @@ class ProfileViewModel(
                     navigateToPhotoDetail(action.photoId)
                 }
             }
-            ProfileAction.OnSaveProfileClick -> saveProfile()
+            is ProfileAction.OnSaveProfileClick -> updateProfile(action.context, action.avatar, action.nick)
             ProfileAction.OnCancelEditProfileClick -> cancelEditProfile()
             ProfileAction.OnDeletePhotoClick -> deletePhoto()
             is ProfileAction.OnPhotoSelected -> updatePhoto(action.uri)
@@ -67,12 +72,79 @@ class ProfileViewModel(
         }
     }
 
-    private fun saveProfile() {
+    private fun loadUserProfile() {
         viewModelScope.launch {
-            // Logic to save profile (e.g., repository.updateProfile(state))
-            eventChannel.send(ProfileEvent.ProfileUpdated)
+            state = state.copy(isLoading = true)
+            when (val profileResult = repository.getUserData()) {
+                is SmartResult.Success -> {
+                    state = state.copy(
+                        userName = TextFieldState(profileResult.data.name),
+                        email = TextFieldState(profileResult.data.email),
+                        userAvatar = profileResult.data.avatarId,
+                        selectedWallpaperOption = repository.getWallpaperDestination(),
+                        isSaveWallpapersEnabled = repository.shouldSaveIncomingWallpapers(),
+                        isLoading = false
+                    )
+                    Log.d("loadUserProfile()", "email=" + profileResult.data.email)
+                    Log.d("loadUserProfile()", "avatarId=" + profileResult.data.avatarId)
+                }
+                is SmartResult.Error -> {
+                    eventChannel.send(ProfileEvent.ShowError(profileResult.error.asUiText()))
+                }
+            }
         }
     }
+
+    fun uriToFile(context: Context, uri: Uri): File? {
+        val fileName = "temp_avatar.jpg"
+        val tempFile = File(context.cacheDir, fileName)
+        return try {
+            val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+            tempFile.outputStream().use { outputStream ->
+                inputStream?.copyTo(outputStream)
+            }
+            Log.d("uriToFile", "File created at: ${tempFile.absolutePath}")
+            tempFile
+        } catch (e: Exception) {
+            Log.e("uriToFile", "Error converting Uri to File: ${e.message}", e)
+            null
+        }
+    }
+
+    fun updateProfile(context: Context, avatarUri: Uri?, nick: String?) {
+        viewModelScope.launch {
+            var avatar: String? = null
+            if (avatarUri != null) {
+                val avatarFile = uriToFile(context, avatarUri)
+                if (avatarFile == null || !avatarFile.exists()) {
+                    Log.e("updateProfile", "Failed to convert Uri to File or file does not exist.")
+                    return@launch
+                }
+                val avatarId = repository.uploadAvatar(avatarFile)
+                if (avatarId is SmartResult.Success) {
+                    avatar = avatarId.data
+                    state = state.copy(userAvatar = avatarUri.toString())
+                }
+            }
+
+            val result = repository.updateProfile(avatar, nick)
+            //loadUserProfile()
+
+            if (result is SmartResult.Success) {
+                Log.e("updateProfile", "Profile updated successfully")
+                eventChannel.send(ProfileEvent.ProfileUpdated)
+            } else {
+                Log.e("updateProfile", "Error updating profile: $result")
+                eventChannel.send(ProfileEvent.ShowError(UiText.DynamicString(result.toString())))
+            }
+        }
+    }
+
+
+
+
+
+
 
     private fun cancelEditProfile() {
         viewModelScope.launch {
@@ -104,18 +176,7 @@ class ProfileViewModel(
         state = state.copy(isEditProfileDialogOpen = false)
     }
 
-    private fun loadUserProfile() {
-        viewModelScope.launch {
-            val profile = repository.getUserProfile()
-            state = state.copy(
-                userName = TextFieldState(profile.name),
-                password = TextFieldState(""),
-                userAvatar = profile.avatarUrl,
-                selectedWallpaperOption = repository.getWallpaperDestination(),
-                isSaveWallpapersEnabled = repository.shouldSaveIncomingWallpapers()
-            )
-        }
-    }
+
 
     private fun loadPhotos() {
         viewModelScope.launch {

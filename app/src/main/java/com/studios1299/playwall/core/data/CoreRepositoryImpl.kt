@@ -1,6 +1,6 @@
 package com.studios1299.playwall.core.data
 
-import android.os.Build
+import android.net.Uri
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.studios1299.playwall.core.data.local.PreferencesDataSource
@@ -9,6 +9,8 @@ import com.studios1299.playwall.core.data.networking.RetrofitClientExt
 import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.DeclineRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.InviteRequest
+import com.studios1299.playwall.core.data.networking.request.user.UpdateProfileRequest
+import com.studios1299.playwall.core.data.networking.response.UserDataResponse
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
@@ -22,11 +24,10 @@ import com.studios1299.playwall.feature.play.presentation.play.Friend
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.tasks.await
 import retrofit2.Response
+import java.io.File
 //import software.amazon.awssdk.core.sync.RequestBody
 //import software.amazon.awssdk.services.s3.model.GetObjectRequest
 //import software.amazon.awssdk.services.s3.model.PutObjectRequest
-import java.io.File
-import java.nio.file.Paths
 import java.util.UUID
 
 class FirebaseCoreRepositoryImpl(
@@ -75,7 +76,7 @@ class FirebaseCoreRepositoryImpl(
 
         return RetrofitClientExt.safeCall {
             val result = request("Bearer $token")
-            if (result.code() == 401) {
+            if (result.code() == 401 || result.code() == 403) {
                 val refreshedToken = refreshFirebaseToken()
                 if (refreshedToken is SmartResult.Success) {
                     request("Bearer ${refreshedToken.data}")
@@ -119,92 +120,97 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-//    override suspend fun inviteFriend(authHeader: String, email: String): SmartResult<Unit, DataError.Network> {
-//        return RetrofitClientExt.safeCall {
-//            val inviteRequest = InviteRequest(email = email)
-//            RetrofitClient.friendsApi.inviteFriend(authHeader, inviteRequest)
-//        }
-//    }
-//
-//    override suspend fun getFriends(authHeader: String): SmartResult<List<Friend>, DataError.Network> {
-//        return RetrofitClientExt.safeCall {
-//            RetrofitClient.friendsApi.getFriends(authHeader)
-//        }
-//    }
-//
-//    override suspend fun getFriendRequests(authHeader: String): SmartResult<List<Friend>, DataError.Network> {
-//        return RetrofitClientExt.safeCall {
-//            RetrofitClient.friendsApi.getFriendRequests(authHeader)
-//        }
-//    }
-//
-//    override suspend fun acceptFriendRequest(authHeader: String, acceptRequest: AcceptRequest): SmartResult<Unit, DataError.Network> {
-//        return RetrofitClientExt.safeCall {
-//            RetrofitClient.friendsApi.acceptFriendRequest(authHeader, acceptRequest)
-//        }
-//    }
-//
-//    override suspend fun declineFriendRequest(authHeader: String, declineRequest: DeclineRequest): SmartResult<Unit, DataError.Network> {
-//        return RetrofitClientExt.safeCall {
-//            RetrofitClient.friendsApi.declineFriendRequest(authHeader, declineRequest)
-//        }
-//    }
+    override suspend fun getUserData(): SmartResult<UserDataResponse, DataError.Network> {
+        return try {
+            val result = performAuthRequest { token ->
+                RetrofitClient.userApi.getUserData(token)
+            }
 
+            if (result is SmartResult.Success) {
+                val userData = result.data
+                val avatarUrlResult = loadAvatar(userData.avatarId)
+                val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
+                    avatarUrlResult.data
+                } else {
+                    ""
+                }
 
-
-
-
-
-
-
-
-
-//    override fun getFriends(): List<Friend> {
-//        TODO("remove")
-//    }
-//    var KEY = ""
-//
-//    fun uploadWallpaper(file: File): String {
-//        val uuid = UUID.randomUUID().toString() // Use UUID v4 or v7
-//        val key = "wallpapers/$uuid v4"
-//        KEY = key
-//        Log.e("WALL", "KEY: " + key)
-//
-//        val putObjectRequest = PutObjectRequest.builder()
-//            .bucket("playwall-dev")
-//            .key(key)
-//            .build()
-//
-//        S3ClientProvider.s3Client.putObject(putObjectRequest, RequestBody.fromFile(file))
-//
-//        return key // Return the key for future reference (e.g., for downloading)
-//    }
-//
-//
-//    fun downloadWallpaper(key: String, downloadPath: String) {
-//
-//        val getObjectRequest = GetObjectRequest.builder()
-//            .bucket("playwall-dev")
-//            .key(KEY)
-//            .build()
-//
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            S3ClientProvider.s3Client.getObject(getObjectRequest, Paths.get(downloadPath))
-//        }
-//    }
-
-
-
-
-
-
-    override suspend fun getUserProfile(): UserProfile {
-        return UserProfile(
-            name = "John Doe",
-            email = "johndoe@example.com",
-            avatarUrl = "https://media.licdn.com/dms/image/D4D03AQG510ilgQaD_g/profile-displayphoto-shrink_200_200/0/1709116748493?e=2147483647&v=beta&t=rfehlo_FlkkyBXfptFpsVWBUcNnQbID_dR0Ght21TTw"
-        )
+                SmartResult.Success(
+                    UserDataResponse(
+                        name = userData.name,
+                        email = userData.email,
+                        avatarId = avatarUrl
+                    )
+                )
+            } else {
+                SmartResult.Error(DataError.Network.UNKNOWN)
+            }
+        } catch (e: Exception) {
+            SmartResult.Error(DataError.Network.UNKNOWN)
+        }
     }
+
+
+    override suspend fun updateProfile(avatarId: String?, nick: String?): SmartResult<Unit, DataError.Network> {
+        return try {
+            performAuthRequest { token ->
+                val updateProfileRequest = UpdateProfileRequest(
+                    avatarId = avatarId,
+                    nick = nick
+                )
+                Log.e(LOG_TAG, "Updating profile.. nick = $nick, avatar = $avatarId")
+                RetrofitClient.userApi.updateProfile(token, updateProfileRequest)
+            }
+        } catch (e: Exception) {
+            SmartResult.Error(DataError.Network.UNKNOWN)
+        }
+    }
+
+
+    // S3:
+    override suspend fun uploadAvatar(file: File): SmartResult<String, DataError.Network> {
+        return try {
+            val avatarId = S3Handler.uploadToS3(file)
+            if (avatarId != null) {
+                SmartResult.Success(avatarId)
+            } else {
+                SmartResult.Error(DataError.Network.SERVER_ERROR)
+            }
+        } catch (e: Exception) {
+            SmartResult.Error(DataError.Network.UNKNOWN)
+        }
+    }
+
+    override suspend fun loadAvatar(avatarId: String): SmartResult<String, DataError.Network> {
+        return try {
+            val avatarUrl = S3Handler.loadFromS3(avatarId)
+            if (avatarUrl != null) {
+                SmartResult.Success(avatarUrl)
+            } else {
+                SmartResult.Error(DataError.Network.NOT_FOUND)
+            }
+        } catch (e: Exception) {
+            SmartResult.Error(DataError.Network.UNKNOWN)
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     override suspend fun getExploreItems(): List<Photo> {
         delay(1000)
@@ -585,8 +591,3 @@ override fun getUserNameById(userId: String): String {
 
 
 
-data class UserProfile(
-    val name: String,
-    val email: String,
-    val avatarUrl: String
-)

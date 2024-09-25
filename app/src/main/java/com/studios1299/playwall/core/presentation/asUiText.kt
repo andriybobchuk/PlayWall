@@ -52,5 +52,6 @@ fun DataError.asUiText(): UiText {
         DataError.Network.SERVICE_UNAVAILABLE -> TODO()
         DataError.Network.GATEWAY_TIMEOUT -> TODO()
         DataError.Network.FORBIDDEN -> UiText.DynamicString("Forbidden")
+        DataError.Network.BAD_REQUEST -> UiText.DynamicString("Bad request")
     }
 }
