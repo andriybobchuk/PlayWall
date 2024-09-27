@@ -1,3 +1,5 @@
+package com.studios1299.playwall.core.data.s3
+
 import android.util.Log
 import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
 import aws.sdk.kotlin.services.s3.S3Client
@@ -7,8 +9,6 @@ import aws.sdk.kotlin.services.s3.presigners.presignGetObject
 import aws.smithy.kotlin.runtime.content.ByteStream
 import aws.smithy.kotlin.runtime.content.fromFile
 import com.studios1299.playwall.core.data.Credentials
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
@@ -17,8 +17,12 @@ import kotlin.time.Duration.Companion.seconds
 object S3Handler {
     private const val BUCKET_NAME = "playwall-dev"
     private const val REGION = "eu-north-1"
-    private const val FOLDER_NAME = "avatars/"
-    private const val LOG_TAG = "S3Handler"
+    private const val LOG_TAG = "com.studios1299.playwall.core.data.s3.S3Handler"
+
+    enum class Folder(path: String) {
+        AVATARS("avatars/"),
+        WALLPAPERS("wallpapers/")
+    }
 
     private val s3Client = S3Client {
         region = REGION
@@ -30,32 +34,32 @@ object S3Handler {
         )
     }
 
-    suspend fun uploadToS3(file: File): String? {
+    suspend fun uploadToS3(file: File, folder: Folder): String? {
         return try {
-            val avatarId = "$FOLDER_NAME${UUID.randomUUID()}.jpg"
-            Log.d(LOG_TAG, "Starting upload to S3 with key: $avatarId")
+            val filename = "$folder${UUID.randomUUID()}.jpg"
+            Log.d(LOG_TAG, "Starting upload to S3 with key: $filename")
 
             val request = PutObjectRequest {
                 bucket = BUCKET_NAME
-                key = avatarId
+                key = filename
                 body = ByteStream.fromFile(file)
             }
 
             s3Client.putObject(request)
-            Log.d(LOG_TAG, "File uploaded successfully with key: $avatarId")
+            Log.d(LOG_TAG, "File uploaded successfully with key: $filename")
 
-            avatarId // Return S3 key (avatarId)
+            filename // Return S3 key (avatarId)
         } catch (e: Exception) {
             Log.e(LOG_TAG, "Failed to upload file to S3: ${e.message}", e)
             null // Return null on failure
         }
     }
 
-    suspend fun loadFromS3(avatarId: String): String? {
+    suspend fun loadFromS3(filename: String): String? {
 
         val getObjectRequest = GetObjectRequest {
             bucket = BUCKET_NAME
-            key = avatarId
+            key = filename
         }
 
         return try {
@@ -63,10 +67,10 @@ object S3Handler {
             val presignedRequest = s3Client.presignGetObject(getObjectRequest, 3600.seconds)
 
             val presignedUrl = presignedRequest.url.toString()
-            Log.d("S3Handler", "Generated presigned URL: $presignedUrl")
+            Log.d("com.studios1299.playwall.core.data.s3.S3Handler", "Generated presigned URL: $presignedUrl")
             presignedUrl
         } catch (e: Exception) {
-            Log.e("S3Handler", "Failed to generate presigned URL: ${e.message}", e)
+            Log.e("com.studios1299.playwall.core.data.s3.S3Handler", "Failed to generate presigned URL: ${e.message}", e)
             null
         }
     }

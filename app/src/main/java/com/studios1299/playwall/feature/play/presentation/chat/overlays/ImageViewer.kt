@@ -102,7 +102,7 @@ fun ImageViewer(
                 isMyMessage = isCurrentUser,
                 visible = topBarVisible.value,
                 sender = viewModel.getUserNameById(message.senderId),
-                dateTime = timestampAsDate(message.timestamp, LocalContext.current),
+                email = "email#com.com",
                 onDismiss = onDismiss,
                 onDeleteClick = onDelete
             )
@@ -196,7 +196,7 @@ private fun TopAppBarContent(
     isMyMessage: Boolean,
     visible: Boolean,
     sender: String,
-    dateTime: String,
+    email: String,
     onDismiss: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
@@ -211,7 +211,7 @@ private fun TopAppBarContent(
                 Column {
                     Text(text = sender, style = MaterialTheme.typography.titleMedium)
                     Text(
-                        text = dateTime,
+                        text = email,
                         style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.secondary)
                     )
                 }

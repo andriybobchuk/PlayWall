@@ -128,13 +128,13 @@ fun MessageItem(
         isSheetOpen = isReactSheetOpen,
         coroutineScope = coroutineScope
     )
-    Reactions(
-        viewModel = viewModel,
-        reactions = message.reactions,
-        sheetState = reactionsSheet,
-        isSheetOpen = isReactionsSheetOpen,
-        coroutineScope = coroutineScope
-    )
+//    Reactions(
+//        viewModel = viewModel,
+//        reactions = message.reactions,
+//        sheetState = reactionsSheet,
+//        isSheetOpen = isReactionsSheetOpen,
+//        coroutineScope = coroutineScope
+//    )
 }
 
 /**
@@ -407,7 +407,7 @@ fun ImageBox(
         )
         if (message.caption.isEmpty()) {
             Text(
-                text = timestampAsTime(message.timestamp),
+                text = message.timestamp,
                 style = MaterialTheme.typography.bodySmall.copy(color = Color.White),
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -447,7 +447,7 @@ fun CaptionAndTimestamp(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = timestampAsTime(message.timestamp),
+                text = message.timestamp,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(bottom = 8.dp, start = 8.dp, end = 8.dp)

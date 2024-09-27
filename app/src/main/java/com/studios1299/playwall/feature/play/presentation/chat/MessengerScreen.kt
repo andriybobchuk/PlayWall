@@ -48,7 +48,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun MessengerScreen(
     viewModel: ChatViewModel,
-    friendId: String,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -77,7 +76,7 @@ fun MessengerScreen(
 
     Scaffold {
         Column(modifier = modifier.fillMaxSize().padding(it)) {
-            MessengerScreenHeader(recipient = uiState.recipient!!, onBackClick = onBackClick)
+            MessengerScreenHeader(recipient = uiState.recipient?:User("", "", ""), onBackClick = onBackClick)
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -121,6 +120,7 @@ private fun FullscreenOverlays(
 ) {
     val selectedMessage = uiState.selectedMessage
     val pickedImageUri = uiState.pickedImageUri
+    val context = LocalContext.current
 
     if (selectedMessage != null) {
         ImageViewer(
@@ -129,7 +129,7 @@ private fun FullscreenOverlays(
             viewModel = viewModel,
             onDismiss = { viewModel.setSelectedMessage(null) },
             onDelete = {
-                viewModel.deleteMessage(selectedMessage.id)
+                //viewModel.deleteMessage(selectedMessage.id)
                 viewModel.setSelectedMessage(null)
             }
         )
@@ -138,7 +138,13 @@ private fun FullscreenOverlays(
             imageUri = uiState.pickedImageUri,
             caption = uiState.pickedImageCaption,
             onSendClick = { uri, caption ->
-                viewModel.sendImage(uri, caption)
+               // viewModel.sendImage(uri, caption)
+                viewModel.sendWallpaper(
+                    context = context,
+                    uri = uri,
+                    comment = "",
+                    reaction = ":)",
+                )
                 viewModel.setPickedImage(null)
             },
             onDismiss = {
@@ -177,7 +183,8 @@ fun MessagesList(
             if (messages.indexOf(message) >= messages.size - 1 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
                 viewModel.loadMessages()
             }
-            val isLastMessage = message.id == viewModel.getLastMessageId()
+            val isLastMessage = true
+            //val isLastMessage = message.id == viewModel.getLastMessageId()
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
@@ -195,12 +202,12 @@ fun MessagesList(
             val showDateHeader = if (messages.indexOf(message) == messages.size - 1) {
                 true
             } else {
-                !isSameDay(message.timestamp, messages[messages.indexOf(message) + 1].timestamp)
+               // !isSameDay(message.timestamp, messages[messages.indexOf(message) + 1].timestamp)
             }
 
-            if (showDateHeader) {
-                DateHeader(date = timestampAsDate(message.timestamp, LocalContext.current))
-            }
+//            if (showDateHeader) {
+//                DateHeader(date = timestampAsDate(message.timestamp, LocalContext.current))
+//            }
         }
 
         item {

@@ -7,7 +7,7 @@ import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.messaging.FirebaseMessaging
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.domain.User
-import com.studios1299.playwall.core.data.local.PreferencesDataSource
+import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.networking.request.user.CreateUserRequest
 import com.studios1299.playwall.core.data.networking.RetrofitClientExt
 import com.studios1299.playwall.core.data.networking.RetrofitClient
@@ -20,15 +20,35 @@ import kotlinx.coroutines.tasks.await
 class FirebaseAuthRepositoryImpl(
     private val firebaseAuth: FirebaseAuth,
     private val firebaseMessaging: FirebaseMessaging,
-    private val preferencesDataSource: PreferencesDataSource
 ) : AuthRepository {
     override suspend fun login(email: String, password: String): SmartResult<User, DataError.Network> {
         return try {
             val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
             val firebaseUser = authResult.user
+
             if (firebaseUser != null) {
                 val idToken = firebaseUser.getIdToken(false).await().token
-                preferencesDataSource.setAuthToken(idToken!!)
+                Preferences.setAuthToken(idToken!!)
+
+                val fcmToken = Preferences.getFcmToken()
+                if (fcmToken != null) {
+
+                    try {
+                        val requestBody = mapOf("pushToken" to fcmToken)
+                        val res = RetrofitClient.userApi.updatePushToken("Bearer $idToken", requestBody)
+                        if(res.isSuccessful){
+                            Log.e("Login", "FCM token updated after login")
+                        } else {
+                            Log.e("Login", "FCM token fucked " + res)
+                        }
+                    } catch (e: Exception) {
+                        Log.e("Login", "Exception"+ e.message)
+                    }
+
+                } else {
+                    Log.e("Login", "Why isn't there any FCM token in Preferences?")
+                }
+
                 SmartResult.Success(User(firebaseUser.uid, firebaseUser.email ?: ""))
             } else {
                 SmartResult.Error(DataError.Network.UNAUTHORIZED)
@@ -36,7 +56,7 @@ class FirebaseAuthRepositoryImpl(
         } catch (e: FirebaseAuthException) {
             when (e.errorCode) {
                 "ERROR_INVALID_CREDENTIAL" -> SmartResult.Error(DataError.Network.UNAUTHORIZED)
-                "ERROR_USER_NOT_FOUND" -> SmartResult.Error(DataError.Network.UNAUTHORIZED)
+                "ERROR_USER_NOT_FOUND" -> SmartResult.Error(DataError.Network.NOT_FOUND)
                 else -> SmartResult.Error(DataError.Network.UNKNOWN)
             }
         } catch (e: Exception) {
@@ -53,7 +73,7 @@ class FirebaseAuthRepositoryImpl(
             val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
             val user = authResult.user ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
             val firebaseIdToken = user.getIdToken(false).await().token ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
-            preferencesDataSource.setAuthToken(firebaseIdToken)
+            Preferences.setAuthToken(firebaseIdToken)
             val firebaseFcmToken = firebaseMessaging.token.await() // For PUSH notifications
 
             val result = createUser(
@@ -115,7 +135,7 @@ class FirebaseAuthRepositoryImpl(
             val authResult = firebaseAuth.signInWithCredential(credential).await()
             val user = authResult.user ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
             val firebaseIdToken = user.getIdToken(false).await().token ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
-            preferencesDataSource.setAuthToken(firebaseIdToken)
+            Preferences.setAuthToken(firebaseIdToken)
             val firebaseFcmToken = firebaseMessaging.token.await() // For PUSH notifications
 
             val result = createUser(
@@ -142,5 +162,23 @@ class FirebaseAuthRepositoryImpl(
     override fun logOut() {
         firebaseAuth.signOut()
     }
+
+//    override suspend fun updatePushToken(pushToken: String): SmartResult<Unit, DataError.Network> {
+//        return try {
+//            val response = performAuthRequest { token ->
+//
+//            }
+//            if (response is SmartResult.Success) {
+//                Log.e("FcmService", "New token was updated")
+//                SmartResult.Success(Unit)
+//            } else {
+//                Log.e("FcmService", "New token was NOT updated")
+//                SmartResult.Error(DataError.Network.UNKNOWN)
+//            }
+//        } catch (e: Exception) {
+//            Log.e("FcmService", "New token was excepted" + e.message)
+//            SmartResult.Error(DataError.Network.UNKNOWN)
+//        }
+//    }
 
 }

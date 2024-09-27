@@ -29,16 +29,9 @@ interface UserApi {
     ): Response<Unit>
 
     @POST("api/user/updatePushToken")
-    fun updatePushToken(
+    suspend fun updatePushToken(
         @Header("Authorization") authHeader: String,
-        @Body createUserRequest: CreateUserRequest
+        @Body createUserRequest: Map<String, String>
     ): Response<Void>
 
-
-
-//    @POST("api/changeWallpaper")
-//    fun changeWallpaper(
-//        @Header("Authorization") authHeader: String,
-//        @Body changeWallpaperRequest: ChangeWallpaperRequest
-//    ): Call<Void>
 }

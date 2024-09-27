@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import com.studios1299.playwall.app.config.FirebaseManager
 import com.studios1299.playwall.app.di.AppModule
 import com.studios1299.playwall.app.di.AppModuleImpl
+import com.studios1299.playwall.core.data.local.Preferences
 
 class MyApp: Application() {
 
@@ -21,5 +22,8 @@ class MyApp: Application() {
 
         // Initialize Firebase and app config
         FirebaseManager.init(this)
+
+        // Shared prefs:
+        Preferences.initialize(this)
     }
 }

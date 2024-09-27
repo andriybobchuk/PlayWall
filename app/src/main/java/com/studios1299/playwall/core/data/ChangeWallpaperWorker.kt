@@ -7,20 +7,23 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.studios1299.playwall.R
+import com.studios1299.playwall.core.data.s3.S3Handler
+import java.net.URL
 
 class ChangeWallpaperWorker(context: Context, params: WorkerParameters) : CoroutineWorker(
     context, params) {
     override suspend fun doWork(): Result {
         val fileName = inputData.getString("file_name") ?: return Result.failure()
-        val setLockScreen = inputData.getBoolean("set_lock_screen", true)
-        val setHomeScreen = inputData.getBoolean("set_home_screen", true)
-       // val storageRef = FirebaseStorage.getInstance().reference.child("images/$fileName")
-
+        val setLockScreen = true
+        val setHomeScreen = true
+        Log.e("ChangeWallpaperWorker", "start")
         return try {
-            //val byteArray = storageRef.getBytes(Long.MAX_VALUE).await()
-            //val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
 
-            val bitmap = BitmapFactory.decodeResource(applicationContext.resources, R.drawable.wall_a)
+            val wallpaperUrl = S3Handler.loadFromS3(fileName)
+
+            val url = URL(wallpaperUrl)
+            val bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream())
+
             val wallpaperManager = WallpaperManager.getInstance(applicationContext)
             var flags = 0
             if (setHomeScreen) {

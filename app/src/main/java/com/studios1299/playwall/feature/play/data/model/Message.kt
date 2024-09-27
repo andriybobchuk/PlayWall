@@ -6,12 +6,12 @@ data class Reaction(
 )
 
 data class Message(
-    val id: String,
+    val id: Int,
     val imageUrl: String,
     val caption: String,
-    val timestamp: Long,
+    val timestamp: String,
     val status: MessageStatus,
-    val reactions: List<Reaction>,
+    val reactions: List<String>,
     val senderId: String,
     val recipientId: String
 )

@@ -79,6 +79,7 @@ import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
+import com.studios1299.playwall.feature.play.presentation.chat.util.requestNotificationPermissionWithDexter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -145,6 +146,8 @@ fun PlayScreen(
 
     var showUnfriendDialog by remember { mutableStateOf(false) }
     var showMuteDialog by remember { mutableStateOf(false) }
+
+    requestNotificationPermissionWithDexter(LocalContext.current)
 
     InviteSheet(
         state = state,

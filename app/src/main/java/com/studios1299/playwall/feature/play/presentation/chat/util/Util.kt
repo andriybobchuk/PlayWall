@@ -1,12 +1,21 @@
 package com.studios1299.playwall.feature.play.presentation.chat.util
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.util.Log
 import androidx.compose.ui.unit.Dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.single.PermissionListener
 import com.studios1299.playwall.R
 import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import java.text.SimpleDateFormat
@@ -100,4 +109,29 @@ fun isSameDay(timestamp1: Long, timestamp2: Long): Boolean {
     val calendar2 = Calendar.getInstance().apply { timeInMillis = timestamp2 }
     return calendar1.get(Calendar.YEAR) == calendar2.get(Calendar.YEAR) &&
             calendar1.get(Calendar.DAY_OF_YEAR) == calendar2.get(Calendar.DAY_OF_YEAR)
+}
+
+fun requestNotificationPermissionWithDexter(context: Context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Dexter.withContext(context)
+            .withPermission(Manifest.permission.POST_NOTIFICATIONS)
+            .withListener(object : PermissionListener {
+                override fun onPermissionGranted(response: PermissionGrantedResponse) {
+                    Log.d("MainActivity", "Notification permission granted.")
+                }
+
+                override fun onPermissionDenied(response: PermissionDeniedResponse) {
+                    Log.d("MainActivity", "Notification permission denied.")
+                }
+
+                override fun onPermissionRationaleShouldBeShown(
+                    permission: com.karumi.dexter.listener.PermissionRequest?,
+                    token: PermissionToken?
+                ) {
+                    Log.d("MainActivity", "Permission rationale should be shown.")
+                    // Call continuePermissionRequest() to continue asking for the permission
+                    token?.continuePermissionRequest()
+                }
+            }).check()
+    }
 }

@@ -58,7 +58,7 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun MessageReactionIndicator(
-    reactions: List<Reaction>,
+    reactions: List<String>,
     onReactionClick: () -> Unit,
     isCurrentUser: Boolean,
     modifier: Modifier
@@ -75,7 +75,7 @@ fun MessageReactionIndicator(
             Row {
                 reactions.forEach { reaction ->
                     Text(
-                        text = reaction.emoji,
+                        text = reaction,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(2.dp)
                     )
@@ -171,7 +171,8 @@ fun ReactSheet(
                 }
             }
         ) {
-            val selectedEmoji = viewModel.getUserReaction(message.id, currentUserId)?.emoji
+            val selectedEmoji = "XD"
+           // val selectedEmoji = viewModel.getUserReaction(message.id, currentUserId)?.emoji
             val isCurrentUser = message.senderId == currentUserId
 
             Column(
@@ -200,11 +201,11 @@ fun ReactSheet(
                                 )
                                 .clickable {
                                     if (selectedEmoji == emoji) {
-                                        viewModel.removeReaction(message.id, currentUserId)
+                                       // viewModel.removeReaction(message.id, currentUserId)
                                     } else {
                                         val reaction =
                                             Reaction(userName = currentUserId, emoji = emoji)
-                                        viewModel.addOrUpdateReaction(message.id, reaction)
+                                      //  viewModel.addOrUpdateReaction(message.id, reaction)
                                     }
                                     isSheetOpen.value = false
                                 }
@@ -217,7 +218,7 @@ fun ReactSheet(
                 if (isCurrentUser) {
                     Button(
                         onClick = {
-                            viewModel.deleteMessage(message.id)
+                       //     viewModel.deleteMessage(message.id)
                             isSheetOpen.value = false
                         },
                         modifier = Modifier

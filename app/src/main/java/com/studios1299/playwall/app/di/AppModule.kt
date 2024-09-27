@@ -10,8 +10,6 @@ import com.studios1299.playwall.auth.data.FirebaseAuthRepositoryImpl
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.domain.PatternValidator
 import com.studios1299.playwall.core.data.FirebaseCoreRepositoryImpl
-import com.studios1299.playwall.core.data.local.PreferencesDataSource
-import com.studios1299.playwall.core.data.local.PreferencesDataSourceImpl
 import com.studios1299.playwall.core.domain.CoreRepository
 
 /**
@@ -81,35 +79,21 @@ interface AppModule {
     val firebaseAuth: FirebaseAuth
     val crashlytics: FirebaseCrashlytics
     val firebaseMessaging: FirebaseMessaging
-    val sharedPreferences: SharedPreferences
-    val preferencesDataSource: PreferencesDataSource
 }
 
 class AppModuleImpl(
     private val appContext: Context
 ): AppModule {
 
-    override val sharedPreferences: SharedPreferences by lazy {
-        appContext.getSharedPreferences("playwall", Context.MODE_PRIVATE)
-    }
-
-    override val preferencesDataSource: PreferencesDataSource by lazy {
-        PreferencesDataSourceImpl(
-            sharedPreferences = sharedPreferences
-        )
-    }
-
     override val coreRepository: CoreRepository by lazy {
         FirebaseCoreRepositoryImpl(
-            firebaseAuth = firebaseAuth,
-            preferencesDataSource = preferencesDataSource
+            firebaseAuth = firebaseAuth
         )
     }
     override val authRepository: AuthRepository by lazy {
         FirebaseAuthRepositoryImpl(
             firebaseAuth = firebaseAuth,
             firebaseMessaging = firebaseMessaging,
-            preferencesDataSource = preferencesDataSource
         )
     }
     override val firebaseAuth: FirebaseAuth by lazy {

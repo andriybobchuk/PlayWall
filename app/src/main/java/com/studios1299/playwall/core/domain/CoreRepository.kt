@@ -2,7 +2,10 @@ package com.studios1299.playwall.core.domain
 
 import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.DeclineRequest
+import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
 import com.studios1299.playwall.core.data.networking.response.UserDataResponse
+import com.studios1299.playwall.core.data.networking.response.WallpaperHistoryResponse
+import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.model.WallpaperOption
@@ -24,16 +27,16 @@ interface CoreRepository {
 
     // CHAT
     suspend fun retrieveMessages(page: Int, pageSize: Int): Result<List<Message>>
-    fun getLastMessageId(): Result<String>
+   // fun getLastMessageId(): Result<String>
     fun addMessage(message: Message)
-    fun deleteMessage(messageId: String)
+    //fun deleteMessage(messageId: String)
     fun updateMessage(message: Message)
     fun getCurrentUser(): User
     fun getRecipient(): User
     fun getUserNameById(userId: String): String
 
     // S3
-    suspend fun uploadAvatar(file: File): SmartResult<String, DataError.Network>
+    suspend fun uploadFile(file: File, folder: S3Handler.Folder): SmartResult<String, DataError.Network>
     suspend fun loadAvatar(avatarId: String): SmartResult<String, DataError.Network>
 
     // FRIENDS
@@ -49,7 +52,17 @@ interface CoreRepository {
 //    fun rejectFriendRequest(requestId: String): Boolean
 //    fun searchUsers(query: String): List<User>
 
-    // WALLPAPER MANAGEMENT
+
+    // wall NEW
+    suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<Unit, DataError.Network>
+    suspend fun getRecipientData(recipientId: String): SmartResult<UserDataResponse, DataError.Network>
+    suspend fun getWallpaperHistory(userId: String, page: Int, pageSize: Int): SmartResult<List<WallpaperHistoryResponse>, DataError.Network>
+    suspend fun react(wallpaperId: Int, reaction: String): SmartResult<Unit, DataError.Network>
+    suspend fun comment(wallpaperId: Int, comment: String): SmartResult<Unit, DataError.Network>
+
+
+
+    // WALLPAPER MANAGEMENT LEGACY
     fun isLiked(wallpaperId: String): Boolean
     fun setLiked(wallpaperId: String, isLiked: Boolean)
     fun getWallpaperDestination(): WallpaperOption

@@ -12,6 +12,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.studios1299.playwall.R
 import com.studios1299.playwall.auth.domain.AuthRepository
+import com.studios1299.playwall.core.data.s3.S3Handler
+import com.studios1299.playwall.core.data.s3.uriToFile
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.model.WallpaperOption
@@ -20,8 +22,6 @@ import com.studios1299.playwall.core.presentation.asUiText
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.InputStream
 
 @OptIn(ExperimentalFoundationApi::class)
 class ProfileViewModel(
@@ -95,21 +95,7 @@ class ProfileViewModel(
         }
     }
 
-    fun uriToFile(context: Context, uri: Uri): File? {
-        val fileName = "temp_avatar.jpg"
-        val tempFile = File(context.cacheDir, fileName)
-        return try {
-            val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-            tempFile.outputStream().use { outputStream ->
-                inputStream?.copyTo(outputStream)
-            }
-            Log.d("uriToFile", "File created at: ${tempFile.absolutePath}")
-            tempFile
-        } catch (e: Exception) {
-            Log.e("uriToFile", "Error converting Uri to File: ${e.message}", e)
-            null
-        }
-    }
+
 
     fun updateProfile(context: Context, avatarUri: Uri?, nick: String?) {
         viewModelScope.launch {
@@ -120,7 +106,7 @@ class ProfileViewModel(
                     Log.e("updateProfile", "Failed to convert Uri to File or file does not exist.")
                     return@launch
                 }
-                val avatarId = repository.uploadAvatar(avatarFile)
+                val avatarId = repository.uploadFile(avatarFile, S3Handler.Folder.AVATARS)
                 if (avatarId is SmartResult.Success) {
                     avatar = avatarId.data
                     state = state.copy(userAvatar = avatarUri.toString())

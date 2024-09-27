@@ -285,11 +285,11 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
                     viewModel = viewModel<ChatViewModel>(
                         factory = viewModelFactory {
                             ChatViewModel(
-                                MyApp.appModule.coreRepository
+                                chatRepository = MyApp.appModule.coreRepository,
+                                friendId = friendId,
                             )
                         }
                     ),
-                    friendId = friendId,
                     onBackClick = { navController.popBackStack() }
                 )
             }

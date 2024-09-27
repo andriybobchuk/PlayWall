@@ -11,6 +11,7 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 
 interface FriendsApi {
+
     @POST("api/friendship")
     suspend fun inviteFriend(
         @Header("Authorization") authHeader: String,
@@ -34,34 +35,4 @@ interface FriendsApi {
         @Header("Authorization") authHeader: String,
         @Body declineRequest: DeclineRequest
     ): Response<Unit>
-//
-//    @GET("api/wallpaperHistory/{userId}")
-//    suspend fun getWallpaperHistory(
-//        @Header("Authorization") authHeader: String,
-//        @Path("userId") userId: Int
-//    ): List<Wallpaper>
-//
-//    @POST("api/wallpaper/addReaction")
-//    suspend fun addReaction(
-//        @Header("Authorization") authHeader: String,
-//        @Body reactionRequest: ReactionRequest
-//    ): Response<Void>
-//
-//    @POST("api/wallpaper/removeReaction")
-//    suspend fun removeReaction(
-//        @Header("Authorization") authHeader: String,
-//        @Body reactionRequest: ReactionRequest
-//    ): Response<Void>
-//
-//    @POST("api/wallpaper/report")
-//    suspend fun reportWallpaper(
-//        @Header("Authorization") authHeader: String,
-//        @Body reportRequest: ReportRequest
-//    ): Response<Void>
-//
-//    @POST("api/wallpaper/addComment")
-//    suspend fun addComment(
-//        @Header("Authorization") authHeader: String,
-//        @Body commentRequest: CommentRequest
-//    ): Response<Void>
 }
