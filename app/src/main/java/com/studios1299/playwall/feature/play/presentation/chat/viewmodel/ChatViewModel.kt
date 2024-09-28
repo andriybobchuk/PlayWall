@@ -18,12 +18,12 @@ import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.data.model.User
 import com.studios1299.playwall.feature.play.data.DefaultPaginator
+import com.studios1299.playwall.feature.play.data.model.Reaction
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 class ChatViewModel(
     private val chatRepository: CoreRepository,
@@ -83,7 +83,7 @@ class ChatViewModel(
                     imageUrl = it.fileName,
                     caption = it.comment?:"",
                     timestamp = it.dateCreated,
-                    reactions = listOf(it.reaction?:""),
+                    reaction = it.reaction,
                     senderId = it.requesterId,
                     status = MessageStatus.SENT,
                     recipientId = it.recipientId
@@ -108,17 +108,17 @@ class ChatViewModel(
         Log.d(LOG_TAG, "ViewModel initialized")
         loadRecipientData()
         loadMessages()
-        setCurrentUser(chatRepository.getCurrentUser())
+        setCurrentUser()
     }
 
     private fun loadRecipientData() {
         viewModelScope.launch {
-            when (val result = chatRepository.getRecipientData(friendId)) {
+            when (val result = chatRepository.getUserDataById(friendId)) {
                 is SmartResult.Success -> {
                     _uiState.update { currentState ->
                         currentState.copy(
                             recipient = User(
-                            id = "",
+                            id = result.data.id,
                             name = result.data.name,
                             profilePictureUrl = result.data.avatarId,
                             email = result.data.email,
@@ -153,49 +153,29 @@ class ChatViewModel(
         }
     }
 
-    private fun setCurrentUser(user: User) {
-        _uiState.update { currentState ->
-            currentState.copy(currentUser = user)
+    private fun setCurrentUser() {
+        viewModelScope.launch {
+            when (val result = chatRepository.getUserData()) {
+                is SmartResult.Error -> {
+                    Log.e(LOG_TAG, "Error: setCurrentUser()")
+                }
+                is SmartResult.Success -> {
+                    _uiState.update { currentState ->
+                        currentState.copy(currentUser =
+                        User(
+                            id = result.data.id,
+                            name = result.data.name,
+                            email = result.data.email,
+                            profilePictureUrl = result.data.avatarId
+                        ))
+                    }
+                }
+            }
         }
     }
 
-//    fun sendImage(imageUri: Uri?, caption: String) {
-//        viewModelScope.launch {
-//            Log.d(LOG_TAG, "Sending image with URI: $imageUri and caption: $caption")
-//
-//            val messageId = 60
-//            Log.e(LOG_TAG, "new ID: $messageId")
-//            val timestamp = System.currentTimeMillis()
-//
-//            imageUri?.let { uri ->
-//                val message = Message(
-//                    id = messageId,
-//                    imageUrl = uri.toString(),
-//                    caption = caption,
-//                    timestamp = timestamp.toString(),
-//                    status = MessageStatus.SENT,
-//                    reactions = listOf(),
-//                    senderId = _uiState.value.currentUser!!.id,
-//                    recipientId = _uiState.value.recipient!!.id
-//                )
-//                chatRepository.addMessage(message)
-//                Log.d(LOG_TAG, "Message added: $message")
-//                // Add message to current UI state without reloading all messages and
-//                // NOT to trigger recomposition!!
-//                _uiState.update { currentState ->
-//                    currentState.copy(messages = listOf(message) + currentState.messages)
-//                }
-//            } ?: Log.e(LOG_TAG, "No image URI provided")
-//        }
-//    }
-
     fun sendWallpaper(context: Context, uri: Uri?, comment: String?, reaction: String?) {
         viewModelScope.launch {
-
-            Log.e("DEBUGG", "Friend/recipient id: " + friendId)
-
-
-
             var s3Filename: String? = null
             if (uri != null) {
                 val wallpaperFile = uriToFile(context, uri)
@@ -236,23 +216,7 @@ class ChatViewModel(
     }
 
 
-//    fun deleteMessage(messageId: String) {
-//        Log.d(LOG_TAG, "Deleting message with ID: $messageId")
-//        chatRepository.deleteMessage(messageId)
-//        // Remove message DIRECTLY from UI state NOT to trigger recomposition!!
-//        _uiState.update { currentState ->
-//            val updatedMessages = currentState.messages.filterNot { it.id == messageId }
-//            currentState.copy(messages = updatedMessages)
-//        }
-//        Log.d(LOG_TAG, "Message deleted")
-//    }
-
-//    fun getUserReaction(messageId: String, userId: String): Reaction? {
-//        return _uiState.value.messages.find { it.id == messageId }
-//            ?.reactions?.find { it.userName == userId }
-//    }
-//
-//    fun addOrUpdateReaction(messageId: String, reaction: Reaction) {
+//    fun addOrUpdateReaction(messageId: String, reaction: Reaction?) {
 //        _uiState.update { currentState ->
 //            val messages = currentState.messages.map { message ->
 //                if (message.id == messageId) {
@@ -272,48 +236,72 @@ class ChatViewModel(
 //            currentState.copy(messages = messages)
 //        }
 //    }
+    fun addOrUpdateReaction(messageId: Int, reaction: Reaction?) {
+        viewModelScope.launch {
+            val result = if (reaction != null && reaction.emoji.isNotEmpty()) {
+                chatRepository.react(messageId, reaction.name)
+            } else {
+                chatRepository.react(messageId, null)
+            }
 
-//    fun removeReaction(messageId: String, userId: String) {
-//        _uiState.update { currentState ->
-//            val messages = currentState.messages.map { message ->
-//                if (message.id == messageId) {
-//                    val newReactions = message.reactions.filterNot { it.userName == userId }
-//                    message.copy(reactions = newReactions)
-//                } else {
-//                    message
-//                }
-//            }
-//            currentState.copy(messages = messages)
-//        }
-//    }
+            if (result is SmartResult.Success) {
+                _uiState.update { currentState ->
+                    val messages = currentState.messages.map { message ->
+                        if (message.id == messageId) {
+                            message.copy(reaction = reaction)
+                        } else {
+                            message
+                        }
+                    }
+                    currentState.copy(messages = messages)
+                }
+            } else {
+                Log.e("addOrUpdateReaction", "Error reacting: $result")
+            }
+        }
+    }
+
+    fun addOrUpdateComment(messageId: Int, comment: String?) {
+        viewModelScope.launch {
+            val result = if (!comment.isNullOrEmpty()) {
+                chatRepository.comment(messageId, comment)
+            } else {
+                chatRepository.comment(messageId, null)
+            }
+
+            if (result is SmartResult.Success) {
+                _uiState.update { currentState ->
+                    val messages = currentState.messages.map { message ->
+                        if (message.id == messageId) {
+                            message.copy(caption = comment)
+                        } else {
+                            message
+                        }
+                    }
+                    currentState.copy(messages = messages)
+                }
+            } else {
+                Log.e("addOrUpdateComment", "Error commenting: $result")
+            }
+        }
+    }
+
 
     fun getUserNameById(userId: String): String {
         return chatRepository.getUserNameById(userId)
     }
 
-    fun updateMessageCaption(message: Message, newCaption: String) {
-        val updatedMessage = message.copy(caption = newCaption)
-        chatRepository.updateMessage(updatedMessage)
-
-        Log.d(LOG_TAG, "updateMessageCaption with newCaption: ${newCaption}")
-
-        _uiState.update { currentState ->
-            val updatedMessages = currentState.messages.map {
-                if (it.id == message.id) updatedMessage else it
-            }
-            currentState.copy(messages = updatedMessages)
-        }
-    }
-
-//    fun getLastMessageId(): String {
-//        val result = chatRepository.getLastMessageId()
-//        result.onSuccess { lastMessageId ->
-//            Log.d(LOG_TAG, "Last message ID: $lastMessageId")
-//            return lastMessageId
-//        }.onFailure { exception ->
-//            Log.e(LOG_TAG, "Failed to get last message ID: ${exception.localizedMessage}")
-//            return ""
+//    fun updateMessageCaption(message: Message, newCaption: String) {
+//        val updatedMessage = message.copy(caption = newCaption)
+//        chatRepository.updateMessage(updatedMessage)
+//
+//        Log.d(LOG_TAG, "updateMessageCaption with newCaption: ${newCaption}")
+//
+//        _uiState.update { currentState ->
+//            val updatedMessages = currentState.messages.map {
+//                if (it.id == message.id) updatedMessage else it
+//            }
+//            currentState.copy(messages = updatedMessages)
 //        }
-//        return ""
 //    }
 }

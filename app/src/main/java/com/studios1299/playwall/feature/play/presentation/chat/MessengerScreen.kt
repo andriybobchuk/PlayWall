@@ -52,7 +52,6 @@ fun MessengerScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val currentUserId = uiState.currentUser!!.id
     val requestPermissionAndPickImage = rememberRequestPermissionAndPickImage(
         onImagePicked = { uri ->
             viewModel.setPickedImage(uri)
@@ -72,11 +71,11 @@ fun MessengerScreen(
         viewModel.setConnectivityStatus(isConnected)
     }
 
-    FullscreenOverlays(uiState, currentUserId, viewModel)
+    FullscreenOverlays(uiState, viewModel)
 
     Scaffold {
         Column(modifier = modifier.fillMaxSize().padding(it)) {
-            MessengerScreenHeader(recipient = uiState.recipient?:User("", "", ""), onBackClick = onBackClick)
+            MessengerScreenHeader(recipient = uiState.recipient?:User(-1, "", ""), onBackClick = onBackClick)
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -115,7 +114,6 @@ fun MessengerScreen(
 @Composable
 private fun FullscreenOverlays(
     uiState: MessengerUiState,
-    currentUserId: String,
     viewModel: ChatViewModel
 ) {
     val selectedMessage = uiState.selectedMessage
@@ -124,26 +122,20 @@ private fun FullscreenOverlays(
 
     if (selectedMessage != null) {
         ImageViewer(
-            currentUserId = currentUserId,
+            uiState = uiState,
             message = selectedMessage,
-            viewModel = viewModel,
             onDismiss = { viewModel.setSelectedMessage(null) },
-            onDelete = {
-                //viewModel.deleteMessage(selectedMessage.id)
-                viewModel.setSelectedMessage(null)
-            }
         )
     } else if (pickedImageUri != null) {
         ImagePicker(
             imageUri = uiState.pickedImageUri,
             caption = uiState.pickedImageCaption,
             onSendClick = { uri, caption ->
-               // viewModel.sendImage(uri, caption)
                 viewModel.sendWallpaper(
                     context = context,
                     uri = uri,
-                    comment = "",
-                    reaction = ":)",
+                    comment = null,
+                    reaction = null,
                 )
                 viewModel.setPickedImage(null)
             },
@@ -183,8 +175,8 @@ fun MessagesList(
             if (messages.indexOf(message) >= messages.size - 1 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
                 viewModel.loadMessages()
             }
-            val isLastMessage = true
-            //val isLastMessage = message.id == viewModel.getLastMessageId()
+            val isLastMessage = message.id == messages[messages.size-1].id
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
@@ -202,12 +194,12 @@ fun MessagesList(
             val showDateHeader = if (messages.indexOf(message) == messages.size - 1) {
                 true
             } else {
-               // !isSameDay(message.timestamp, messages[messages.indexOf(message) + 1].timestamp)
+                !isSameDay(message.timestamp, messages[messages.indexOf(message) + 1].timestamp)
             }
 
-//            if (showDateHeader) {
-//                DateHeader(date = timestampAsDate(message.timestamp, LocalContext.current))
-//            }
+            if (showDateHeader) {
+                DateHeader(date = timestampAsDate(message.timestamp, LocalContext.current))
+            }
         }
 
         item {
@@ -318,20 +310,20 @@ fun MessengerScreenHeader(
 
                     Column {
                         Text(
-                            text = recipient.name,
+                            text = recipient.email,
                             style = MaterialTheme.typography.titleSmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = stringResource(R.string.last_online) + timestampAsDate(recipient.lastOnline, LocalContext.current),
+                            text = "Became friends on...",
                             color = MaterialTheme.colorScheme.secondary,
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    BuildCounterDisplay()
+                    //BuildCounterDisplay()
                 }
             }
         }

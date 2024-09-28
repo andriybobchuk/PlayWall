@@ -88,16 +88,15 @@ fun MessageItem(
     message: Message,
     isLastMessage: Boolean
 ) {
-    Log.e("Hey", "existing msg ID: ${message.id}")
     val coroutineScope = rememberCoroutineScope()
     val reactSheet = rememberModalBottomSheetState()
     val isReactSheetOpen = remember { mutableStateOf(false) }
-    val reactionsSheet = rememberModalBottomSheetState()
+    //val reactionsSheet = rememberModalBottomSheetState()
     val isReactionsSheetOpen = remember { mutableStateOf(false) }
     val onReact = { isReactSheetOpen.value = true }
     val onCheckReactions = { isReactionsSheetOpen.value = true }
 
-    val currentUserId = uiState.currentUser!!.id
+    val currentUserId = uiState.currentUser?.id
     if (message.senderId == currentUserId) {
         MessageContent(
             viewModel = viewModel,
@@ -113,7 +112,7 @@ fun MessageItem(
             modifier = swipeModifier(onReact),
             viewModel = viewModel,
             message = message,
-            currentUserId = currentUserId,
+            currentUserId = currentUserId?:-1,
             isLastMessage = isLastMessage,
             horizontalArrangement = Arrangement.End,
             onReact = onReact,
@@ -123,7 +122,7 @@ fun MessageItem(
     ReactSheet(
         viewModel = viewModel,
         message = message,
-        currentUserId = currentUserId,
+        currentUserId = currentUserId?:-1,
         sheetState = reactSheet,
         isSheetOpen = isReactSheetOpen,
         coroutineScope = coroutineScope
@@ -149,7 +148,7 @@ fun MessageContent(
     modifier: Modifier = Modifier,
     viewModel: ChatViewModel,
     message: Message,
-    currentUserId: String,
+    currentUserId: Int,
     isLastMessage: Boolean,
     horizontalArrangement: Arrangement.Horizontal,
     onReact: () -> Unit,
@@ -249,11 +248,12 @@ private fun swipeModifier(
 private fun MessageBubble(
     viewModel: ChatViewModel,
     message: Message,
-    currentUserId: String,
+    currentUserId: Int,
     onReact: () -> Unit,
     onCheckReactions: () -> Unit,
     horizontalArrangement: Arrangement.Horizontal,
 ) {
+    Log.e(LOG_TAG, "messagebuble, selected message: " + message)
     val (maxWidth, maxHeight) = getMaxMessageDimensions()
     var aspectRatio by remember { mutableFloatStateOf(1f) }
     var dimensionsLoaded by remember { mutableStateOf(false) }
@@ -281,7 +281,11 @@ private fun MessageBubble(
                 bubbleModifier(isCurrentUser)
                     .combinedClickable(
                         onClick = {},
-                        onLongClick = { onReact() }
+                        onLongClick = {
+                            if (message.senderId != currentUserId) {
+                                onReact()
+                            }
+                        }
                     )
             ) {
                 ImageBox(
@@ -289,7 +293,11 @@ private fun MessageBubble(
                     message = message,
                     imageWidth = imageWidth,
                     imageHeight = imageHeight,
-                    onReactionClick = { onReact() }
+                    onReactionClick = {
+                        if (message.senderId != currentUserId) {
+                            onReact()
+                        }
+                    }
                 )
                 CaptionAndTimestamp(
                     message = message,
@@ -299,7 +307,7 @@ private fun MessageBubble(
                 )
             }
             MessageReactionIndicator(
-                reactions = message.reactions,
+                reaction = message.reaction,
                 onReactionClick = { onCheckReactions() },
                 isCurrentUser = isCurrentUser,
                 modifier = Modifier
@@ -359,6 +367,7 @@ fun ImageBox(
     imageHeight: Dp,
     onReactionClick: () -> Unit
 ) {
+    Log.e(LOG_TAG, "ImageBox, selected message: " + message)
     Box(
         modifier = Modifier
             .width(imageWidth)
@@ -405,9 +414,9 @@ fun ImageBox(
                 })
             }
         )
-        if (message.caption.isEmpty()) {
+        if (message.caption.isNullOrEmpty()) {
             Text(
-                text = message.timestamp,
+                text = timestampAsTime(message.timestamp),
                 style = MaterialTheme.typography.bodySmall.copy(color = Color.White),
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -432,7 +441,7 @@ fun CaptionAndTimestamp(
     imageWidth: Dp,
     modifier: Modifier
 ) {
-    if (message.caption.isNotEmpty()) {
+    if (!message.caption.isNullOrEmpty()) {
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = message.caption,
@@ -447,7 +456,7 @@ fun CaptionAndTimestamp(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = message.timestamp,
+                text = timestampAsTime(message.timestamp),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(bottom = 8.dp, start = 8.dp, end = 8.dp)

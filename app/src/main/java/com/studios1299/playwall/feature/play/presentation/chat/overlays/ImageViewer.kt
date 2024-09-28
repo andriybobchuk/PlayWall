@@ -48,6 +48,7 @@ import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatVie
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.R
+import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.MessengerUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -64,13 +65,10 @@ import kotlin.math.roundToInt
  */
 @Composable
 fun ImageViewer(
-    currentUserId: String,
+    uiState: MessengerUiState,
     message: Message,
-    viewModel: ChatViewModel,
     onDismiss: () -> Unit,
-    onDelete: () -> Unit
 ) {
-    val isCurrentUser = message.senderId == currentUserId
 
     val offsetY = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
@@ -99,17 +97,14 @@ fun ImageViewer(
             )
 
             TopAppBarContent(
-                isMyMessage = isCurrentUser,
                 visible = topBarVisible.value,
-                sender = viewModel.getUserNameById(message.senderId),
-                email = "email#com.com",
+                senderEmail = uiState.selectedMessage!!.senderId.toString(),
                 onDismiss = onDismiss,
-                onDeleteClick = onDelete
             )
 
             CaptionContent(
                 visible = topBarVisible.value,
-                caption = message.caption,
+                caption = message.caption?:"",
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth()
@@ -193,12 +188,9 @@ private fun FullscreenImageContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopAppBarContent(
-    isMyMessage: Boolean,
     visible: Boolean,
-    sender: String,
-    email: String,
+    senderEmail: String,
     onDismiss: () -> Unit,
-    onDeleteClick: () -> Unit
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -209,9 +201,9 @@ private fun TopAppBarContent(
         TopAppBar(
             title = {
                 Column {
-                    Text(text = sender, style = MaterialTheme.typography.titleMedium)
+                    Text(text = "Wallpaper", style = MaterialTheme.typography.titleMedium)
                     Text(
-                        text = email,
+                        text = senderEmail,
                         style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.secondary)
                     )
                 }
@@ -221,13 +213,7 @@ private fun TopAppBarContent(
                     Icon(Icons.Default.ArrowBack, contentDescription = stringResource(id = R.string.back), tint = MaterialTheme.colorScheme.primary)
                 }
             },
-            actions = {
-                if (isMyMessage) {
-                    IconButton(onClick = onDeleteClick) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete), tint = MaterialTheme.colorScheme.primary)
-                    }
-                }
-            },
+            actions = {},
             colors = TopAppBarDefaults.smallTopAppBarColors(
                 containerColor = MaterialTheme.colorScheme.background,
                 titleContentColor = MaterialTheme.colorScheme.primary,

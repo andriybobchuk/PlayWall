@@ -1,5 +1,6 @@
 package com.studios1299.playwall.feature.play.presentation.chat
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -45,10 +46,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.studios1299.playwall.R
-import com.studios1299.playwall.feature.play.presentation.chat.util.Constants.EMOJI_LIST
 import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.data.model.Reaction
 import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
+import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.MessengerUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -58,12 +59,12 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun MessageReactionIndicator(
-    reactions: List<String>,
+    reaction: Reaction?,
     onReactionClick: () -> Unit,
     isCurrentUser: Boolean,
     modifier: Modifier
 ) {
-    if (reactions.isNotEmpty()) {
+    if (reaction != null) {
         Box(
             modifier = modifier
                 .clip(RoundedCornerShape(18.dp))
@@ -73,13 +74,11 @@ fun MessageReactionIndicator(
                 .padding(4.dp)
         ) {
             Row {
-                reactions.forEach { reaction ->
-                    Text(
-                        text = reaction,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(2.dp)
-                    )
-                }
+                Text(
+                    text = reaction.toString(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(2.dp)
+                )
             }
         }
     }
@@ -93,70 +92,70 @@ fun MessageReactionIndicator(
  * @param reactions A list of Reaction objects to display.
  * @param sheetState The state of the bottom sheet, controlling its visibility.
  */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun Reactions(
-    viewModel: ChatViewModel,
-    reactions: List<Reaction>,
-    sheetState: SheetState,
-    isSheetOpen: MutableState<Boolean>,
-    coroutineScope: CoroutineScope
-) {
-    if (isSheetOpen.value) {
-        ModalBottomSheet(
-            sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.background,
-            onDismissRequest = {
-                coroutineScope.launch {
-                isSheetOpen.value = false
-            } }
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.reactions),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(MaterialTheme.colorScheme.primaryContainer)
-                        .padding(8.dp),
-                ) {
-                    reactions.forEach { reaction ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = viewModel.getUserNameById(reaction.userName),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(
-                                text = reaction.emoji,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun Reactions(
+//    viewModel: ChatViewModel,
+//    reactions: List<Reaction>,
+//    sheetState: SheetState,
+//    isSheetOpen: MutableState<Boolean>,
+//    coroutineScope: CoroutineScope
+//) {
+//    if (isSheetOpen.value) {
+//        ModalBottomSheet(
+//            sheetState = sheetState,
+//            containerColor = MaterialTheme.colorScheme.background,
+//            onDismissRequest = {
+//                coroutineScope.launch {
+//                isSheetOpen.value = false
+//            } }
+//        ) {
+//            Column(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(16.dp)
+//            ) {
+//                Text(
+//                    text = stringResource(R.string.reactions),
+//                    style = MaterialTheme.typography.titleMedium,
+//                    modifier = Modifier.padding(bottom = 8.dp)
+//                )
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .clip(RoundedCornerShape(14.dp))
+//                        .background(MaterialTheme.colorScheme.primaryContainer)
+//                        .padding(8.dp),
+//                ) {
+//                    reactions.forEach { reaction ->
+//                        Row(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .padding(vertical = 4.dp),
+//                            horizontalArrangement = Arrangement.SpaceBetween
+//                        ) {
+//                            Text(
+//                                text = viewModel.getUserNameById(reaction.userName),
+//                                style = MaterialTheme.typography.bodyLarge
+//                            )
+//                            Text(
+//                                text = reaction.emoji,
+//                                style = MaterialTheme.typography.bodyLarge
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReactSheet(
     viewModel: ChatViewModel,
     message: Message,
-    currentUserId: String,
+    currentUserId: Int,
     sheetState: SheetState,
     isSheetOpen: MutableState<Boolean>,
     coroutineScope: CoroutineScope
@@ -171,8 +170,7 @@ fun ReactSheet(
                 }
             }
         ) {
-            val selectedEmoji = "XD"
-           // val selectedEmoji = viewModel.getUserReaction(message.id, currentUserId)?.emoji
+            val selectedReaction = message.reaction
             val isCurrentUser = message.senderId == currentUserId
 
             Column(
@@ -188,10 +186,10 @@ fun ReactSheet(
                         .padding(8.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    EMOJI_LIST.forEach { emoji ->
-                        val isSelected = emoji == selectedEmoji
+                    Reaction.entries.forEach { reaction ->
+                        val isSelected = reaction == selectedReaction
                         Text(
-                            text = emoji,
+                            text = reaction.toString(),
                             fontSize = 24.sp,
                             color = if (isSelected) Color.Black else Color.Unspecified,
                             modifier = Modifier
@@ -200,12 +198,10 @@ fun ReactSheet(
                                     shape = CircleShape
                                 )
                                 .clickable {
-                                    if (selectedEmoji == emoji) {
-                                       // viewModel.removeReaction(message.id, currentUserId)
+                                    if (selectedReaction == reaction) {
+                                        viewModel.addOrUpdateReaction(message.id, null)
                                     } else {
-                                        val reaction =
-                                            Reaction(userName = currentUserId, emoji = emoji)
-                                      //  viewModel.addOrUpdateReaction(message.id, reaction)
+                                        viewModel.addOrUpdateReaction(message.id, reaction)
                                     }
                                     isSheetOpen.value = false
                                 }
@@ -216,26 +212,26 @@ fun ReactSheet(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 if (isCurrentUser) {
-                    Button(
-                        onClick = {
-                       //     viewModel.deleteMessage(message.id)
-                            isSheetOpen.value = false
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        colors = ButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.primary, disabledContentColor = MaterialTheme.colorScheme.tertiary, disabledContainerColor = Color.Black),
-                        shape = RoundedCornerShape(14.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = stringResource(R.string.delete_this_message)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.delete_this_message),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
+//                    Button(
+//                        onClick = {
+//                       //     viewModel.deleteMessage(message.id)
+//                            isSheetOpen.value = false
+//                        },
+//                        modifier = Modifier
+//                            .fillMaxWidth(),
+//                        colors = ButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.primary, disabledContentColor = MaterialTheme.colorScheme.tertiary, disabledContainerColor = Color.Black),
+//                        shape = RoundedCornerShape(14.dp)
+//                    ) {
+//                        Icon(
+//                            imageVector = Icons.Default.Delete,
+//                            contentDescription = stringResource(R.string.delete_this_message)
+//                        )
+//                        Spacer(modifier = Modifier.width(8.dp))
+//                        Text(
+//                            text = stringResource(R.string.delete_this_message),
+//                            color = MaterialTheme.colorScheme.primary
+//                        )
+//                    }
                 } else {
                     ReplyField(
                         message = message,
@@ -277,7 +273,7 @@ fun ReplyField(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             TextField(
-                value = text,
+                value = text?:"",
                 onValueChange = {
                     if (it.length <= maxCharacters) {
                         text = it
@@ -302,8 +298,8 @@ fun ReplyField(
             )
             Button(
                 onClick = {
-                    val trimmedText = text.trimEnd() // Trim trailing spaces before sending
-                    viewModel.updateMessageCaption(message, trimmedText)
+                    val trimmedText = text?.trimEnd() // Trim trailing spaces before sending
+                    viewModel.addOrUpdateComment(message.id, trimmedText)
                     isSheetOpen.value = false
                 },
                 shape = RoundedCornerShape(12.dp),

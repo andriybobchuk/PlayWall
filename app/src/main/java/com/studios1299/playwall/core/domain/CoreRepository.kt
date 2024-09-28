@@ -31,7 +31,7 @@ interface CoreRepository {
     fun addMessage(message: Message)
     //fun deleteMessage(messageId: String)
     fun updateMessage(message: Message)
-    fun getCurrentUser(): User
+    //fun getCurrentUser(): User
     fun getRecipient(): User
     fun getUserNameById(userId: String): String
 
@@ -55,10 +55,10 @@ interface CoreRepository {
 
     // wall NEW
     suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<Unit, DataError.Network>
-    suspend fun getRecipientData(recipientId: String): SmartResult<UserDataResponse, DataError.Network>
+    suspend fun getUserDataById(recipientId: String): SmartResult<UserDataResponse, DataError.Network>
     suspend fun getWallpaperHistory(userId: String, page: Int, pageSize: Int): SmartResult<List<WallpaperHistoryResponse>, DataError.Network>
-    suspend fun react(wallpaperId: Int, reaction: String): SmartResult<Unit, DataError.Network>
-    suspend fun comment(wallpaperId: Int, comment: String): SmartResult<Unit, DataError.Network>
+    suspend fun react(wallpaperId: Int, reaction: String?): SmartResult<Unit, DataError.Network>
+    suspend fun comment(wallpaperId: Int, comment: String?): SmartResult<Unit, DataError.Network>
 
 
 

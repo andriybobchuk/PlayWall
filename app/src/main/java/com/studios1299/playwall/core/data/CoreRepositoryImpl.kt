@@ -8,7 +8,6 @@ import com.studios1299.playwall.core.data.networking.RetrofitClientExt
 import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.DeclineRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.InviteRequest
-import com.studios1299.playwall.core.data.networking.request.user.CreateUserRequest
 import com.studios1299.playwall.core.data.networking.request.user.UpdateProfileRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.CommentRequest
@@ -222,6 +221,7 @@ class FirebaseCoreRepositoryImpl(
 
                 SmartResult.Success(
                     UserDataResponse(
+                        id = userData.id,
                         name = userData.name,
                         email = userData.email,
                         avatarId = avatarUrl
@@ -334,7 +334,7 @@ class FirebaseCoreRepositoryImpl(
 //    }
 
 
-    override suspend fun getRecipientData(recipientId: String): SmartResult<UserDataResponse, DataError.Network> {
+    override suspend fun getUserDataById(recipientId: String): SmartResult<UserDataResponse, DataError.Network> {
         return try {
             Log.e(LOG_TAG, "Friend ID: " + recipientId)
             val result = performAuthRequest { token ->
@@ -351,6 +351,7 @@ class FirebaseCoreRepositoryImpl(
                 }
                 SmartResult.Success(
                     UserDataResponse(
+                        id = userData.id,
                         name = userData.name,
                         email = userData.email,
                         avatarId = avatarUrl
@@ -434,10 +435,14 @@ class FirebaseCoreRepositoryImpl(
 //        }
 //    }
 
-    override suspend fun react(wallpaperId: Int, reaction: String): SmartResult<Unit, DataError.Network> {
+    override suspend fun react(wallpaperId: Int, reaction: String?): SmartResult<Unit, DataError.Network> {
         return try {
             performAuthRequest { token ->
-                RetrofitClient.wallpaperApi.addReaction(token, ReactionRequest(wallpaperId, reaction))
+                if (reaction.isNullOrEmpty()) {
+                    RetrofitClient.wallpaperApi.removeReaction(token, ReactionRequest(wallpaperId, null))
+                } else {
+                    RetrofitClient.wallpaperApi.addReaction(token, ReactionRequest(wallpaperId, reaction))
+                }
             }
         } catch (e: Exception) {
             Log.e(LOG_TAG, "Exception in react(): " + e.message)
@@ -445,10 +450,14 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-    override suspend fun comment(wallpaperId: Int, comment: String): SmartResult<Unit, DataError.Network> {
+    override suspend fun comment(wallpaperId: Int, comment: String?): SmartResult<Unit, DataError.Network> {
         return try {
             performAuthRequest { token ->
-                RetrofitClient.wallpaperApi.addComment(token, CommentRequest(wallpaperId, comment))
+                if (comment.isNullOrEmpty()) {
+                    RetrofitClient.wallpaperApi.addComment(token, CommentRequest(wallpaperId, null))
+                } else {
+                    RetrofitClient.wallpaperApi.addComment(token, CommentRequest(wallpaperId, comment))
+                }
             }
         } catch (e: Exception) {
             Log.e(LOG_TAG, "Exception in comment(): " + e.message)
@@ -503,15 +512,9 @@ class FirebaseCoreRepositoryImpl(
 private val _messages = mutableListOf<Message>()
 
 
-private val _currentUser = User(
-    id = "user1",
-    name = "Andrii Bobchuk",
-    profilePictureUrl = "https://media.licdn.com/dms/image/D4D03AQG510ilgQaD_g/profile-displayphoto-shrink_200_200/0/1709116748493?e=2147483647&v=beta&t=rfehlo_FlkkyBXfptFpsVWBUcNnQbID_dR0Ght21TTw",
-    lastOnline = System.currentTimeMillis(),
-    email = "andrii.bobchuk@gmail.com"
-)
+
 private val _recipient = User(
-    id = "user2",
+    id = -1,
     name = "Tom Sawyer",
     profilePictureUrl = "https://lithelper.com/wp-content/uploads/2020/05/tom1.jpeg",
     lastOnline = System.currentTimeMillis(),
@@ -578,9 +581,7 @@ override fun updateMessage(message: Message) {
     }
 }
 
-override fun getCurrentUser(): User {
-    return _currentUser
-}
+
 
 override fun getRecipient(): User {
     return _recipient

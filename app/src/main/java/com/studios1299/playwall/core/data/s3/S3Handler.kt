@@ -1,6 +1,7 @@
 package com.studios1299.playwall.core.data.s3
 
 import android.util.Log
+import androidx.compose.runtime.key
 import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
 import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.model.GetObjectRequest
@@ -17,11 +18,15 @@ import kotlin.time.Duration.Companion.seconds
 object S3Handler {
     private const val BUCKET_NAME = "playwall-dev"
     private const val REGION = "eu-north-1"
-    private const val LOG_TAG = "com.studios1299.playwall.core.data.s3.S3Handler"
+    private const val LOG_TAG = "S3Handler"
 
-    enum class Folder(path: String) {
+    enum class Folder(val path: String) {
         AVATARS("avatars/"),
-        WALLPAPERS("wallpapers/")
+        WALLPAPERS("wallpapers/");
+
+        override fun toString(): String {
+            return path
+        }
     }
 
     private val s3Client = S3Client {
