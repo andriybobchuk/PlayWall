@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -72,6 +73,88 @@ object Images {
                     .width(size)
                     .height(size)
                     .clip(CircleShape)
+                    .clickable { onClick() }
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+                contentScale = ContentScale.Crop,
+                requestBuilderTransform = { requestBuilder ->
+                    requestBuilder.addListener(object : RequestListener<Drawable> {
+                        override fun onLoadFailed(
+                            e: GlideException?,
+                            model: Any?,
+                            target: Target<Drawable>,
+                            isFirstResource: Boolean
+                        ): Boolean {
+                            Log.d(LOG_TAG, "Image load failed: ${model}")
+                            imageLoadFailed = true
+                            return false
+                        }
+
+                        override fun onResourceReady(
+                            resource: Drawable,
+                            model: Any,
+                            target: Target<Drawable>?,
+                            dataSource: DataSource,
+                            isFirstResource: Boolean
+                        ): Boolean {
+                            Log.v(LOG_TAG, "Image loaded successfully: ${model}")
+                            imageLoadFailed = false
+                            return false
+                        }
+                    })
+                }
+            )
+        }
+    }
+
+    //            GlideImage(
+//                model = photo.url,
+//                contentDescription = photo.description,
+//                modifier = Modifier
+//                    .weight(1f)
+//                    .aspectRatio(1f)
+//                    .clickable {
+//                        if (state.wallpapers.isNotEmpty()) {
+//                            onAction(ProfileAction.OnPhotoClick(photo.id))
+//                        }
+//                    }
+//                    .clip(RoundedCornerShape(8.dp))
+//                    .background(MaterialTheme.colorScheme.surface),
+//                contentScale = ContentScale.Crop
+//            )
+
+    @OptIn(ExperimentalGlideComposeApi::class)
+    @Composable
+    fun Square(
+        modifier: Modifier = Modifier,
+        model: Any?,
+        size: Dp = 40.dp,
+        onClick: () -> Unit = {}
+    ) {
+        var imageLoadFailed by remember(model) { mutableStateOf(false) }
+
+        if (imageLoadFailed) {
+            Box(
+                modifier = modifier
+                    .width(size)
+                    .height(size)
+                    .clickable { onClick() }
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ImageSearch,
+                    contentDescription = "Image",
+                    modifier = Modifier
+                        .fillMaxSize(0.3f)
+                        .align(Alignment.Center)
+                )
+            }
+        } else {
+            GlideImage(
+                model = model,
+                contentDescription = stringResource(R.string.image),
+                modifier = modifier
+                    .width(size)
+                    .height(size)
                     .clickable { onClick() }
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
                 contentScale = ContentScale.Crop,

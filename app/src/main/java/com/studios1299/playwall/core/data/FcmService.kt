@@ -12,11 +12,7 @@ import androidx.work.workDataOf
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.studios1299.playwall.R
-import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.data.local.Preferences
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class FcmService : FirebaseMessagingService() {
 
@@ -79,7 +75,7 @@ class FcmService : FirebaseMessagingService() {
         Log.e("FcmService", "onMessageReceived(): start: " + remoteMessage)
 
         val notificationType = remoteMessage.data["type"] // e.g., "wallpaper", "friend_request", "reaction"
-        val fileName = remoteMessage.data["fileName"]
+        val s3DownloadableLink = remoteMessage.data["fileName"]
         val requesterName = remoteMessage.data["requesterName"] // For friend requests
         val comment = remoteMessage.data["comment"] // For comment-related notifications
         val reaction = remoteMessage.data["reaction"] // For reaction-related notifications
@@ -87,9 +83,9 @@ class FcmService : FirebaseMessagingService() {
         when (notificationType) {
             "wallpaper" -> {
 
-                if (!fileName.isNullOrEmpty()) {
+                if (!s3DownloadableLink.isNullOrEmpty()) {
                     val workData = workDataOf(
-                        "file_name" to fileName,
+                        "file_name" to s3DownloadableLink,
                     )
 
                     val changeWallpaperWork = OneTimeWorkRequestBuilder<ChangeWallpaperWorker>()
@@ -99,7 +95,7 @@ class FcmService : FirebaseMessagingService() {
                     Log.e("FcmService", "onMessageReceived(): launching wallpaper worker")
                     WorkManager.getInstance(applicationContext).enqueue(changeWallpaperWork)
 
-                    sendWallpaperNotification(fileName)
+                    sendWallpaperNotification(s3DownloadableLink)
                 }
             }
             "friend_request" -> {

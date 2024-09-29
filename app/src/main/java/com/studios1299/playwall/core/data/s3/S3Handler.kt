@@ -1,7 +1,6 @@
 package com.studios1299.playwall.core.data.s3
 
 import android.util.Log
-import androidx.compose.runtime.key
 import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
 import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.model.GetObjectRequest
@@ -11,6 +10,7 @@ import aws.smithy.kotlin.runtime.content.ByteStream
 import aws.smithy.kotlin.runtime.content.fromFile
 import com.studios1299.playwall.core.data.Credentials
 import java.io.File
+import java.net.URI
 import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 
@@ -60,24 +60,47 @@ object S3Handler {
         }
     }
 
-    suspend fun loadFromS3(filename: String): String? {
-
+    /**
+     * Accepts path as is saved in database and returns downloadable link to S3
+     * @param filename path from database in format "avatars/2a68a3ae-54d3-4890-b902-1a19426a"
+     * @return downloadable link to S3 like "https://playwall-dev.s3.eu-north-1.amazonaws.com/avatars/2a68a3ae-54d3-4890-"
+     */
+    suspend fun pathToDownloadableLink(filename: String): String? {
         val getObjectRequest = GetObjectRequest {
             bucket = BUCKET_NAME
             key = filename
         }
-
         return try {
-            // Presign the GetObjectRequest to create a presigned URL
             val presignedRequest = s3Client.presignGetObject(getObjectRequest, 3600.seconds)
-
             val presignedUrl = presignedRequest.url.toString()
             Log.d("com.studios1299.playwall.core.data.s3.S3Handler", "Generated presigned URL: $presignedUrl")
             presignedUrl
         } catch (e: Exception) {
-            Log.e("com.studios1299.playwall.core.data.s3.S3Handler", "Failed to generate presigned URL: ${e.message}", e)
+            Log.e("S3Handler", "Failed to generate presigned URL: ${e.message}", e)
             null
         }
     }
+
+    /**
+     * Accepts a downloadable link to S3 and returns the path to store in the database.
+     * @param presignedUrl Downloadable link to S3 in format "https://playwall-dev.s3.eu-north-1.amazonaws.com/avatars/2a68a3ae-54d3-4890-b902-1a19426a"
+     * @return path to store in database in format "avatars/2a68a3ae-54d3-4890-b902-1a19426a"
+     */
+    fun downloadableLinkToPath(presignedUrl: String): String? {
+        return try {
+            val uri = URI(presignedUrl)
+            val bucketPath = uri.path
+
+            if (bucketPath.startsWith("/")) {
+                bucketPath.substring(1)
+            } else {
+                bucketPath
+            }
+        } catch (e: Exception) {
+            Log.e("S3Handler", "Failed to extract path from URL: ${e.message}", e)
+            null
+        }
+    }
+
 }
 

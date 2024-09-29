@@ -82,7 +82,7 @@ class ChatViewModel(
                     id = it.id,
                     imageUrl = it.fileName,
                     caption = it.comment?:"",
-                    timestamp = it.dateCreated,
+                    timestamp = it.timeSent,
                     reaction = it.reaction,
                     senderId = it.requesterId,
                     status = MessageStatus.SENT,
@@ -202,7 +202,8 @@ class ChatViewModel(
                 fileName = s3Filename,
                 recipientId = friendId,
                 comment = comment,
-                reaction = reaction
+                reaction = reaction,
+                type = "private"
             )
 
             val response = chatRepository.changeWallpaper(changeWallpaperRequest)
@@ -288,7 +289,8 @@ class ChatViewModel(
 
 
     fun getUserNameById(userId: String): String {
-        return chatRepository.getUserNameById(userId)
+        return ""
+       // return chatRepository.getUserNameById(userId)
     }
 
 //    fun updateMessageCaption(message: Message, newCaption: String) {

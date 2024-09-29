@@ -18,6 +18,6 @@ sealed interface PlayAction {
     data class OnInviteFriend(val userEmail: String): PlayAction
 
     data class OnSelectedFromGallery(val uri: Uri) : PlayAction
-    data class OnSelectedFromSaved(val selectedWallpaper: String) : PlayAction
+    data class OnSelectedFromSaved(val selectedWallpaper: Int) : PlayAction
     data object LoadPhotos: PlayAction
 }

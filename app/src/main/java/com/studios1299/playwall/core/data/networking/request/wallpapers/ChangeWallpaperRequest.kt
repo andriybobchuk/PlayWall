@@ -4,5 +4,6 @@ data class ChangeWallpaperRequest(
     val fileName: String,
     val recipientId: String,
     val comment: String?,
-    val reaction: String?
+    val reaction: String?,
+    val type: String?
 )

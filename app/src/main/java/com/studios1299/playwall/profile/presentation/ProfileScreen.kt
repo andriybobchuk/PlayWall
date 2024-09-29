@@ -3,7 +3,6 @@ package com.studios1299.playwall.profile.presentation
 import android.app.WallpaperManager
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -23,11 +22,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text2.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Facebook
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Password
@@ -56,7 +53,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,7 +76,7 @@ import com.studios1299.playwall.core.presentation.components.Buttons
 import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.Toolbars
-import com.studios1299.playwall.explore.presentation.explore.Photo
+import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
 
 
@@ -88,7 +84,7 @@ import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequ
 fun ProfileScreenRoot(
     viewModel: ProfileViewModel,
     onNavigateTo: (ProfileDestination) -> Unit,
-    onNavigateToPhotoDetail: (String) -> Unit,
+    onNavigateToPhotoDetail: (Int) -> Unit,
     onLogOut: () -> Unit,
     bottomNavbar: @Composable () -> Unit
 ) {
@@ -325,7 +321,7 @@ fun ProfileScreen(
                         CircularProgressIndicator(
                             modifier = Modifier.align(Alignment.Center)
                         )
-                    } else if (state.photos.isEmpty()) {
+                    } else if (state.wallpapers.isEmpty()) {
                         Text(
                             text = "No photos available",
                             modifier = Modifier.align(Alignment.Center)
@@ -333,7 +329,7 @@ fun ProfileScreen(
                     }
                 }
             }
-            items(state.photos.chunked(3)) { photoRow ->
+            items(state.wallpapers.chunked(3)) { photoRow ->
                 PhotoGridRow(photoRow, state, onAction)
             }
         }
@@ -435,7 +431,7 @@ fun EditProfileDialog(
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun PhotoGridRow(
-    photos: List<Photo>,
+    exploreWallpapers: List<ExploreWallpaper>,
     state: ProfileState,
     onAction: (ProfileAction) -> Unit
 ) {
@@ -445,24 +441,35 @@ fun PhotoGridRow(
             .padding(horizontal = 12.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        photos.forEach { photo ->
-            GlideImage(
-                model = photo.url,
-                contentDescription = photo.description,
+        exploreWallpapers.forEach { photo ->
+            Images.Square(
                 modifier = Modifier
                     .weight(1f)
-                    .aspectRatio(1f)
-                    .clickable {
-                        if (state.photos.isNotEmpty()) {
-                            onAction(ProfileAction.OnPhotoClick(photo.id))
-                        }
+                    .aspectRatio(1f),
+                model = photo.fileName,
+                onClick = {
+                    if (state.wallpapers.isNotEmpty()) {
+                        onAction(ProfileAction.OnPhotoClick(photo.id))
                     }
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surface),
-                contentScale = ContentScale.Crop
+                }
             )
+//            GlideImage(
+//                model = photo.url,
+//                contentDescription = photo.description,
+//                modifier = Modifier
+//                    .weight(1f)
+//                    .aspectRatio(1f)
+//                    .clickable {
+//                        if (state.wallpapers.isNotEmpty()) {
+//                            onAction(ProfileAction.OnPhotoClick(photo.id))
+//                        }
+//                    }
+//                    .clip(RoundedCornerShape(8.dp))
+//                    .background(MaterialTheme.colorScheme.surface),
+//                contentScale = ContentScale.Crop
+//            )
         }
-        repeat(3 - photos.size) {
+        repeat(3 - exploreWallpapers.size) {
             Spacer(modifier = Modifier.weight(1f))
         }
     }

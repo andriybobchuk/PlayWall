@@ -1,9 +1,6 @@
 package com.studios1299.playwall.feature.play.presentation.play
 
 import android.annotation.SuppressLint
-import android.content.Intent
-import android.os.Build
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -37,7 +34,6 @@ import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -60,7 +56,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
@@ -69,7 +64,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat.startActivityForResult
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.R
@@ -81,16 +75,9 @@ import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
 import com.studios1299.playwall.feature.play.presentation.chat.util.requestNotificationPermissionWithDexter
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
-import java.io.File
-import java.io.InputStream
-import java.net.HttpURLConnection
-import java.net.URL
-import java.nio.file.Paths
-import java.util.UUID
 
 @Composable
 fun PlayScreenRoot(
@@ -593,7 +580,7 @@ fun SavedWallpaperSheet(
     isSheetOpen: MutableState<Boolean>,
     sheetState: SheetState,
     state: PlayState,
-    onWallpaperSelected: (String) -> Unit
+    onWallpaperSelected: (Int) -> Unit
 ) {
     if (isSheetOpen.value) {
         ModalBottomSheet(
@@ -615,7 +602,7 @@ fun SavedWallpaperSheet(
                         CircularProgressIndicator(
                             modifier = Modifier.align(Alignment.Center)
                         )
-                    } else if (state.photos.isEmpty()) {
+                    } else if (state.exploreWallpapers.isEmpty()) {
                         Text(
                             text = stringResource(R.string.no_photos_available),
                             modifier = Modifier.align(Alignment.Center)
@@ -633,7 +620,7 @@ fun SavedWallpaperSheet(
 fun ImageGrid(
     innerPadding: PaddingValues,
     state: PlayState,
-    onWallpaperSelected: (String) -> Unit
+    onWallpaperSelected: (Int) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -645,15 +632,15 @@ fun ImageGrid(
                 columns = GridCells.Fixed(3),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(state.photos.size) { index ->
-                    val photo = state.photos[index]
+                items(state.exploreWallpapers.size) { index ->
+                    val photo = state.exploreWallpapers[index]
                     GlideImage(
-                        model = photo.url,
-                        contentDescription = photo.description,
+                        model = "",
+                        contentDescription = "wallpaper",
                         modifier = Modifier
                             .aspectRatio(1f)
                             .clickable {
-                                if (state.photos.isNotEmpty()) {
+                                if (state.exploreWallpapers.isNotEmpty()) {
                                     //downloadAndUploadImage(photo.url)
                                     onWallpaperSelected(photo.id)
                                 }

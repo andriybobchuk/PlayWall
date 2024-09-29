@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.studios1299.playwall.R
 import com.studios1299.playwall.auth.domain.AuthRepository
+import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.data.s3.uriToFile
 import com.studios1299.playwall.core.domain.CoreRepository
@@ -19,6 +20,7 @@ import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.core.presentation.UiText
 import com.studios1299.playwall.core.presentation.asUiText
+import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -37,7 +39,7 @@ class ProfileViewModel(
 
     init {
         loadUserProfile()
-        onAction(ProfileAction.LoadPhotos)
+        loadSavedWallpapers(0, 10)
     }
 
     fun onAction(action: ProfileAction) {
@@ -55,9 +57,8 @@ class ProfileViewModel(
             ProfileAction.OnTosClick -> navigateTo(ProfileDestination.TermsOfService)
             ProfileAction.RollbackDefaultWallpaper -> rollbackWallpaper()
             ProfileAction.RollbackPreviousWallpaper -> rollbackWallpaper()
-            ProfileAction.LoadPhotos -> loadPhotos()
             is ProfileAction.OnPhotoClick -> {
-                if (state.photos.isNotEmpty()) {
+                if (state.wallpapers.isNotEmpty()) {
                     navigateToPhotoDetail(action.photoId)
                 }
             }
@@ -158,23 +159,38 @@ class ProfileViewModel(
         state = state.copy(isEditProfileDialogOpen = true)
     }
 
-    private fun closeEditProfileDialog() {
-        state = state.copy(isEditProfileDialogOpen = false)
-    }
-
-
-
-    private fun loadPhotos() {
+    fun loadSavedWallpapers(page: Int, pageSize: Int) {
         viewModelScope.launch {
             state = state.copy(isLoading = true)
-            val photos = repository.getExploreItems()
-            state = state.copy(photos = photos, isLoading = false)
+            val result = repository.loadSavedWallpapers(page, pageSize)
+
+            if (result is SmartResult.Success) {
+                val savedWallpapers = result.data.map {
+                    ExploreWallpaper(
+                        id = it.id,
+                        fileName = it.fileName,
+                        type = it.type,
+                        sentCount = it.sentCount,
+                        savedCount = it.savedCount,
+                        isLiked = Preferences.isWallpaperLiked(it.id),
+                        dateCreated = it.dateCreated
+                    )
+                }
+                Log.e("loadSavedWallpapers", "saved wpps: " + savedWallpapers.forEach{it.id})
+                Log.e("loadSavedWallpapers", "saved wpps: " + savedWallpapers.forEach{it.id})
+                state = state.copy(wallpapers = savedWallpapers, isLoading = false)
+            } else {
+                Log.e("loadSavedWallpapers", "Shit saved wpps: " + result)
+                state = state.copy(isLoading = false)
+                // Handle error, if needed
+            }
         }
     }
 
-    private fun navigateToPhotoDetail(photoId: String) {
 
-        if (photoId.isNotEmpty()) {
+    private fun navigateToPhotoDetail(photoId: Int) {
+
+        if (photoId != -1) {
             viewModelScope.launch {
                 eventChannel.send(ProfileEvent.NavigateToPhotoDetail(photoId))
             }

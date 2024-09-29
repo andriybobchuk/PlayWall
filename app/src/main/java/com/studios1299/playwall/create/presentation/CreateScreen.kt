@@ -40,6 +40,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.studios1299.playwall.core.data.ChangeWallpaperWorker
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Toolbars
@@ -141,14 +142,21 @@ fun CreateScreen(
     }
 
     val workManager = WorkManager.getInstance(context)
-    val inputData = Data.Builder()
-        .putString("file_name", "your_image_name") // You can use this for reference but won't need it in this version
-        .putBoolean("set_home_screen", true) // or false based on user preference
-        .putBoolean("set_lock_screen", true) // or false based on user preference
-        .build()
+
+    val workData = workDataOf(
+        "file_name" to selectedImageUri.toString(),
+        "from_device" to true
+    )
+
+
+//    val inputData = Data.Builder()
+//        .putString("file_name", "your_image_name") // You can use this for reference but won't need it in this version
+//        .putBoolean("set_home_screen", true) // or false based on user preference
+//        .putBoolean("set_lock_screen", true) // or false based on user preference
+//        .build()
 
     val changeWallpaperRequest = OneTimeWorkRequestBuilder<ChangeWallpaperWorker>()
-        .setInputData(inputData)
+        .setInputData(workData)
         .build()
 
     Scaffold(

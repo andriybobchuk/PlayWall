@@ -1,9 +1,7 @@
 package com.studios1299.playwall.feature.play.presentation.play
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.text2.input.textAsFlow
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
@@ -14,13 +12,9 @@ import com.studios1299.playwall.core.data.networking.request.friendships.Decline
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
-import com.studios1299.playwall.core.domain.error_handling.asEmptyDataResult
 import com.studios1299.playwall.core.presentation.UiText
 import com.studios1299.playwall.core.presentation.asUiText
-import io.ktor.util.Identity.decode
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -61,7 +55,8 @@ class PlayViewModel(
                 }
             }
             is PlayAction.OnSelectedFromGallery -> send(action.uri)
-            is PlayAction.OnSelectedFromSaved -> send(action.selectedWallpaper)
+            is PlayAction.OnSelectedFromSaved -> {}
+            //is PlayAction.OnSelectedFromSaved -> send(action.selectedWallpaper)
             PlayAction.LoadPhotos -> loadPhotos()
             is PlayAction.OnFriendMute -> TODO()
             is PlayAction.OnFriendRemove -> TODO()
@@ -108,8 +103,8 @@ class PlayViewModel(
     private fun loadPhotos() {
         viewModelScope.launch {
             state = state.copy(isLoading = true)
-            val photos = repository.getExploreItems()
-            state = state.copy(photos = photos, isLoading = false)
+           // val photos = repository.getExploreItems()
+            //state = state.copy(exploreWallpapers = photos, isLoading = false)
         }
     }
 

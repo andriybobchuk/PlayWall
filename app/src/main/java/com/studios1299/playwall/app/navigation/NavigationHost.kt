@@ -187,7 +187,8 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
                     }
                 ),
                 onNavigateToPhotoDetail = { selectedPhoto ->
-                    navController.navigate("${Graphs.Main.Screens.explore_image}/${selectedPhoto}")
+                    val fromProfile = false
+                    navController.navigate("${Graphs.Main.Screens.explore_image}/${selectedPhoto}/$fromProfile")
                 },
                 bottomNavbar = { BottomNavigationBar(
                     navController = navController,
@@ -196,11 +197,16 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
             )
         }
         composable(
-            "${Graphs.Main.Screens.explore_image}/{photoId}",
-            arguments = listOf(navArgument("photoId") { type = NavType.StringType })
+            "${Graphs.Main.Screens.explore_image}/{photoId}/{fromProfile}",
+            arguments = listOf(
+                navArgument("photoId") { type = NavType.IntType },
+                navArgument("fromProfile") {type = NavType.BoolType }
+                )
         ) { backStackEntry ->
-            val photoId = backStackEntry.arguments?.getString("photoId") ?: run {
-                Log.e("PostDetailScreen", "Photo ID is null, returning from composable")
+            val photoId = backStackEntry.arguments?.getInt("photoId") ?: run {
+                return@composable
+            }
+            val fromProfile = backStackEntry.arguments?.getBoolean("fromProfile") ?: run {
                 return@composable
             }
 
@@ -209,7 +215,8 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
                     factory = viewModelFactory {
                         PostDetailViewModel(
                             MyApp.appModule.coreRepository,
-                            photoId
+                            photoId,
+                            fromProfile
                         )
                     }
                 ),
@@ -265,7 +272,8 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
                     }
                 },
                 onNavigateToPhotoDetail = { selectedPhoto ->
-                    navController.navigate("${Graphs.Main.Screens.explore_image}/${selectedPhoto}")
+                    val fromProfile = true
+                    navController.navigate("${Graphs.Main.Screens.explore_image}/${selectedPhoto}/$fromProfile")
                 },
                 onLogOut = {
                     navController.navigate("login") {

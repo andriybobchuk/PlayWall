@@ -24,11 +24,11 @@ object Preferences {
         sharedPreferences = context.getSharedPreferences(APP_NAME, Context.MODE_PRIVATE)
     }
 
-    fun isWallpaperLiked(wallpaperId: String): Boolean {
+    fun isWallpaperLiked(wallpaperId: Int): Boolean {
         return sharedPreferences.getBoolean("$KEY_LIKED_WALLPAPERS_$wallpaperId", false)
     }
 
-    fun setWallpaperLiked(wallpaperId: String, liked: Boolean) {
+    fun setWallpaperLiked(wallpaperId: Int, liked: Boolean) {
         sharedPreferences.edit().putBoolean("$KEY_LIKED_WALLPAPERS_$wallpaperId", liked).apply()
     }
 

@@ -1,13 +1,15 @@
 package com.studios1299.playwall.explore.presentation.explore
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.studios1299.playwall.R
+import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.domain.CoreRepository
+import com.studios1299.playwall.core.domain.error_handling.SmartResult
+import com.studios1299.playwall.core.domain.error_handling.map
 import com.studios1299.playwall.core.presentation.UiText
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -30,7 +32,7 @@ class ExploreViewModel(
     fun onAction(action: ExploreAction) {
         when (action) {
             is ExploreAction.OnPhotoClick -> {
-                if (state.photos.isNotEmpty()) {
+                if (state.wallpapers.isNotEmpty()) {
                     navigateToPhotoDetail(action.photoId)
                 }
             }
@@ -41,14 +43,27 @@ class ExploreViewModel(
     private fun loadPhotos() {
         viewModelScope.launch {
             state = state.copy(isLoading = true)
-            val photos = repository.getExploreItems()
-            state = state.copy(photos = photos, isLoading = false)
+            val photos = repository.loadExploreWallpapers(0, 18)
+            if (photos is SmartResult.Success) {
+                state = state.copy(wallpapers =
+                photos.data.map {
+                    ExploreWallpaper(
+                        id = it.id,
+                        fileName = it.fileName,
+                        type = it.type,
+                        sentCount = it.sentCount,
+                        savedCount = it.savedCount,
+                        isLiked = Preferences.isWallpaperLiked(it.id),
+                        dateCreated = it.dateCreated,
+                    )
+                }, isLoading = false)
+            }
         }
     }
 
-    private fun navigateToPhotoDetail(photoId: String) {
+    private fun navigateToPhotoDetail(photoId: Int) {
 
-        if (photoId.isNotEmpty()) {
+        if (photoId != -1) {
             viewModelScope.launch {
                 eventChannel.send(ExploreEvent.NavigateToPhotoDetail(photoId))
             }

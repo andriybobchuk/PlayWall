@@ -9,7 +9,7 @@ sealed interface ProfileEvent {
     data object WallpapersSavedSettingToggled : ProfileEvent
     data object SupportContacted : ProfileEvent
 
-    data class NavigateToPhotoDetail(val initialPhotoIndex: String): ProfileEvent
+    data class NavigateToPhotoDetail(val initialPhotoIndex: Int): ProfileEvent
 
 //    data object CloseEditProfileDialog : ProfileEvent
 //    data object ProfileUpdated : ProfileEvent

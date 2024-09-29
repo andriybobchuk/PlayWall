@@ -2,7 +2,7 @@ package com.studios1299.playwall.feature.play.presentation.play
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text2.input.TextFieldState
-import com.studios1299.playwall.explore.presentation.explore.Photo
+import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
 import com.studios1299.playwall.feature.play.data.model.User
 
 data class PlayState @OptIn(ExperimentalFoundationApi::class) constructor(
@@ -13,7 +13,7 @@ data class PlayState @OptIn(ExperimentalFoundationApi::class) constructor(
     val searchResults: List<User> = emptyList(),
     val isSelectMode: Boolean = false,
     val selectedFriends: List<String> = emptyList(),
-    val photos: List<Photo> = emptyList(),
+    val exploreWallpapers: List<ExploreWallpaper> = emptyList(),
 )
 
 data class Friend(

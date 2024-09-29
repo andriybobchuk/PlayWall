@@ -18,12 +18,13 @@ object RetrofitClientExt {
             responseToSmartResult(response)
         } catch (e: Exception) {
             Log.e("RetrofitClientExt.safeCall()", "safeCall just saved you from exception: ${e.message}")
+            Log.e("RetrofitClientExt.safeCall()", "safeCall exception stacktrace: ${e.printStackTrace()}")
             SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }
 
     inline fun <reified T> responseToSmartResult(response: Response<T>): SmartResult<T, DataError.Network> {
-        Log.e(LOG_TAG, "responseToSmartResult(): Response message: ${response.message()}")
+        Log.e(LOG_TAG, "responseToSmartResult(): Response message: ${response.message()}, Error body: ${response.errorBody().toString()}")
         return when {
             response.isSuccessful -> {
                 val body = response.body()
