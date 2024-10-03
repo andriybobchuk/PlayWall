@@ -6,8 +6,11 @@ import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.networking.RetrofitClient
 import com.studios1299.playwall.core.data.networking.RetrofitClientExt
 import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
+import com.studios1299.playwall.core.data.networking.request.friendships.BlockRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.DeclineRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.InviteRequest
+import com.studios1299.playwall.core.data.networking.request.friendships.RemoveFriendRequest
+import com.studios1299.playwall.core.data.networking.request.friendships.UnblockRequest
 import com.studios1299.playwall.core.data.networking.request.user.UpdateProfileRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.CommentRequest
@@ -181,6 +184,47 @@ class FirebaseCoreRepositoryImpl(
             RetrofitClient.friendsApi.declineFriendRequest(token, declineRequest)
         }
     }
+
+    override suspend fun removeUser(friendshipId: Int): SmartResult<Unit, DataError.Network> {
+        return try {
+            Log.d("removeUser", "Removing friend with ID: $friendshipId")
+            performAuthRequest { token ->
+                Log.d("removeUser", "Using token: $token")
+                RetrofitClient.friendsApi.removeFriend(token, RemoveFriendRequest(friendshipId))
+            }
+        } catch (e: Exception) {
+            Log.e("removeUser", "Exception in removeUser(): " + e.message)
+            SmartResult.Error(DataError.Network.UNKNOWN)
+        }
+    }
+
+    override suspend fun blockUser(friendshipId: Int, userId: Int): SmartResult<Unit, DataError.Network> {
+        return try {
+            Log.e("repo", "Blocking user with friendship ID: $friendshipId by user $userId")
+            performAuthRequest { token ->
+                Log.d("blockUser", "Using token: $token")
+                RetrofitClient.friendsApi.blockUser(token, BlockRequest(friendshipId, userId))
+            }
+        } catch (e: Exception) {
+            Log.e("blockUser", "Exception in blockUser(): " + e.message)
+            SmartResult.Error(DataError.Network.UNKNOWN)
+        }
+    }
+
+    override suspend fun unblockUser(friendshipId: Int, userId: Int): SmartResult<Unit, DataError.Network> {
+        return try {
+            Log.d("unblockUser", "Unblocking user with friendship ID: $friendshipId by user $userId")
+            performAuthRequest { token ->
+                Log.d("unblockUser", "Using token: $token")
+                RetrofitClient.friendsApi.unblockUser(token, UnblockRequest(friendshipId, userId))
+            }
+        } catch (e: Exception) {
+            Log.e("unblockUser", "Exception in unblockUser(): " + e.message)
+            SmartResult.Error(DataError.Network.UNKNOWN)
+        }
+    }
+
+
 
     override suspend fun getUserData(): SmartResult<UserDataResponse, DataError.Network> {
         return try {

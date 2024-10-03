@@ -12,19 +12,28 @@ data class PlayState @OptIn(ExperimentalFoundationApi::class) constructor(
     val friendId: TextFieldState = TextFieldState(),
     val searchResults: List<User> = emptyList(),
     val isSelectMode: Boolean = false,
-    val selectedFriends: List<String> = emptyList(),
+    val selectedFriends: List<Int> = emptyList(),
     val exploreWallpapers: List<ExploreWallpaper> = emptyList(),
 )
 
 data class Friend(
-    val id: String,
+    val friendshipId: Int,
+    val id: Int,
     val nick: String?,
     val email: String,
     val avatarId: String?,
     val lastMessage: String?,
     val unreadMessages: Int,
-    val muted: Boolean,
+    val status: FriendshipStatus,
+    val requesterId: Int,
 )
+
+enum class FriendshipStatus {
+    blocked,
+    accepted,
+    declined,
+    pending
+}
 
 //data class FriendRequest(
 //    val id: String,

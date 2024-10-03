@@ -187,12 +187,14 @@ class PostDetailViewModel(
         state = state.copy(wallpapers = updatedWallpapers)
     }
 
-    fun setAsWallpaper(fileName: String, context: Context) {
+    fun setAsWallpaper(s3Link: String, context: Context) {
+
+        val pathToS3 = S3Handler.downloadableLinkToPath(s3Link)
         val workData = workDataOf(
-            "file_name" to fileName,
+            "file_name" to pathToS3,
             "from_device" to false // its from explorer, not device
         )
-        Log.e("setAsWallpaper", "filename:  " + fileName)
+        Log.e("setAsWallpaper", "filename:  " + s3Link)
 
 
         val changeWallpaperWork = OneTimeWorkRequestBuilder<ChangeWallpaperWorker>()
@@ -226,7 +228,7 @@ class PostDetailViewModel(
                 val result = repository.changeWallpaper(
                     ChangeWallpaperRequest(
                         fileName = pathTobeSent,
-                        recipientId = friend.id,
+                        recipientId = friend.id.toString(),
                         comment = null,
                         reaction = null,
                         type = "friend_wallpaper"

@@ -3,16 +3,16 @@ package com.studios1299.playwall.feature.play.presentation.play
 import android.net.Uri
 
 sealed interface PlayAction {
-    data class OnFriendClick(val friendId: String): PlayAction
-    data class OnSelectFriend(val friendId: String): PlayAction
-    data class OnFriendMute(val friendId: String): PlayAction
-    data class OnFriendUnMute(val friendId: String): PlayAction
-    data class OnFriendRemove(val friendId: String): PlayAction
+    data class OnFriendClick(val friendId: Int): PlayAction
+    data class OnSelectFriend(val friendId: Int): PlayAction
+    data class OnFriendMute(val friendshipId: Int, val userId: Int): PlayAction
+    data class OnFriendUnMute(val friendshipId: Int, val userId: Int): PlayAction
+    data class OnFriendRemove(val friendshipId: Int): PlayAction
     data object OnEnterSelectMode : PlayAction
     data object OnExitSelectMode : PlayAction
 
-    data class OnAcceptFriendRequest(val requestId: String): PlayAction
-    data class OnRejectFriendRequest(val requestId: String): PlayAction
+    data class OnAcceptFriendRequest(val requestId: Int): PlayAction
+    data class OnRejectFriendRequest(val requestId: Int): PlayAction
     data object Refresh: PlayAction
 
     data class OnInviteFriend(val userEmail: String): PlayAction

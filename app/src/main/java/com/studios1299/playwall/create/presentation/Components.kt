@@ -11,8 +11,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.outlined.Send
+import androidx.compose.material.icons.outlined.Wallpaper
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -24,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import ja.burhanrashid52.photoeditor.PhotoEditor
-import kotlinx.coroutines.Job
 
 @Composable
 fun NoImagePlaceholder(
@@ -65,20 +65,32 @@ fun NoImagePlaceholder(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun Topbar(requestSave: () -> Unit, send: () -> Unit, isImageSelected: Boolean) {
-    Toolbars.Primary(
+fun Topbar(
+    download: () -> Unit,
+    send: () -> Unit,
+    setAsMyWallpaper: () -> Unit,
+    isImageSelected: Boolean
+) {
+    Toolbars.WithMenu(
         title = "Create",
         actions = listOf(
             Toolbars.ToolBarAction(
-                icon = Icons.Default.Save,
-                contentDescription = "Save Image",
-                onClick = { requestSave() },
+                icon = Icons.Default.Download,
+                contentDescription = "Download image",
+                onClick = { download() },
                 enabled = isImageSelected
             ),
             Toolbars.ToolBarAction(
                 icon = Icons.Outlined.Send,
-                contentDescription = "Send Image",
+                contentDescription = "Set as friend's wallpaper",
                 onClick = send,
+                enabled = isImageSelected
+            )
+            ,
+            Toolbars.ToolBarAction(
+                icon = Icons.Outlined.Wallpaper,
+                contentDescription = "Set as my wallpaper",
+                onClick = setAsMyWallpaper,
                 enabled = isImageSelected
             )
         ),

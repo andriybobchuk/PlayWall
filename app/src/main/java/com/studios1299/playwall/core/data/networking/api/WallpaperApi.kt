@@ -25,10 +25,10 @@ interface WallpaperApi {
         @Body changeWallpaperRequest: ChangeWallpaperRequest
     ): Response<Void>
 
-    @GET("api/wallpaperHistory/{userId}")
+    @GET("api/wallpaperHistory/{recipientId}")
     suspend fun getWallpaperHistory(
         @Header("Authorization") authHeader: String,
-        @Path("userId") userId: Int,
+        @Path("recipientId") userId: Int,
         @Query("page") page: Int,
         @Query("pageSize") pageSize: Int
     ): Response<List<WallpaperHistoryResponse>>

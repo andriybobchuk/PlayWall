@@ -18,7 +18,7 @@ private val LightColorScheme = lightColorScheme(
     secondary = GRAY600, // Grey texts
     background = Color.White, // Backgrounds
     outline = Color.LightGray, // Shimmer for loading images
-    surface = Color.Red // For light container elements like textfields backgrounds
+    surface = Color.LightGray.copy(0.1f) // For light container elements like textfields backgrounds
 )
 
 private val DarkColorScheme = darkColorScheme(
@@ -28,14 +28,8 @@ private val DarkColorScheme = darkColorScheme(
     secondary = NAVY400, // Light text for secondary elements
     background = NAVY800, // Background
     outline = NAVY300, // for loading images backgrounds
-    surface = Color.Red // For light container elements like textfields backgrounds
+    surface = NAVY600.copy(0.5f) // For light container elements like textfields backgrounds
 )
-
-
-
-
-
-
 
 //private val LightAndroidBackgroundTheme = BackgroundTheme(color = Color.White)
 //private val DarkAndroidBackgroundTheme = BackgroundTheme(color = DARK_GREEN300)

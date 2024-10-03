@@ -16,61 +16,6 @@ import com.studios1299.playwall.core.data.local.Preferences
 
 class FcmService : FirebaseMessagingService() {
 
-//    override fun onMessageReceived(remoteMessage: RemoteMessage) {
-//        Log.e("FcmService", "onMessageReceived(): start")
-//
-//        val fileName = remoteMessage.data["fileName"]
-//
-//        if (!fileName.isNullOrEmpty()) {
-//            val workData = workDataOf(
-//                "file_name" to fileName,
-//            )
-//
-//            val changeWallpaperWork = OneTimeWorkRequestBuilder<ChangeWallpaperWorker>()
-//                .setInputData(workData)
-//                .build()
-//
-//            Log.e("FcmService", "onMessageReceived(): launch worker")
-//            WorkManager.getInstance(applicationContext).enqueue(changeWallpaperWork)
-//        }
-//    }
-
-//    override fun onMessageReceived(remoteMessage: RemoteMessage) {
-//        Log.e("FcmService", "onMessageReceived(): start")
-//
-//        val notificationType = remoteMessage.data["type"] // e.g., "wallpaper" or "friend_request"
-//        val fileName = remoteMessage.data["fileName"]
-//        val requesterName = remoteMessage.data["requesterName"] // for friend requests
-//
-//        when (notificationType) {
-//            "wallpaper" -> {
-//                if (!fileName.isNullOrEmpty()) {
-//                    val workData = workDataOf(
-//                        "file_name" to fileName,
-//                    )
-//
-//                    val changeWallpaperWork = OneTimeWorkRequestBuilder<ChangeWallpaperWorker>()
-//                        .setInputData(workData)
-//                        .build()
-//
-//                    Log.e("FcmService", "onMessageReceived(): launch wallpaper worker")
-//                    WorkManager.getInstance(applicationContext).enqueue(changeWallpaperWork)
-//                }
-//            }
-//            "friend_request" -> {
-//                if (!requesterName.isNullOrEmpty()) {
-//                    Log.e("FcmService", "onMessageReceived(): new friend request from $requesterName")
-//
-//                    // Trigger a UI notification or update
-//                    sendFriendRequestNotification(requesterName)
-//                }
-//            }
-//            else -> {
-//                Log.e("FcmService", "Unknown notification type")
-//            }
-//        }
-//    }
-
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.e("FcmService", "onMessageReceived(): start: " + remoteMessage)
 

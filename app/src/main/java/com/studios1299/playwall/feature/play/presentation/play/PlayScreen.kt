@@ -1,6 +1,7 @@
 package com.studios1299.playwall.feature.play.presentation.play
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PersonAddAlt
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
@@ -82,7 +84,7 @@ import me.saket.swipe.SwipeableActionsBox
 @Composable
 fun PlayScreenRoot(
     viewModel: PlayViewModel,
-    onNavigateToChat: (String) -> Unit,
+    onNavigateToChat: (Int) -> Unit,
     bottomNavbar: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -134,6 +136,9 @@ fun PlayScreen(
     var showUnfriendDialog by remember { mutableStateOf(false) }
     var showMuteDialog by remember { mutableStateOf(false) }
 
+    var selectedFriendshipId by remember { mutableStateOf<Int>(-1) }
+    var selectedFriendId by remember { mutableStateOf<Int>(-1) }
+
     requestNotificationPermissionWithDexter(LocalContext.current)
 
     InviteSheet(
@@ -159,7 +164,7 @@ fun PlayScreen(
             onDismissRequest = { showUnfriendDialog = false },
             confirmButton = {
                 TextButton(onClick = {
-                    onAction(PlayAction.OnFriendRemove(""))
+                    onAction(PlayAction.OnFriendRemove(selectedFriendshipId))
                     showUnfriendDialog = false
                 }) {
                     Text(stringResource(R.string.remove))
@@ -186,7 +191,8 @@ fun PlayScreen(
                 TextButton(
                     onClick = {
                       //  selectedFriendId?.let { friendId ->
-                            onAction(PlayAction.OnFriendMute("friendId"))
+                        Log.e("screen", "Blocking user with friendship ID: $selectedFriendshipId by user $selectedFriendId")
+                            onAction(PlayAction.OnFriendMute(selectedFriendshipId, selectedFriendId))
                        // }
                         showMuteDialog = false
                     }
@@ -302,7 +308,7 @@ fun PlayScreen(
                 }
             }
             items(state.friends) { friend ->
-                if (!friend.muted) {
+                if (friend.status != FriendshipStatus.blocked) {
                     val mute = SwipeAction(
                         icon = {
                             Icon(
@@ -313,19 +319,28 @@ fun PlayScreen(
                             )
                         },
                         background = MaterialTheme.colorScheme.primary,
-                        onSwipe = { showMuteDialog = true }
+                        onSwipe = {
+                            Log.e("setting", "Blocking user with friendship ID: ${friend.friendshipId} by user ${friend.id}")
+                            selectedFriendshipId = friend.friendshipId
+                            selectedFriendId = friend.id
+                            showMuteDialog = true
+                        }
                     )
-
                     val unfriend = SwipeAction(
                         icon = {
                             Text(
                                 modifier = Modifier.padding(start = 16.dp),
                                 text = "Unfriend",
                                 color = Color.White
-                            ) },
+                            )
+                               },
                         background = Color.Red,
                         isUndo = true,
-                        onSwipe = { showUnfriendDialog = true },
+                        onSwipe = {
+                            selectedFriendshipId = friend.friendshipId
+                            selectedFriendId = friend.id
+                            showUnfriendDialog = true
+                                  },
                     )
 
                     SwipeableActionsBox(
@@ -345,13 +360,53 @@ fun PlayScreen(
                 }
             }
             items(state.friends) { friend ->
-                if(!state.isSelectMode && friend.muted) {
-                    FriendItem(
-                        friend = friend,
-                        onClick = { onAction(PlayAction.OnFriendClick(friend.id)) },
-                        isSelectable = false,
-                        isSelected = false
+                if(!state.isSelectMode
+                    && friend.status == FriendshipStatus.blocked) {
+                    val unmute = SwipeAction(
+                    icon = {
+                        Icon(
+                            modifier = Modifier.padding(end = 16.dp),
+                            imageVector = Icons.Default.VolumeUp,
+                            contentDescription = "Unmute",
+                            tint = Color.White
+                        )
+                    },
+                    background = MaterialTheme.colorScheme.primary,
+                    onSwipe = {
+                        Log.e("setting", "UN-blocking user with friendship ID: ${friend.friendshipId} by user ${friend.id}")
+                        onAction(PlayAction.OnFriendUnMute(friend.friendshipId, friend.id))
+                    })
+
+                    val unfriend = SwipeAction(
+                        icon = {
+                            Text(
+                                modifier = Modifier.padding(start = 16.dp),
+                                text = "Unfriend",
+                                color = Color.White
+                            )
+                        },
+                        background = Color.Red,
+                        isUndo = true,
+                        onSwipe = {
+                            selectedFriendshipId = friend.friendshipId
+                            selectedFriendId = friend.id
+                            showUnfriendDialog = true
+                        },
                     )
+                    SwipeableActionsBox(
+                        modifier = Modifier
+                            .padding(vertical = 5.dp),
+                        startActions = listOf(unmute),
+                        endActions = listOf(unfriend),
+                        swipeThreshold = 120.dp,
+                    ) {
+                        FriendItem(
+                            friend = friend,
+                            onClick = { onAction(PlayAction.OnFriendClick(friend.id.toInt())) },
+                            isSelectable = false,
+                            isSelected = false
+                        )
+                    }
                 }
             }
 
@@ -362,18 +417,18 @@ fun PlayScreen(
 @Composable
 fun FriendItem(
     friend: Friend,
-    onClick: (friendId: String) -> Unit,
+    onClick: (friendId: Int) -> Unit,
     modifier: Modifier = Modifier,
     isSelectable: Boolean = false,
     isSelected: Boolean = false
 ) {
     val backgroundColor = when {
         isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-        friend.muted -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+        friend.status == FriendshipStatus.blocked -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
         else -> MaterialTheme.colorScheme.background
     }
 
-    val textColor = if (friend.muted) {
+    val textColor = if (friend.status == FriendshipStatus.blocked) {
         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
     } else {
         MaterialTheme.colorScheme.onBackground
@@ -387,13 +442,6 @@ fun FriendItem(
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (isSelectable) {
-            Checkbox(
-                checked = isSelected,
-                onCheckedChange = null,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-        }
         Images.Circle(
             model = friend.avatarId,
             size = 40.dp
@@ -433,6 +481,13 @@ fun FriendItem(
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
+        }
+        if (isSelectable) {
+            Checkbox(
+                checked = isSelected,
+                onCheckedChange = null,
+                modifier = Modifier.padding(end = 8.dp)
+            )
         }
 
     }

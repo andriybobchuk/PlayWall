@@ -1,6 +1,7 @@
 package com.studios1299.playwall.feature.play.presentation.play
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -31,11 +32,6 @@ class PlayViewModel(
 
     init {
         loadFriendsAndRequests()
-
-//        state.friendId.textAsFlow()
-//            .onEach { email ->
-//                onAction(PlayAction.OnInviteFriend(email.toString()))
-//            }.launchIn(viewModelScope)
     }
 
     fun onAction(action: PlayAction) {
@@ -56,11 +52,10 @@ class PlayViewModel(
             }
             is PlayAction.OnSelectedFromGallery -> send(action.uri)
             is PlayAction.OnSelectedFromSaved -> {}
-            //is PlayAction.OnSelectedFromSaved -> send(action.selectedWallpaper)
             PlayAction.LoadPhotos -> loadPhotos()
-            is PlayAction.OnFriendMute -> TODO()
-            is PlayAction.OnFriendRemove -> TODO()
-            is PlayAction.OnFriendUnMute -> TODO()
+            is PlayAction.OnFriendMute -> blockFriend(action.friendshipId, action.userId)
+            is PlayAction.OnFriendRemove -> removeFriend(action.friendshipId)
+            is PlayAction.OnFriendUnMute -> unblockFriend(action.friendshipId, action.friendshipId)
         }
     }
 
@@ -72,7 +67,7 @@ class PlayViewModel(
         state = state.copy(isSelectMode = false, selectedFriends = emptyList())
     }
 
-    private fun toggleFriendSelection(friendId: String) {
+    private fun toggleFriendSelection(friendId: Int) {
         val currentSelection = state.selectedFriends.toMutableList()
         if (currentSelection.contains(friendId)) {
             currentSelection.remove(friendId)
@@ -82,7 +77,7 @@ class PlayViewModel(
         state = state.copy(selectedFriends = currentSelection)
     }
 
-    private fun navigateToChat(friendId: String) {
+    private fun navigateToChat(friendId: Int) {
         viewModelScope.launch {
             eventChannel.send(PlayEvent.NavigateToChat(friendId))
         }
@@ -166,9 +161,9 @@ class PlayViewModel(
         }
     }
 
-    private fun acceptFriendRequest(requestId: String) {
+    private fun acceptFriendRequest(requestId: Int) {
         viewModelScope.launch {
-            val result = repository.acceptFriendRequest(AcceptRequest(requestId.toInt()))
+            val result = repository.acceptFriendRequest(AcceptRequest(requestId))
             if (result is SmartResult.Success) {
                 eventChannel.send(PlayEvent.FriendRequestAccepted)
                 loadFriendsAndRequests()
@@ -178,7 +173,7 @@ class PlayViewModel(
         }
     }
 
-    private fun declineFriendRequest(requestId: String) {
+    private fun declineFriendRequest(requestId: Int) {
         viewModelScope.launch {
             val result = repository.declineFriendRequest(DeclineRequest(requestId.toInt()))
             if (result is SmartResult.Success) {
@@ -189,4 +184,67 @@ class PlayViewModel(
             }
         }
     }
+
+    fun blockFriend(friendshipId: Int, userId: Int) {
+        viewModelScope.launch {
+            state = state.copy(isLoading = true)
+            val result = repository.blockUser(friendshipId, userId)
+
+            if (result is SmartResult.Success) {
+                // Update the list of friends and set the status to "blocked"
+                val updatedFriends = state.friends.map { friend ->
+                    if (friend.friendshipId == friendshipId) {
+                        friend.copy(status = FriendshipStatus.blocked) // Assuming muted as blocked, adjust if needed
+                    } else {
+                        friend
+                    }
+                }
+                state = state.copy(friends = updatedFriends, isLoading = false)
+                loadFriendsAndRequests()
+            } else {
+                // Handle failure case, e.g., show error message
+                state = state.copy(isLoading = false)
+            }
+        }
+    }
+
+    fun unblockFriend(friendshipId: Int, userId: Int) {
+        viewModelScope.launch {
+            state = state.copy(isLoading = true)
+            val result = repository.unblockUser(friendshipId, userId)
+
+            if (result is SmartResult.Success) {
+                // Update the list of friends and set the status to "accepted"
+                val updatedFriends = state.friends.map { friend ->
+                    if (friend.friendshipId == friendshipId) {
+                        friend.copy(status = FriendshipStatus.accepted) // Assuming muted as blocked, adjust if needed
+                    } else {
+                        friend
+                    }
+                }
+                state = state.copy(friends = updatedFriends, isLoading = false)
+            } else {
+                // Handle failure case, e.g., show error message
+                state = state.copy(isLoading = false)
+            }
+        }
+    }
+
+
+    fun removeFriend(friendshipId: Int) {
+        viewModelScope.launch {
+            state = state.copy(isLoading = true)
+            val result = repository.removeUser(friendshipId)
+
+            if (result is SmartResult.Success) {
+                // Remove the friend from the friends list
+                val updatedFriends = state.friends.filter { friend -> friend.friendshipId != friendshipId }
+                state = state.copy(friends = updatedFriends, isLoading = false)
+            } else {
+                // Handle failure case
+                state = state.copy(isLoading = false)
+            }
+        }
+    }
+
 }

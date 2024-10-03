@@ -1,8 +1,11 @@
 package com.studios1299.playwall.core.data.networking.api
 
 import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
+import com.studios1299.playwall.core.data.networking.request.friendships.BlockRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.DeclineRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.InviteRequest
+import com.studios1299.playwall.core.data.networking.request.friendships.RemoveFriendRequest
+import com.studios1299.playwall.core.data.networking.request.friendships.UnblockRequest
 import com.studios1299.playwall.feature.play.presentation.play.Friend
 import retrofit2.Response
 import retrofit2.http.Body
@@ -34,5 +37,23 @@ interface FriendsApi {
     suspend fun declineFriendRequest(
         @Header("Authorization") authHeader: String,
         @Body declineRequest: DeclineRequest
+    ): Response<Unit>
+
+    @POST("api/friendship/removeFriend")
+    suspend fun removeFriend(
+        @Header("Authorization") authHeader: String,
+        @Body removeFriendRequest: RemoveFriendRequest
+    ): Response<Unit>
+
+    @POST("api/friendship/block")
+    suspend fun blockUser(
+        @Header("Authorization") authHeader: String,
+        @Body blockRequest: BlockRequest
+    ): Response<Unit>
+
+    @POST("api/friendship/unblock")
+    suspend fun unblockUser(
+        @Header("Authorization") authHeader: String,
+        @Body unblockRequest: UnblockRequest
     ): Response<Unit>
 }
