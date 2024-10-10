@@ -54,7 +54,15 @@ fun AddTextBottomSheet(
     val availableColors = listOf(
         Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Black
     )
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalBottomSheet(
+        onDismissRequest = {
+            val selectedTextColor = android.graphics.Color.parseColor(
+                "#" + Integer.toHexString(selectedColor.hashCode())
+            )
+            onTextAdded(textFieldState.text.toString(), selectedTextColor)
+            onDismiss()
+        }
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             TextFields.Primary(
                 state = textFieldState,
@@ -96,18 +104,6 @@ fun AddTextBottomSheet(
                         }
                     }
                 }
-            }
-            Button(
-                onClick = {
-                    val selectedTextColor = android.graphics.Color.parseColor(
-                        "#" + Integer.toHexString(selectedColor.hashCode())
-                    )
-                    onTextAdded(textFieldState.text.toString(), selectedTextColor)
-                    onDismiss()
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Add Text")
             }
         }
     }
@@ -179,7 +175,12 @@ fun DrawModeBottomSheet(
     var selectedDrawColor by remember { mutableStateOf(initialColor ?: Color.Red) }
     var brushSize by remember { mutableStateOf(initialBrushSize ?: 10f) }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalBottomSheet(
+        onDismissRequest = {
+            onDrawSettingsSelected(selectedDrawColor, brushSize)
+            onDismiss()
+        }
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("Choose Brush Color")
             LazyRow(
@@ -220,15 +221,6 @@ fun DrawModeBottomSheet(
                 valueRange = 1f..50f, // Range for brush size
                 modifier = Modifier.padding(vertical = 16.dp)
             )
-            Button(
-                onClick = {
-                    onDrawSettingsSelected(selectedDrawColor, brushSize)
-                    onDismiss()
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Save")
-            }
         }
     }
 }

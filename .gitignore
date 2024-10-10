@@ -9,4 +9,4 @@ local.properties
 /captures
 .externalNativeBuild
 .cxx
-local.properties
+/app/src/main/assets/build_counter.properties
