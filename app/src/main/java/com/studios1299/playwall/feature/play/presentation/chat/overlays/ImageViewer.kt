@@ -48,6 +48,8 @@ import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatVie
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.R
+import com.studios1299.playwall.feature.play.presentation.chat.util.timestampAsDateTime
+import com.studios1299.playwall.feature.play.presentation.chat.util.timestampAsTime
 import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.MessengerUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -96,9 +98,10 @@ fun ImageViewer(
                 onTap = { topBarVisible.value = !topBarVisible.value }
             )
 
+            val context = LocalContext.current
             TopAppBarContent(
                 visible = topBarVisible.value,
-                senderEmail = uiState.selectedMessage!!.senderId.toString(),
+                senderEmail = timestampAsDateTime(uiState.selectedMessage!!.timestamp, context),
                 onDismiss = onDismiss,
             )
 

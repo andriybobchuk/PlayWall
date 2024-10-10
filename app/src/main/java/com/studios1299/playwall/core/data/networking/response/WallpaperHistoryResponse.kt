@@ -1,5 +1,6 @@
 package com.studios1299.playwall.core.data.networking.response
 
+import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.data.model.Reaction
 
 data class WallpaperHistoryResponse(
@@ -11,6 +12,14 @@ data class WallpaperHistoryResponse(
     val comment: String?,
     val reaction: Reaction?,
     val timeSent: String,
+    val status: MessageStatus
+)
+
+data class WallpaperHistoryApiResponse(
+    val data: List<WallpaperHistoryResponse>,
+    val page: Int,
+    val pageSize: Int,
+    val endReached: Boolean
 )
 
 

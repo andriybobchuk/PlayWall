@@ -3,6 +3,7 @@ package com.studios1299.playwall.profile.presentation
 import android.app.WallpaperManager
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -67,9 +68,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.R
+import com.studios1299.playwall.core.data.ChangeWallpaperWorker
+import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Buttons
@@ -78,6 +84,11 @@ import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 @Composable
@@ -289,6 +300,11 @@ fun ProfileScreen(
                                 icon = Icons.Default.Restore,
                                 label = "Rollback to previous wallpaper",
                                 onClick = {
+                                    val workData = workDataOf("file_name" to Preferences.getPreviousWallpaperId())
+                                    val changeWallpaperWork = OneTimeWorkRequestBuilder<ChangeWallpaperWorker>()
+                                        .setInputData(workData)
+                                        .build()
+                                    WorkManager.getInstance(context).enqueue(changeWallpaperWork)
                                     onAction(ProfileAction.RollbackPreviousWallpaper)
                                 }
                             )
@@ -298,8 +314,10 @@ fun ProfileScreen(
                                 icon = Icons.Default.Restore,
                                 label = "Rollback to default wallpaper",
                                 onClick = {
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                                        WallpaperManager.getInstance(context).clearWallpaper()
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                            WallpaperManager.getInstance(context).clearWallpaper()
+                                        }
                                     }
                                     onAction(ProfileAction.RollbackDefaultWallpaper)
                                 }
@@ -428,7 +446,7 @@ fun EditProfileDialog(
     )
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
+
 @Composable
 fun PhotoGridRow(
     exploreWallpapers: List<ExploreWallpaper>,
@@ -453,21 +471,6 @@ fun PhotoGridRow(
                     }
                 }
             )
-//            GlideImage(
-//                model = photo.url,
-//                contentDescription = photo.description,
-//                modifier = Modifier
-//                    .weight(1f)
-//                    .aspectRatio(1f)
-//                    .clickable {
-//                        if (state.wallpapers.isNotEmpty()) {
-//                            onAction(ProfileAction.OnPhotoClick(photo.id))
-//                        }
-//                    }
-//                    .clip(RoundedCornerShape(8.dp))
-//                    .background(MaterialTheme.colorScheme.surface),
-//                contentScale = ContentScale.Crop
-//            )
         }
         repeat(3 - exploreWallpapers.size) {
             Spacer(modifier = Modifier.weight(1f))
@@ -699,7 +702,10 @@ fun Group(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HelpLegalBottomSheet(onDismiss: () -> Unit, onNavigateTo: (ProfileDestination) -> Unit) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalBottomSheet(
+        containerColor = MaterialTheme.colorScheme.surface,
+        onDismissRequest = onDismiss
+    ) {
         Group(
             label = "Help & Legal",
             items = listOf(

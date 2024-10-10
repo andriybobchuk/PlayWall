@@ -3,6 +3,7 @@ package com.studios1299.playwall.feature.play.presentation.play
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text2.input.TextFieldState
 import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
+import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.data.model.User
 
 data class PlayState @OptIn(ExperimentalFoundationApi::class) constructor(
@@ -22,10 +23,13 @@ data class Friend(
     val nick: String?,
     val email: String,
     val avatarId: String?,
-    val lastMessage: String?,
-    val unreadMessages: Int,
+    //val lastMessage: String?,
+    //val unreadMessages: Int,
     val status: FriendshipStatus,
     val requesterId: Int,
+    val lastMessageDate: String?,      // Date of the last message
+    val lastMessageStatus: MessageStatus?,    // Status of the last message (read/unread)
+    val lastMessageSender: Int?
 )
 
 enum class FriendshipStatus {

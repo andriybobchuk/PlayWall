@@ -1,34 +1,61 @@
 package com.studios1299.playwall.create.presentation
 
+import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.studios1299.playwall.R
 import com.studios1299.playwall.core.data.ChangeWallpaperWorker
+import com.studios1299.playwall.core.data.s3.S3Handler
+import com.studios1299.playwall.core.data.s3.uriToFile
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
+import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
+import com.studios1299.playwall.feature.play.presentation.play.Friend
 import ja.burhanrashid52.photoeditor.PhotoEditor
 import ja.burhanrashid52.photoeditor.PhotoEditorView
 import ja.burhanrashid52.photoeditor.TextStyleBuilder
@@ -36,6 +63,7 @@ import ja.burhanrashid52.photoeditor.shape.ShapeBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
 
 @Composable
 fun CreateScreenRoot(
@@ -63,6 +91,7 @@ fun CreateScreenRoot(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateScreen(
     state: CreateScreenState,
@@ -113,6 +142,35 @@ fun CreateScreen(
         }
     }
 
+    val coroutineScope = rememberCoroutineScope()
+    val isFriendsSheetOpen = remember { mutableStateOf(false) }
+    val friendsSheetState = rememberModalBottomSheetState()
+    FriendsSelectionBottomSheet(
+        isSheetOpen = isFriendsSheetOpen,
+        sheetState = friendsSheetState,
+        friends = state.friends,
+        onFriendsSelected = { selectedFriends ->
+
+            CoroutineScope(Dispatchers.Main).launch {
+                if (photoEditor != null && photoEditorView != null) {
+                    saveImageToGallery(
+                        context = context,
+                        photoEditor = photoEditor,
+                        onSuccess = { savedUri ->
+                            CoroutineScope(Dispatchers.IO).launch {
+                                setAsWallpaper(S3Handler.uploadToS3(uriToFile(context, savedUri)!!, S3Handler.Folder.WALLPAPERS)?:"", context)
+                                selectedImageUri = savedUri
+                                onAction(CreateScreenAction.SendToFriends(selectedFriends, selectedImageUri, context))
+                            }
+                        }
+                    )
+                } else {
+                    Toast.makeText(context, "Photo editor is not initialized", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    )
+
     LaunchedEffect(selectedImageUri) {
         if (selectedImageUri != Uri.EMPTY) {
             try {
@@ -124,30 +182,32 @@ fun CreateScreen(
         }
     }
 
-    val workManager = WorkManager.getInstance(context)
-
-    val workData = workDataOf(
-        "file_name" to selectedImageUri.toString(),
-        "from_device" to true
-    )
-
-
-//    val inputData = Data.Builder()
-//        .putString("file_name", "your_image_name") // You can use this for reference but won't need it in this version
-//        .putBoolean("set_home_screen", true) // or false based on user preference
-//        .putBoolean("set_lock_screen", true) // or false based on user preference
-//        .build()
-
-    val changeWallpaperRequest = OneTimeWorkRequestBuilder<ChangeWallpaperWorker>()
-        .setInputData(workData)
-        .build()
-
     Scaffold(
         topBar = {
             Topbar(
                 download = { requestSave() },
-                send = { workManager.enqueue(changeWallpaperRequest) },
-                setAsMyWallpaper = {},
+                send = {
+                    coroutineScope.launch { isFriendsSheetOpen.value = true }
+                },
+                setAsMyWallpaper = {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        if (photoEditor != null && photoEditorView != null) {
+                            saveImageToGallery(
+                                context = context,
+                                photoEditor = photoEditor,
+                                onSuccess = { savedUri ->
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        setAsWallpaper(S3Handler.uploadToS3(uriToFile(context, savedUri)!!, S3Handler.Folder.WALLPAPERS)?:"", context)
+                                        selectedImageUri = savedUri
+                                    }
+                                }
+                            )
+                        } else {
+                            Toast.makeText(context, "Photo editor is not initialized", Toast.LENGTH_SHORT).show()
+                        }
+
+                    }
+                                   },
                 isImageSelected = isImageSelected
             )
         },
@@ -259,6 +319,133 @@ fun CreateScreen(
                 title = { Text("Replace Image?") },
                 text = { Text("You will lose your progress if you haven't saved. Do you want to replace the image?") }
             )
+        }
+    }
+}
+
+// TODO: PostDetailViewModel -> boilerplate function to be removed
+fun setAsWallpaper(s3Link: String, context: Context) {
+    val pathToS3 = S3Handler.downloadableLinkToPath(s3Link)
+    val workData = workDataOf(
+        "file_name" to pathToS3,
+        "from_device" to false
+    )
+    Log.e("setAsWallpaper", "filename:  " + s3Link)
+
+    val changeWallpaperWork = OneTimeWorkRequestBuilder<ChangeWallpaperWorker>()
+        .setInputData(workData)
+        .build()
+
+    WorkManager.getInstance(context).enqueue(changeWallpaperWork)
+}
+
+// TODO: boilerplate from PostDetailScreen to be removed
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FriendsSelectionBottomSheet(
+    isSheetOpen: MutableState<Boolean>,
+    sheetState: SheetState,
+    friends: List<Friend>,
+    onFriendsSelected: (List<Friend>) -> Unit
+) {
+    // Track the selection state of each friend with a mutable set of friend IDs (Int)
+    val selectedFriends = remember { mutableStateListOf<Int>() }
+    val context = LocalContext.current
+
+    // Reset selected friends each time the sheet is opened
+    if (isSheetOpen.value) {
+        selectedFriends.clear()
+
+        ModalBottomSheet(
+            sheetState = sheetState,
+            onDismissRequest = { isSheetOpen.value = false }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = "Send to friends",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp)
+                )
+
+                if (friends.isEmpty()) {
+                    Text(
+                        text = "Looks like you have no friends",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        textAlign = TextAlign.Center
+                    )
+                } else {
+                    LazyColumn {
+                        items(friends) { friend ->
+                            val isSelected = selectedFriends.contains(friend.id.toInt())
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        if (isSelected) {
+                                            selectedFriends.remove(friend.id.toInt())
+                                        } else {
+                                            selectedFriends.add(friend.id.toInt())
+                                        }
+                                    }
+                                    .padding(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Images.Circle(
+                                    model = friend.avatarId
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(text = friend.email)
+                                Spacer(modifier = Modifier.weight(1f))
+                                Checkbox(
+                                    checked = isSelected,
+                                    onCheckedChange = { isChecked ->
+                                        if (isChecked) {
+                                            selectedFriends.add(friend.id.toInt())
+                                        } else {
+                                            selectedFriends.remove(friend.id.toInt())
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Button(
+                    onClick = {
+                        // Filter selected friends and pass to the callback
+                        val selectedFriendList = friends.filter { friend ->
+                            selectedFriends.contains(friend.id.toInt())
+                        }
+                        if (selectedFriendList.isNotEmpty()) {
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.sent_to_friend),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "No friends were selected.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        onFriendsSelected(selectedFriendList)
+                        isSheetOpen.value = false
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                ) {
+                    Text(text = "Send wallpaper")
+                }
+            }
         }
     }
 }

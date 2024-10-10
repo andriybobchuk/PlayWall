@@ -29,11 +29,6 @@ class DefaultPaginator<Key, Item>(
         onLoadUpdated(true)
         val result = onRequest(currentKey)
         isMakingRequest = false
-//        val items = result.getOrElse {
-//            onError(it)
-//            onLoadUpdated(false)
-//            return
-//        }
         val items = when (result) {
             is SmartResult.Success -> {
                 Log.e(LOG_TAG, "Elements in loadNextItems(): ${result.data}")
@@ -42,7 +37,6 @@ class DefaultPaginator<Key, Item>(
             is SmartResult.Error -> {
                 Log.e(LOG_TAG, "Error in loadNextItems(): ${result.error}")
                 emptyList()
-                //onError(result.error)
             }
         }
 

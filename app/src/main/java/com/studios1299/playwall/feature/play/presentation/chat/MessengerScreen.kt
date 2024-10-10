@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,9 +26,13 @@ import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.studios1299.playwall.R
+import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
 import com.studios1299.playwall.feature.play.data.model.User
 import com.studios1299.playwall.feature.play.presentation.chat.util.BuildCounterDisplay
@@ -37,6 +42,7 @@ import com.studios1299.playwall.feature.play.presentation.chat.overlays.ImageVie
 import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.MessengerUiState
 import com.studios1299.playwall.feature.play.presentation.chat.util.isSameDay
 import com.studios1299.playwall.feature.play.presentation.chat.util.timestampAsDate
+import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
 import kotlinx.coroutines.launch
 
 /**
@@ -71,17 +77,40 @@ fun MessengerScreen(
         viewModel.setConnectivityStatus(isConnected)
     }
 
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val lifecycleObserver = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) {
+                if (uiState.messages.isEmpty()) return@LifecycleEventObserver
+                viewModel.markMessagesAsRead(uiState.recipient?.friendshipId ?: -1, uiState.messages[0].id)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+
+        // Cleanup when the effect leaves the Composition
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
+        }
+    }
+
     FullscreenOverlays(uiState, viewModel)
 
     Scaffold {
-        Column(modifier = modifier.fillMaxSize().padding(it)) {
-            MessengerScreenHeader(recipient = uiState.recipient?:User(-1, "", ""), onBackClick = onBackClick)
+        Column(modifier = modifier
+            .fillMaxSize()
+            .padding(it)) {
+            MessengerScreenHeader(
+                recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1),
+                viewModel = viewModel,
+                onBackClick = onBackClick,
+            )
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxSize()
             ) {
                 MessagesList(
+                    recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1),
                     viewModel = viewModel,
                     uiState = uiState,
                     scrollState = scrollState
@@ -93,6 +122,7 @@ fun MessengerScreen(
                 ) {
                     SendImageButton(
                         onClick = { requestPermissionAndPickImage() },
+                        recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1),
                         modifier = Modifier
                             .padding(end = 8.dp)
                     )
@@ -154,6 +184,7 @@ private fun FullscreenOverlays(
  */
 @Composable
 fun MessagesList(
+    recipient: User,
     viewModel: ChatViewModel,
     uiState: MessengerUiState,
     scrollState: LazyListState
@@ -175,13 +206,14 @@ fun MessagesList(
             if (messages.indexOf(message) >= messages.size - 1 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
                 viewModel.loadMessages()
             }
-            val isLastMessage = message.id == messages[messages.size-1].id
+            val isLastMessage = message.id == messages[0].id
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
                 MessageItem(
+                    recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1),
                     viewModel = viewModel,
                     message = message,
                     uiState = uiState,
@@ -263,8 +295,11 @@ fun ScrollToBottomButton(
 @Composable
 fun MessengerScreenHeader(
     recipient: User,
-    onBackClick: () -> Unit
+    viewModel: ChatViewModel,
+    onBackClick: () -> Unit,
 ) {
+    var isMenuExpanded by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -285,6 +320,7 @@ fun MessengerScreenHeader(
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
+
             Row(
                 modifier = Modifier
                     .fillMaxSize()
@@ -296,16 +332,7 @@ fun MessengerScreenHeader(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    GlideImage(
-                        model = recipient.profilePictureUrl,
-                        contentDescription = stringResource(R.string.recipient_profile_picture),
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.outline, shape = CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-
+                    Images.Circle(model = recipient.profilePictureUrl)
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Column {
@@ -316,14 +343,45 @@ fun MessengerScreenHeader(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "Became friends on...",
+                            text = "Became friends ${timestampAsDate(recipient.since, LocalContext.current)}",
                             color = MaterialTheme.colorScheme.secondary,
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    //BuildCounterDisplay()
+                }
+            }
+
+            // Three-dot menu button
+            Box(
+                modifier = Modifier.align(Alignment.CenterEnd)
+            ) {
+                IconButton(
+                    onClick = { isMenuExpanded = true }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "More options",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = isMenuExpanded,
+                    onDismissRequest = { isMenuExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(text = if(recipient.status == FriendshipStatus.accepted) "Mute friend" else "Unmute friend") },
+                        onClick = {
+                            if (recipient.status == FriendshipStatus.accepted) {
+                                viewModel.blockFriend(recipient.friendshipId, recipient.id)
+                            } else {
+                                viewModel.unblockFriend(recipient.friendshipId, recipient.id)
+                            }
+                            isMenuExpanded = false
+                        }
+                    )
                 }
             }
         }
@@ -331,18 +389,20 @@ fun MessengerScreenHeader(
     }
 }
 
+
 /**
  * Button to initiate the image picking process.
  */
 @Composable
-fun SendImageButton(onClick: () -> Unit, modifier: Modifier) {
+fun SendImageButton(onClick: () -> Unit, recipient: User, modifier: Modifier) {
     Button(
         onClick = onClick,
         modifier = modifier
             .padding(horizontal = 18.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary
-        )
+        ),
+        enabled = recipient.status == FriendshipStatus.accepted
     ) {
         Text(
             text = stringResource(R.string.pick_image),

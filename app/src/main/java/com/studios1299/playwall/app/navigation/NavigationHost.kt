@@ -230,7 +230,9 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
             CreateScreenRoot(
                 viewModel = viewModel<CreateViewModel>(
                     factory = viewModelFactory {
-                        CreateViewModel()
+                        CreateViewModel(
+                            MyApp.appModule.coreRepository
+                        )
                     }
                 ),
                 bottomNavbar = { BottomNavigationBar(

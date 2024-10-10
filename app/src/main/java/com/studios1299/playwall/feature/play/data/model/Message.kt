@@ -12,7 +12,8 @@ data class Message(
 )
 
 enum class MessageStatus {
-    SENT, DELIVERED, READ
+    read,
+    unread
 }
 
 enum class Reaction(val emoji: String) {

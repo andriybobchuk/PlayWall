@@ -10,6 +10,7 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -90,7 +91,12 @@ fun rememberRequestPermissionAndPickImage(
 
     return remember {
         {
-            val permission = Manifest.permission.READ_MEDIA_IMAGES
+            val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Manifest.permission.READ_MEDIA_IMAGES
+            } else {
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            }
+
             val permissionStatus = ContextCompat.checkSelfPermission(context, permission)
 
             if (permissionStatus == PackageManager.PERMISSION_GRANTED) {

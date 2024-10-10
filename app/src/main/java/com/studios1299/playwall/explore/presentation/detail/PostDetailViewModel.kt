@@ -137,8 +137,6 @@ class PostDetailViewModel(
             val result = repository.getFriends()
             if (result is SmartResult.Success) {
                 state = state.copy(friends = result.data)
-            } else {
-
             }
         }
     }

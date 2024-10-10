@@ -48,32 +48,39 @@ import java.util.TimeZone
 //}
 
 fun timestampAsDate(timestamp: String, context: Context): String {
-    // Define the input date format
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-    dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+    return try {
+        // Define the input date format
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
 
-    // Parse the timestamp into a Date object
-    val date: Date = dateFormat.parse(timestamp) ?: return ""
+        // Parse the timestamp into a Date object
+        val date: Date = dateFormat.parse(timestamp) ?: return ""
 
-    // Create Calendar instances
-    val now = Calendar.getInstance()
-    val calendar = Calendar.getInstance().apply { time = date }
-    val today = now.clone() as Calendar
-    val yesterday = (now.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -1) }
-    val dateFormatCurrentYear = SimpleDateFormat("MMMM d", Locale.getDefault())
-    val dateFormatOtherYear = SimpleDateFormat("MMM d yyyy", Locale.getDefault())
+        // Create Calendar instances
+        val now = Calendar.getInstance()
+        val calendar = Calendar.getInstance().apply { time = date }
+        val today = now.clone() as Calendar
+        val yesterday = (now.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -1) }
+        val dateFormatCurrentYear = SimpleDateFormat("MMMM d", Locale.getDefault())
+        val dateFormatOtherYear = SimpleDateFormat("MMM d yyyy", Locale.getDefault())
 
-    return when {
-        calendar[Calendar.YEAR] == now[Calendar.YEAR] -> {
-            when {
-                calendar[Calendar.DAY_OF_YEAR] == today[Calendar.DAY_OF_YEAR] -> context.getString(R.string.today)
-                calendar[Calendar.DAY_OF_YEAR] == yesterday[Calendar.DAY_OF_YEAR] -> context.getString(R.string.yesterday)
-                else -> dateFormatCurrentYear.format(calendar.time)
+        when {
+            calendar[Calendar.YEAR] == now[Calendar.YEAR] -> {
+                when {
+                    calendar[Calendar.DAY_OF_YEAR] == today[Calendar.DAY_OF_YEAR] -> context.getString(R.string.today)
+                    calendar[Calendar.DAY_OF_YEAR] == yesterday[Calendar.DAY_OF_YEAR] -> context.getString(R.string.yesterday)
+                    else -> dateFormatCurrentYear.format(calendar.time)
+                }
             }
+            else -> dateFormatOtherYear.format(calendar.time)
         }
-        else -> dateFormatOtherYear.format(calendar.time)
+    } catch (e: Exception) {
+        // Log the exception or handle it as necessary
+        e.printStackTrace()
+        timestamp
     }
 }
+
 
 //fun timestampAsTime(timestamp: Long): String {
 //    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -81,14 +88,21 @@ fun timestampAsDate(timestamp: String, context: Context): String {
 //    return timeFormat.format(date)
 //}
 fun timestampAsTime(timestamp: String): String {
+    return try {
     val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
     inputFormat.timeZone = TimeZone.getTimeZone("UTC")
     val outputFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     val date: Date = inputFormat.parse(timestamp) ?: return ""
     return outputFormat.format(date)
+} catch (e: Exception) {
+    // Log the exception or handle it as necessary
+    e.printStackTrace()
+    timestamp
+}
 }
 
 fun timestampAsDateTime(timestamp: String, context: Context): String {
+    return try {
     // Define the input date format
     val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
     dateFormat.timeZone = TimeZone.getTimeZone("UTC")
@@ -118,14 +132,18 @@ fun timestampAsDateTime(timestamp: String, context: Context): String {
         }
         else -> dateFormatOtherYear.format(calendar.time)
     }
+    } catch (e: Exception) {
+        // Log the exception or handle it as necessary
+        e.printStackTrace()
+        timestamp
+    }
 }
 
 
 fun formatStatus(status: MessageStatus, context: Context): String {
     return when (status) {
-        MessageStatus.SENT -> context.getString(R.string.sent)
-        MessageStatus.DELIVERED -> context.getString(R.string.delivered)
-        MessageStatus.READ -> context.getString(R.string.read)
+        MessageStatus.read -> context.getString(R.string.read)
+        MessageStatus.unread -> "Delivered, unread"
     }
 }
 

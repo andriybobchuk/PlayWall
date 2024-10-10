@@ -8,7 +8,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.studios1299.playwall.core.data.WallpaperEventManager
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
+import com.studios1299.playwall.core.data.networking.response.WallpaperHistoryResponse
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.data.s3.uriToFile
 import com.studios1299.playwall.core.domain.CoreRepository
@@ -19,6 +21,7 @@ import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.data.model.User
 import com.studios1299.playwall.feature.play.data.DefaultPaginator
 import com.studios1299.playwall.feature.play.data.model.Reaction
+import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,12 +34,142 @@ class ChatViewModel(
 ) : ViewModel() {
     companion object {
         private const val LOG_TAG = "ChatViewModel"
-        private const val PAGE_SIZE = 100
+        private const val PAGE_SIZE = 10
     }
 
     private val _uiState = MutableStateFlow(MessengerUiState())
     val uiState: StateFlow<MessengerUiState> = _uiState.asStateFlow()
     var paginationState by mutableStateOf(PaginationState())
+
+    private val paginator = DefaultPaginator(
+        initialKey = paginationState.page,
+        onLoadUpdated = { isLoading ->
+            paginationState = paginationState.copy(isLoading = isLoading)
+        },
+        onRequest = { nextPage ->
+            Log.e("Paginator", "Requesting next page: $nextPage")
+            chatRepository.getWallpaperHistory(
+                userId = friendId,
+                page = nextPage,
+                pageSize = PAGE_SIZE
+            ).also {
+                Log.e("Paginator", "Request result for page $nextPage: $it")
+            }
+        },
+        getNextKey = { items ->
+            Log.e("Paginator", "Current page: ${paginationState.page}, moving to next page.")
+            paginationState.page + 1
+        },
+        onError = { error ->
+            Log.e("Paginator", "Error during pagination: ${error?.localizedMessage}")
+            paginationState = paginationState.copy(error = error?.localizedMessage)
+        },
+        onSuccess = { messagesResponse, newKey ->
+            Log.e("Paginator", "Success - Loaded ${messagesResponse.size} messages for page $newKey")
+
+            val messages = messagesResponse.map {
+                Message(
+                    id = it.id,
+                    imageUrl = it.fileName,
+                    caption = it.comment ?: "",
+                    timestamp = it.timeSent,
+                    reaction = it.reaction,
+                    senderId = it.requesterId,
+                    status = it.status,
+                    recipientId = it.recipientId
+                )
+            }
+
+            Log.e("Paginator", "Processed ${messages.size} new messages.")
+
+            paginationState = paginationState.copy(
+                page = newKey,
+                endReached = messages.isEmpty() || messages.size < PAGE_SIZE
+            )
+
+            _uiState.update { currentState ->
+                Log.e("Paginator", "Current message count: ${currentState.messages.size}")
+                val currentMessages = currentState.messages
+                val newMessages = messages.filterNot { newMessage ->
+                    currentMessages.any { it.id == newMessage.id }
+                }
+                Log.e("Paginator", "Added ${newMessages.size} new unique messages.")
+                Log.e("Paginator", "Final message count: ${currentState.messages.size}")
+
+                currentState.copy(messages = currentMessages + newMessages)
+            }
+        }
+    )
+
+    private suspend fun handleMessageUpdate(wallpaperHistoryResponse: WallpaperHistoryResponse) {
+        Log.e(LOG_TAG, "Handling wallpaper update with id: ${wallpaperHistoryResponse.id}")
+
+        _uiState.update { currentState ->
+            val currentMessages = currentState.messages.toMutableList()
+            val existingMessageIndex = currentMessages.indexOfFirst { it.id == wallpaperHistoryResponse.id }
+
+            if (existingMessageIndex != -1) {
+                Log.e(LOG_TAG, "Updating existing message with id: ${wallpaperHistoryResponse.id}")
+                // Update the message if it already exists
+                val updatedMessage = currentMessages[existingMessageIndex].copy(
+                    caption = wallpaperHistoryResponse.comment ?: "",
+                    reaction = wallpaperHistoryResponse.reaction,
+                    timestamp = wallpaperHistoryResponse.timeSent
+                )
+                currentMessages[existingMessageIndex] = updatedMessage
+            } else {
+                Log.e(LOG_TAG, "Adding new message with id: ${wallpaperHistoryResponse.id}")
+                // Add the new message
+                val newMessage = Message(
+                    id = wallpaperHistoryResponse.id,
+                    imageUrl = S3Handler.pathToDownloadableLink(wallpaperHistoryResponse.fileName)!!,
+                    caption = wallpaperHistoryResponse.comment ?: "",
+                    timestamp = wallpaperHistoryResponse.timeSent,
+                    reaction = wallpaperHistoryResponse.reaction,
+                    senderId = wallpaperHistoryResponse.requesterId,
+                    status =  wallpaperHistoryResponse.status,
+                    recipientId = wallpaperHistoryResponse.recipientId
+                )
+                currentMessages.add(newMessage)
+            }
+
+            // Sort messages by timestamp to ensure correct order
+            val sortedMessages = currentMessages.sortedByDescending { it.timestamp }
+
+            Log.e(LOG_TAG, "Sorted messages: ${sortedMessages.size} messages in total")
+
+            // Update the state with the sorted message list
+            currentState.copy(messages = sortedMessages)
+        }
+
+        Log.e(LOG_TAG, "Final state after update: ${_uiState.value.messages}")
+    }
+
+
+
+
+    fun loadMessages() {
+        Log.d(LOG_TAG, "laoding shit")
+        viewModelScope.launch {
+            if (!paginationState.endReached && !paginationState.isLoading) {
+                paginator.loadNextItems()
+            }
+        }
+    }
+
+    init {
+        Log.d(LOG_TAG, "ViewModel initialized")
+        loadRecipientData()
+        loadMessages()
+        setCurrentUser()
+
+        viewModelScope.launch {
+            WallpaperEventManager.wallpaperUpdates.collect { wallpaperHistoryResponse ->
+                Log.e(LOG_TAG, "Wallpaper event received: $wallpaperHistoryResponse")
+                handleMessageUpdate(wallpaperHistoryResponse)
+            }
+        }
+    }
 
     private val _isConnected = MutableStateFlow(false)
     fun setConnectivityStatus(status: Boolean) {
@@ -55,62 +188,6 @@ class ChatViewModel(
         }
     }
 
-    private val paginator = DefaultPaginator(
-        initialKey = paginationState.page,
-        onLoadUpdated = {
-            paginationState = paginationState.copy(isLoading = it)
-        },
-        onRequest = { nextPage ->
-
-           // chatRepository.retrieveMessages(nextPage, PAGE_SIZE)
-            Log.e(LOG_TAG, "On request ")
-            chatRepository.getWallpaperHistory(
-                userId = friendId,
-                page = nextPage,
-                pageSize = PAGE_SIZE
-            )
-        },
-        getNextKey = {
-            paginationState.page + 1
-        },
-        onError = {
-            paginationState = paginationState.copy(error = it?.localizedMessage)
-        },
-        onSuccess = { messagesResponse, newKey ->
-            val messages = messagesResponse.map {
-                Message(
-                    id = it.id,
-                    imageUrl = it.fileName,
-                    caption = it.comment?:"",
-                    timestamp = it.timeSent,
-                    reaction = it.reaction,
-                    senderId = it.requesterId,
-                    status = MessageStatus.SENT,
-                    recipientId = it.recipientId
-                )
-            }
-            paginationState = paginationState.copy(
-                page = newKey,
-                endReached = messages.isEmpty() || messages.size < PAGE_SIZE
-            )
-            _uiState.update { currentState ->
-                // Filter out any duplicates
-                val currentMessages = currentState.messages
-                val newMessages = messages.filterNot { newMessage ->
-                    currentMessages.any { it.id == newMessage.id }
-                }
-                currentState.copy(messages = currentMessages + newMessages)
-            }
-        }
-    )
-
-    init {
-        Log.d(LOG_TAG, "ViewModel initialized")
-        loadRecipientData()
-        loadMessages()
-        setCurrentUser()
-    }
-
     private fun loadRecipientData() {
         viewModelScope.launch {
             when (val result = chatRepository.getUserDataById(friendId)) {
@@ -122,6 +199,10 @@ class ChatViewModel(
                             name = result.data.name,
                             profilePictureUrl = result.data.avatarId,
                             email = result.data.email,
+                                since = result.data.since?:"",
+                                status = result.data.status?:FriendshipStatus.accepted,
+                                requesterId = result.data.requesterId,
+                                friendshipId = result.data.friendshipId
                         ))
                     }
                 }
@@ -132,13 +213,7 @@ class ChatViewModel(
         }
     }
 
-    fun loadMessages() {
-        viewModelScope.launch {
-            if (!paginationState.endReached) {
-                paginator.loadNextItems()
-            }
-        }
-    }
+
 
     fun setSelectedMessage(message: Message?) {
         _uiState.update { currentState ->
@@ -166,7 +241,11 @@ class ChatViewModel(
                             id = result.data.id,
                             name = result.data.name,
                             email = result.data.email,
-                            profilePictureUrl = result.data.avatarId
+                            profilePictureUrl = result.data.avatarId,
+                            since = result.data.since?:"",
+                            status = result.data.status?:FriendshipStatus.accepted,
+                            requesterId = result.data.requesterId,
+                            friendshipId = result.data.friendshipId
                         ))
                     }
                 }
@@ -216,28 +295,28 @@ class ChatViewModel(
         }
     }
 
+    fun reportWallpaper(wallpaperId: Int) {
+        viewModelScope.launch {
+            chatRepository.reportWallpaper(wallpaperId)
+        }
+    }
 
-//    fun addOrUpdateReaction(messageId: String, reaction: Reaction?) {
-//        _uiState.update { currentState ->
-//            val messages = currentState.messages.map { message ->
-//                if (message.id == messageId) {
-//                    val newReactions = message.reactions.toMutableList().apply {
-//                        // Remove existing reaction from the user
-//                        removeAll { it.userName == reaction.userName }
-//                        // Add the new reaction if it's not a removal action
-//                        if (reaction.emoji.isNotEmpty()) {
-//                            add(reaction)
-//                        }
-//                    }
-//                    message.copy(reactions = newReactions)
-//                } else {
-//                    message
-//                }
-//            }
-//            currentState.copy(messages = messages)
-//        }
-//    }
+    fun blockFriend(friendshipId: Int, userId: Int) {
+        viewModelScope.launch {
+            chatRepository.blockUser(friendshipId, userId)
+            loadRecipientData()
+        }
+    }
+
+    fun unblockFriend(friendshipId: Int, userId: Int) {
+        viewModelScope.launch {
+            chatRepository.unblockUser(friendshipId, userId)
+            loadRecipientData()
+        }
+    }
+
     fun addOrUpdateReaction(messageId: Int, reaction: Reaction?) {
+        Log.e("addOrUpdateReaction", "Reacting...")
         viewModelScope.launch {
             val result = if (reaction != null && reaction.emoji.isNotEmpty()) {
                 chatRepository.react(messageId, reaction.name)
@@ -246,6 +325,7 @@ class ChatViewModel(
             }
 
             if (result is SmartResult.Success) {
+                Log.e("addOrUpdateReaction", "Reacting successful")
                 _uiState.update { currentState ->
                     val messages = currentState.messages.map { message ->
                         if (message.id == messageId) {
@@ -286,6 +366,21 @@ class ChatViewModel(
             }
         }
     }
+
+    fun markMessagesAsRead(friendshipId: Int, lastMessageId: Int) {
+        Log.e("ChatViewModel", "Marking messages as read for friendshipId: $friendshipId, lastMessageId: $lastMessageId")
+        viewModelScope.launch {
+            val result = chatRepository.markMessagesAsRead(friendshipId, lastMessageId)
+            if (result is SmartResult.Success) {
+                Log.e("ChatViewModel", "Messages marked as read successfully for friendshipId: $friendshipId")
+            } else if (result is SmartResult.Error) {
+                Log.e("ChatViewModel", "Failed to mark messages as read: ${result.error}")
+            } else {
+                Log.e("ChatViewModel", "Unexpected result when marking messages as read: $result")
+            }
+        }
+    }
+
 
 
     fun getUserNameById(userId: String): String {

@@ -48,8 +48,10 @@ import androidx.compose.ui.unit.sp
 import com.studios1299.playwall.R
 import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.data.model.Reaction
+import com.studios1299.playwall.feature.play.data.model.User
 import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
 import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.MessengerUiState
+import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -153,6 +155,7 @@ fun MessageReactionIndicator(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReactSheet(
+    recipient: User,
     viewModel: ChatViewModel,
     message: Message,
     currentUserId: Int,
@@ -178,66 +181,63 @@ fun ReactSheet(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(MaterialTheme.colorScheme.primaryContainer)
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Reaction.entries.forEach { reaction ->
-                        val isSelected = reaction == selectedReaction
-                        Text(
-                            text = reaction.toString(),
-                            fontSize = 24.sp,
-                            color = if (isSelected) Color.Black else Color.Unspecified,
-                            modifier = Modifier
-                                .background(
-                                    if (isSelected) MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f) else Color.Transparent,
-                                    shape = CircleShape
-                                )
-                                .clickable {
-                                    if (selectedReaction == reaction) {
-                                        viewModel.addOrUpdateReaction(message.id, null)
-                                    } else {
-                                        viewModel.addOrUpdateReaction(message.id, reaction)
+                if (recipient.status == FriendshipStatus.accepted) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Reaction.entries.forEach { reaction ->
+                            val isSelected = reaction == selectedReaction
+                            Text(
+                                text = reaction.toString(),
+                                fontSize = 24.sp,
+                                color = if (isSelected) Color.Black else Color.Unspecified,
+                                modifier = Modifier
+                                    .background(
+                                        if (isSelected) MaterialTheme.colorScheme.secondary.copy(
+                                            alpha = 0.3f
+                                        ) else Color.Transparent,
+                                        shape = CircleShape
+                                    )
+                                    .clickable {
+                                        if (selectedReaction == reaction) {
+                                            viewModel.addOrUpdateReaction(message.id, null)
+                                        } else {
+                                            viewModel.addOrUpdateReaction(message.id, reaction)
+                                        }
+                                        isSheetOpen.value = false
                                     }
-                                    isSheetOpen.value = false
-                                }
-                                .padding(6.dp)
-                        )
+                                    .padding(6.dp)
+                            )
+                        }
                     }
                 }
+
                 Spacer(modifier = Modifier.height(10.dp))
 
-                if (isCurrentUser) {
-//                    Button(
-//                        onClick = {
-//                       //     viewModel.deleteMessage(message.id)
-//                            isSheetOpen.value = false
-//                        },
-//                        modifier = Modifier
-//                            .fillMaxWidth(),
-//                        colors = ButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.primary, disabledContentColor = MaterialTheme.colorScheme.tertiary, disabledContainerColor = Color.Black),
-//                        shape = RoundedCornerShape(14.dp)
-//                    ) {
-//                        Icon(
-//                            imageVector = Icons.Default.Delete,
-//                            contentDescription = stringResource(R.string.delete_this_message)
-//                        )
-//                        Spacer(modifier = Modifier.width(8.dp))
-//                        Text(
-//                            text = stringResource(R.string.delete_this_message),
-//                            color = MaterialTheme.colorScheme.primary
-//                        )
-//                    }
-                } else {
+
+                if (recipient.status == FriendshipStatus.accepted) {
                     ReplyField(
                         message = message,
                         viewModel = viewModel,
                         isSheetOpen = isSheetOpen
                     )
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                val context = LocalContext.current
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface),
+                    onClick = {
+                        viewModel.reportWallpaper(message.id)
+                    Toast.makeText(context, "Wallpaper has been reported", Toast.LENGTH_SHORT).show()
+                        isSheetOpen.value = false
+                }) {
+                    Text(text = "Report this wallpaper", color = MaterialTheme.colorScheme.error)
                 }
                 Spacer(modifier = Modifier.height(10.dp))
             }

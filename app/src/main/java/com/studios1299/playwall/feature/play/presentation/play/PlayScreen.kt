@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text2.input.clearText
@@ -50,6 +48,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,22 +59,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.studios1299.playwall.R
+import com.studios1299.playwall.core.data.s3.S3Handler
+import com.studios1299.playwall.core.data.s3.uriToFile
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Buttons
 import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.Toolbars
+import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
+import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
 import com.studios1299.playwall.feature.play.presentation.chat.util.requestNotificationPermissionWithDexter
+import com.studios1299.playwall.feature.play.presentation.chat.util.timestampAsDateTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import me.saket.swipe.SwipeAction
@@ -107,6 +112,22 @@ fun PlayScreenRoot(
         }
     }
 
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val lifecycleObserver = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                // This triggers when the PlayScreen regains focus
+                viewModel.refreshFriends()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+
+        // Cleanup when the effect leaves the Composition
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
+        }
+    }
+
     PlayScreen(
         state = state,
         onAction = { action ->
@@ -115,8 +136,6 @@ fun PlayScreenRoot(
         bottomNavbar = bottomNavbar
     )
 }
-
-
 
 
 @SuppressLint("RememberReturnType")
@@ -132,6 +151,7 @@ fun PlayScreen(
     val coroutineScope = rememberCoroutineScope()
     val inviteSheetState = rememberModalBottomSheetState()
     val savedWallpaperSheetState = rememberModalBottomSheetState()
+    val context = LocalContext.current
 
     var showUnfriendDialog by remember { mutableStateOf(false) }
     var showMuteDialog by remember { mutableStateOf(false) }
@@ -153,10 +173,12 @@ fun PlayScreen(
         isSheetOpen = isSavedWallpaperSheetOpen,
         sheetState = savedWallpaperSheetState,
         state = state,
-        onWallpaperSelected = { selectedWallpaper ->
-            onAction(PlayAction.OnSelectedFromSaved(selectedWallpaper))
+        onCloseSheet = { selectedWallpaper ->
+            onAction(PlayAction.OnSelectedFromSaved(selectedWallpaper, state.selectedFriends))
             isSavedWallpaperSheetOpen.value = false
-        }
+            onAction(PlayAction.OnExitSelectMode)
+        },
+        onAction = onAction
     )
 
     if (showUnfriendDialog) {
@@ -211,8 +233,11 @@ fun PlayScreen(
     }
 
     val requestImagePicker = rememberRequestPermissionAndPickImage { uri ->
-        onAction(PlayAction.OnSelectedFromGallery(uri))
-        onAction(PlayAction.OnExitSelectMode)
+        coroutineScope.launch {
+            val filename = S3Handler.uploadToS3(uriToFile(context, uri)!!, S3Handler.Folder.WALLPAPERS)?:""
+            onAction(PlayAction.OnSelectedFromGallery(filename))
+            onAction(PlayAction.OnExitSelectMode)
+        }
     }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -271,7 +296,6 @@ fun PlayScreen(
                                 onClick = {
                                     onAction(PlayAction.LoadPhotos)
                                     isSavedWallpaperSheetOpen.value = true
-                                    onAction(PlayAction.OnExitSelectMode)
                                 }
                             )
                             Buttons.Primary(
@@ -343,6 +367,7 @@ fun PlayScreen(
                                   },
                     )
 
+                   // val context = LocalContext.current
                     SwipeableActionsBox(
                         modifier = Modifier
                             .padding(vertical = 5.dp),
@@ -352,7 +377,9 @@ fun PlayScreen(
                     ) {
                         FriendItem(
                             friend = friend,
-                            onClick = { onAction(PlayAction.OnFriendClick(friend.id)) },
+                            onClick = {
+                                onAction(PlayAction.OnFriendClick(friend.id))
+                            },
                             isSelectable = state.isSelectMode,
                             isSelected = state.selectedFriends.contains(friend.id)
                         )
@@ -402,7 +429,7 @@ fun PlayScreen(
                     ) {
                         FriendItem(
                             friend = friend,
-                            onClick = { onAction(PlayAction.OnFriendClick(friend.id.toInt())) },
+                            onClick = { onAction(PlayAction.OnFriendClick(friend.id)) },
                             isSelectable = false,
                             isSelected = false
                         )
@@ -434,19 +461,23 @@ fun FriendItem(
         MaterialTheme.colorScheme.onBackground
     }
 
+    val senderCaption = if (friend.lastMessageSender == friend.id) "Sent you a wallpaper" else "Got your wallpaper"
+    val caption = "$senderCaption • ${timestampAsDateTime(friend.lastMessageDate?:"", LocalContext.current)}"
+    val status = if (friend.lastMessageSender != friend.id) MessageStatus.read else friend.lastMessageStatus
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .background(backgroundColor)
             .clickable { onClick(friend.id) }
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(horizontal = 12.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Images.Circle(
             model = friend.avatarId,
-            size = 40.dp
+            size = 47.dp
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(10.dp))
         Column(
             modifier = Modifier.weight(1f)
         ) {
@@ -455,33 +486,30 @@ fun FriendItem(
                 style = MaterialTheme.typography.titleSmall,
                 color = textColor
             )
-            if (friend.lastMessage != null) {
+            if (friend.lastMessageDate != null) {
                 Text(
-                    text = friend.lastMessage,
+                    text = caption,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = textColor,
+                    fontWeight = FontWeight.Light,
+                    color = textColor.copy(0.55f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
         }
-        if (friend.unreadMessages > 0) {
+        if (status == MessageStatus.unread) {
             Box(
                 modifier = Modifier
-                    .size(18.dp)
+                    .size(10.dp)
                     .background(
-                        color = MaterialTheme.colorScheme.error,
+                        color = MaterialTheme.colorScheme.primary,
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = friend.unreadMessages.toString(),
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodySmall,
-                )
             }
         }
+        Spacer(modifier = Modifier.width(6.dp))
         if (isSelectable) {
             Checkbox(
                 checked = isSelected,
@@ -493,7 +521,6 @@ fun FriendItem(
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun FriendRequestItem(
     friendRequest: Friend,
@@ -635,7 +662,8 @@ fun SavedWallpaperSheet(
     isSheetOpen: MutableState<Boolean>,
     sheetState: SheetState,
     state: PlayState,
-    onWallpaperSelected: (Int) -> Unit
+    onCloseSheet: (String) -> Unit,
+    onAction: (PlayAction) -> Unit,
 ) {
     if (isSheetOpen.value) {
         ModalBottomSheet(
@@ -664,51 +692,103 @@ fun SavedWallpaperSheet(
                         )
                     }
                 }
-                ImageGrid(PaddingValues(), state, onWallpaperSelected)
+                LazyColumn(
+                    modifier = Modifier
+                        .padding()
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)),
+                ) {
+                    items(state.exploreWallpapers.chunked(3)) { photoRow ->
+                        PhotoGridRow(
+                            photoRow,
+                            state,
+                            onAction,
+                            onCloseSheet
+                        )
+                    }
+                }
+                //ImageGrid(PaddingValues(), state, onWallpaperSelected)
+
             }
         }
     }
 }
 
+//@Composable
+//@OptIn(ExperimentalGlideComposeApi::class)
+//fun ImageGrid(
+//    innerPadding: PaddingValues,
+//    state: PlayState,
+//    onWallpaperSelected: (Int) -> Unit
+//) {
+//    Box(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(innerPadding)
+//    ) {
+//        if (!state.isLoading) {
+//            LazyVerticalGrid(
+//                columns = GridCells.Fixed(3),
+//                modifier = Modifier.fillMaxSize()
+//            ) {
+//                items(state.exploreWallpapers.size) { index ->
+//                    val photo = state.exploreWallpapers[index]
+//                    GlideImage(
+//                        model = "",
+//                        contentDescription = "wallpaper",
+//                        modifier = Modifier
+//                            .aspectRatio(1f)
+//                            .clickable {
+//                                if (state.exploreWallpapers.isNotEmpty()) {
+//                                    //downloadAndUploadImage(photo.url)
+//                                    onWallpaperSelected(photo.id)
+//                                }
+//                            }
+//                            .padding(1.dp)
+//                            .background(MaterialTheme.colorScheme.outline),
+//                        contentScale = ContentScale.Crop,
+//                    )
+//                }
+//            }
+//        }
+//    }
+//}
+
 @Composable
-@OptIn(ExperimentalGlideComposeApi::class)
-fun ImageGrid(
-    innerPadding: PaddingValues,
+fun PhotoGridRow(
+    exploreWallpapers: List<ExploreWallpaper>,
     state: PlayState,
-    onWallpaperSelected: (Int) -> Unit
+    onAction: (PlayAction) -> Unit,
+    onCloseSheet: (String) -> Unit,
 ) {
-    Box(
+    Row(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        if (!state.isLoading) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(state.exploreWallpapers.size) { index ->
-                    val photo = state.exploreWallpapers[index]
-                    GlideImage(
-                        model = "",
-                        contentDescription = "wallpaper",
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .clickable {
-                                if (state.exploreWallpapers.isNotEmpty()) {
-                                    //downloadAndUploadImage(photo.url)
-                                    onWallpaperSelected(photo.id)
-                                }
-                            }
-                            .padding(1.dp)
-                            .background(MaterialTheme.colorScheme.outline),
-                        contentScale = ContentScale.Crop,
-                    )
+        exploreWallpapers.forEach { photo ->
+            Images.Square(
+                modifier = Modifier
+                    .weight(1f)
+                    .aspectRatio(1f),
+                model = photo.fileName,
+                onClick = {
+                    Log.e("PhotoGridRow", "Photo clicked with id: ${photo.fileName}")
+                    onCloseSheet(photo.fileName)
                 }
-            }
+            )
+        }
+
+        repeat(3 - exploreWallpapers.size) {
+            Log.e("PhotoGridRow", "Adding empty space to fill remaining grid slots.")
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
+
+    Log.e("PhotoGridRow", "Finished rendering PhotoGridRow.")
 }
+
 
 //fun downloadAndUploadImage(imageUrl: String) {
 //    CoroutineScope(Dispatchers.IO).launch {

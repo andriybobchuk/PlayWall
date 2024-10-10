@@ -14,8 +14,10 @@ import com.studios1299.playwall.core.data.networking.request.friendships.Unblock
 import com.studios1299.playwall.core.data.networking.request.user.UpdateProfileRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.CommentRequest
+import com.studios1299.playwall.core.data.networking.request.wallpapers.MarkMessagesAsReadRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ReactionRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.RemoveSavedWallpaperRequest
+import com.studios1299.playwall.core.data.networking.request.wallpapers.ReportRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.SaveWallpaperRequest
 import com.studios1299.playwall.core.data.networking.response.ExploreWallpaperResponse
 import com.studios1299.playwall.core.data.networking.response.UserDataResponse
@@ -115,32 +117,49 @@ class FirebaseCoreRepositoryImpl(
 
     override suspend fun getFriends(): SmartResult<List<Friend>, DataError.Network> {
         return try {
+            Log.e("getFriends", "Starting the getFriends request")
+
             val result = performAuthRequest { token ->
+                Log.e("getFriends", "Token obtained: $token")
                 RetrofitClient.friendsApi.getFriends(token)
             }
+
             if (result is SmartResult.Success) {
+                Log.e("getFriends", "Successfully fetched friends list: ${result.data}")
+
                 val friendsWithAvatars = result.data.map { friend ->
+                    Log.e("getFriends", "Processing friend with ID: ${friend.id}")
+
                     if (friend.avatarId == null) {
+                        Log.e("getFriends", "Avatar ID is null for friend ID: ${friend.id}, setting to empty string")
                         friend.copy(avatarId = "")
                     } else {
+                        Log.e("getFriends", "Avatar ID exists for friend ID: ${friend.id}, attempting to fetch URL")
+
                         val avatarUrlResult = pathToLink(friend.avatarId)
-                        val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
-                            avatarUrlResult.data
+
+                        if (avatarUrlResult is SmartResult.Success) {
+                            Log.e("getFriends", "Successfully obtained avatar URL for friend ID: ${friend.id}: ${avatarUrlResult.data}")
+                            friend.copy(avatarId = avatarUrlResult.data)
                         } else {
-                            ""
+                            Log.e("getFriends", "Failed to obtain avatar URL for friend ID: ${friend.id}, setting avatar to empty string")
+                            friend.copy(avatarId = "")
                         }
-                        friend.copy(avatarId = avatarUrl)
                     }
                 }
 
+                Log.e("getFriends", "Finished processing friends list with avatars: $friendsWithAvatars")
                 SmartResult.Success(friendsWithAvatars)
             } else {
+                Log.e("getFriends", "Error occurred: SmartResult was not successful")
                 SmartResult.Error(DataError.Network.UNKNOWN)
             }
         } catch (e: Exception) {
+            Log.e("getFriends", "Exception occurred: ${e.message}", e)
             SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }
+
 
     override suspend fun getFriendRequests(): SmartResult<List<Friend>, DataError.Network> {
         return try {
@@ -228,34 +247,50 @@ class FirebaseCoreRepositoryImpl(
 
     override suspend fun getUserData(): SmartResult<UserDataResponse, DataError.Network> {
         return try {
+            Log.e("getUserData", "Starting getUserData request")
+
             val result = performAuthRequest { token ->
+                Log.e("getUserData", "Token retrieved: $token")
                 RetrofitClient.userApi.getUserData(token)
             }
 
             if (result is SmartResult.Success) {
                 val userData = result.data
+                Log.e("getUserData", "UserData retrieved successfully: $userData")
+
                 val avatarUrlResult = pathToLink(userData.avatarId)
+                Log.e("getUserData", "Avatar ID: ${userData.avatarId}, Avatar URL result: $avatarUrlResult")
+
                 val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
                     avatarUrlResult.data
                 } else {
+                    Log.e("getUserData", "Failed to retrieve avatar URL, using empty string.")
                     ""
                 }
 
-                SmartResult.Success(
-                    UserDataResponse(
-                        id = userData.id,
-                        name = userData.name,
-                        email = userData.email,
-                        avatarId = avatarUrl
-                    )
+                val userDataResponse = UserDataResponse(
+                    id = userData.id,
+                    name = userData.name,
+                    email = userData.email,
+                    avatarId = avatarUrl,
+                    since = userData.since,
+                    status = userData.status,
+                    requesterId = userData.requesterId,
+                    friendshipId = userData.friendshipId
                 )
+
+                Log.e("getUserData", "Returning UserDataResponse: $userDataResponse")
+                SmartResult.Success(userDataResponse)
             } else {
+                Log.e("getUserData", "Failed to retrieve user data: $result")
                 SmartResult.Error(DataError.Network.UNKNOWN)
             }
         } catch (e: Exception) {
+            Log.e("getUserData", "Exception in getUserData: ${e.message}", e)
             SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }
+
 
 
     override suspend fun updateProfile(avatarId: String?, nick: String?): SmartResult<Unit, DataError.Network> {
@@ -341,7 +376,11 @@ class FirebaseCoreRepositoryImpl(
                         id = userData.id,
                         name = userData.name,
                         email = userData.email,
-                        avatarId = avatarUrl
+                        avatarId = avatarUrl,
+                        since = userData.since,
+                        status = userData.status,
+                        requesterId = userData.requesterId,
+                        friendshipId = userData.friendshipId
                     )
                 )
             } else {
@@ -354,16 +393,20 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-    override suspend fun getWallpaperHistory(userId: String, page: Int, pageSize: Int): SmartResult<List<WallpaperHistoryResponse>, DataError.Network> {
+    override suspend fun getWallpaperHistory(
+        userId: String,
+        page: Int,
+        pageSize: Int
+    ): SmartResult<List<WallpaperHistoryResponse>, DataError.Network> {
         return try {
-
             val result = performAuthRequest { token ->
                 RetrofitClient.wallpaperApi.getWallpaperHistory(token, userId.toInt(), page, pageSize)
             }
-            Log.e(LOG_TAG, "getWallpaperHistory: "+result)
+
+            Log.e(LOG_TAG, "getWallpaperHistory: $result")
 
             if (result is SmartResult.Success) {
-                SmartResult.Success(result.data.map { wallpaper ->
+                SmartResult.Success(result.data.data.map { wallpaper ->
 
                     if (wallpaper.fileName == null) {
                         wallpaper.copy(fileName = "")
@@ -381,19 +424,59 @@ class FirebaseCoreRepositoryImpl(
                 SmartResult.Error(DataError.Network.UNKNOWN)
             }
         } catch (e: Exception) {
-            Log.e(LOG_TAG, "Exception in getWallpaperHistory(): " + e.message)
+            Log.e(LOG_TAG, "Exception in getWallpaperHistory(): ${e.message}")
             SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }
+//
+//    override suspend fun getWallpaperHistory(userId: String, page: Int, pageSize: Int): SmartResult<List<WallpaperHistoryResponse>, DataError.Network> {
+//        return try {
+//
+//            val result = performAuthRequest { token ->
+//                RetrofitClient.wallpaperApi.getWallpaperHistory(token, userId.toInt(), page, pageSize)
+//            }
+//            Log.e(LOG_TAG, "getWallpaperHistory: "+result)
+//
+//            if (result is SmartResult.Success) {
+//                SmartResult.Success(result.data.data.map { wallpaper ->
+//
+//                    if (wallpaper.fileName == null) {
+//                        wallpaper.copy(fileName = "")
+//                    } else {
+//                        val wallpaperUrlResult = pathToLink(wallpaper.fileName)
+//                        val wallpaperUrl = if (wallpaperUrlResult is SmartResult.Success) {
+//                            wallpaperUrlResult.data
+//                        } else {
+//                            ""
+//                        }
+//                        wallpaper.copy(fileName = wallpaperUrl)
+//                    }
+//                })
+//            } else {
+//                SmartResult.Error(DataError.Network.UNKNOWN)
+//            }
+//        } catch (e: Exception) {
+//            Log.e(LOG_TAG, "Exception in getWallpaperHistory(): " + e.message)
+//            SmartResult.Error(DataError.Network.UNKNOWN)
+//        }
+//    }
 
     override suspend fun react(wallpaperId: Int, reaction: String?): SmartResult<Unit, DataError.Network> {
         return try {
-            performAuthRequest { token ->
+            Log.e("react", "Reacting...")
+            val result = performAuthRequest { token ->
                 if (reaction.isNullOrEmpty()) {
                     RetrofitClient.wallpaperApi.removeReaction(token, ReactionRequest(wallpaperId, null))
                 } else {
                     RetrofitClient.wallpaperApi.addReaction(token, ReactionRequest(wallpaperId, reaction))
                 }
+            }
+            if ( result is SmartResult.Success) {
+                Log.e("react", "success")
+                result
+            } else {
+                Log.e("react", "fucked...")
+                result
             }
         } catch (e: Exception) {
             Log.e(LOG_TAG, "Exception in react(): " + e.message)
@@ -415,6 +498,33 @@ class FirebaseCoreRepositoryImpl(
             SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }
+
+    override suspend fun markMessagesAsRead(friendshipId: Int, lastMessageId: Int): SmartResult<Unit, DataError.Network> {
+        Log.e("ChatRepository", "Attempting to mark messages as read for friendshipId: $friendshipId, lastMessageId: $lastMessageId")
+        return try {
+            val result = performAuthRequest { token ->
+                Log.e("ChatRepository", "Got auth token: $token")
+                RetrofitClient.wallpaperApi.markMessagesAsRead(
+                    token,
+                    MarkMessagesAsReadRequest(friendshipId, lastMessageId)
+                )
+            }
+
+            if (result is SmartResult.Success) {
+                Log.e("ChatRepository", "Successfully marked messages as read for friendshipId: $friendshipId")
+            } else if (result is SmartResult.Error) {
+                Log.e("ChatRepository", "Failed to mark messages as read. Error: ${result.error}")
+            } else {
+                Log.e("ChatRepository", "Unexpected result: $result")
+            }
+
+            result
+        } catch (e: Exception) {
+            Log.e("ChatRepository", "Exception while marking messages as read: ${e.localizedMessage}")
+            SmartResult.Error(DataError.Network.UNKNOWN)
+        }
+    }
+
 
 
 
@@ -511,6 +621,20 @@ class FirebaseCoreRepositoryImpl(
 
 
 
+    override suspend fun reportWallpaper(wallpaperId: Int): SmartResult<Unit, DataError.Network> {
+        return try {
+            val result = performAuthRequest { token ->
+                RetrofitClient.wallpaperApi.reportWallpaper(token, ReportRequest(wallpaperId))
+            }
+            if (result is SmartResult.Success) {
+                SmartResult.Success(Unit)
+            } else {
+                SmartResult.Error(DataError.Network.UNKNOWN)
+            }
+        } catch (e: Exception) {
+            SmartResult.Error(DataError.Network.UNKNOWN)
+        }
+    }
 
 
 

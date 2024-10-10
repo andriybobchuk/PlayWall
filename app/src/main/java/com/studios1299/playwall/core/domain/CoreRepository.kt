@@ -39,6 +39,7 @@ interface CoreRepository {
     suspend fun getWallpaperHistory(userId: String, page: Int, pageSize: Int): SmartResult<List<WallpaperHistoryResponse>, DataError.Network>
     suspend fun react(wallpaperId: Int, reaction: String?): SmartResult<Unit, DataError.Network>
     suspend fun comment(wallpaperId: Int, comment: String?): SmartResult<Unit, DataError.Network>
+    suspend fun markMessagesAsRead(friendshipId: Int, lastMessageId: Int): SmartResult<Unit, DataError.Network>
 
     // EXPLORE WALLPAPER MANAGEMENT
     suspend fun loadExploreWallpapers(page: Int, pageSize: Int): SmartResult<List<ExploreWallpaperResponse>, DataError.Network>
@@ -46,6 +47,8 @@ interface CoreRepository {
     suspend fun removeSavedWallpaper(wallpaperId: Int): SmartResult<Unit, DataError.Network>
     suspend fun loadSavedWallpapers(page: Int, pageSize: Int): SmartResult<List<ExploreWallpaperResponse>, DataError.Network>
 
+
+    suspend fun reportWallpaper(wallpaperId: Int): SmartResult<Unit, DataError.Network>
 
     // PREFERENCE MANAGEMENT (DEPRECATED)
     fun getWallpaperDestination(): WallpaperOption

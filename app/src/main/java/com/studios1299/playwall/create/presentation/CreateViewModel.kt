@@ -1,23 +1,39 @@
 package com.studios1299.playwall.create.presentation
 
 
+import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
+import com.studios1299.playwall.core.data.s3.S3Handler
+import com.studios1299.playwall.core.data.s3.uriToFile
+import com.studios1299.playwall.core.domain.CoreRepository
+import com.studios1299.playwall.core.domain.error_handling.SmartResult
+import com.studios1299.playwall.feature.play.presentation.play.Friend
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class CreateViewModel : ViewModel() {
+class CreateViewModel(
+    private val repository: CoreRepository
+) : ViewModel() {
 
     private val _state = MutableStateFlow(CreateScreenState())
     val state: StateFlow<CreateScreenState> = _state.asStateFlow()
 
     private val _events = Channel<CreateScreenEvent>()
     val events = _events.receiveAsFlow()
+
+    init {
+        loadFriends()
+    }
 
     fun onAction(action: CreateScreenAction) {
         when (action) {
@@ -37,6 +53,9 @@ class CreateViewModel : ViewModel() {
                 _state.value = _state.value.copy(
                     showReplacePhotoDialog = !_state.value.showReplacePhotoDialog
                 )
+            }
+            is CreateScreenAction.SendToFriends -> {
+                sendWallpaperToFriends(action.selectedFriends, action.filename, action.context)
             }
         }
     }
@@ -62,6 +81,42 @@ class CreateViewModel : ViewModel() {
                     showReplacePhotoDialog = false
                 )
             } ?: currentState.copy(showReplacePhotoDialog = false)
+        }
+    }
+
+    fun loadFriends() {
+        viewModelScope.launch {
+            val result = repository.getFriends()
+            if (result is SmartResult.Success) {
+                _state.update { currentState ->
+                    currentState.copy(friends = result.data)
+                }
+            }
+        }
+    }
+
+    fun sendWallpaperToFriends(friends: List<Friend>, uri: Uri, context: Context) {
+        viewModelScope.launch {
+            val pathTobeSent = S3Handler.uploadToS3(uriToFile(context, uri)!!, S3Handler.Folder.WALLPAPERS)?:""
+
+            friends.forEach { friend ->
+                val result = repository.changeWallpaper(
+                    ChangeWallpaperRequest(
+                        fileName = pathTobeSent,
+                        recipientId = friend.id.toString(),
+                        comment = null,
+                        reaction = null,
+                        type = "friend_wallpaper"
+                    )
+                )
+                if (result is SmartResult.Success) {
+                    Log.e("sendWallpaperToFriends", "Wallpapers sent to ${friends.size} friends!!")
+
+                } else {
+                    Log.e("sendWallpaperToFriends", "filename:" + pathTobeSent)
+                    Log.e("sendWallpaperToFriends", "couldnt send wallpapers" + result)
+                }
+            }
         }
     }
 

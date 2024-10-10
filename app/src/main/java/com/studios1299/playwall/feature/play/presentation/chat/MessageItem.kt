@@ -67,6 +67,8 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.studios1299.playwall.R
+import com.studios1299.playwall.feature.play.data.model.User
+import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
 
 private const val LOG_TAG = "MessageItem"
 
@@ -83,6 +85,7 @@ private const val LOG_TAG = "MessageItem"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessageItem(
+    recipient: User,
     viewModel: ChatViewModel,
     uiState: MessengerUiState,
     message: Message,
@@ -114,12 +117,13 @@ fun MessageItem(
             message = message,
             currentUserId = currentUserId?:-1,
             isLastMessage = isLastMessage,
-            horizontalArrangement = Arrangement.End,
+            horizontalArrangement = Arrangement.Start,
             onReact = onReact,
             onCheckReactions = onCheckReactions
         )
     }
     ReactSheet(
+        recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1),
         viewModel = viewModel,
         message = message,
         currentUserId = currentUserId?:-1,
@@ -175,10 +179,10 @@ fun MessageContent(
                     onCheckReactions = onCheckReactions,
                     horizontalArrangement = horizontalArrangement
                 )
-            }
-            if (!isCurrentUser) {
-                ReplyButton { onReact() }
-                Spacer(modifier = Modifier.weight(1 - HORIZONTAL_SCREEN_PERCENTAGE + 0.05f)) // Adjust space between bubble and button
+                if (!isCurrentUser) {
+                    ReplyButton { onReact() }
+                   // Spacer(modifier = Modifier.weight(1 - HORIZONTAL_SCREEN_PERCENTAGE + 0.05f)) // Adjust space between bubble and button
+                }
             }
         }
         if (isLastMessage && isCurrentUser) {
@@ -253,7 +257,7 @@ private fun MessageBubble(
     onCheckReactions: () -> Unit,
     horizontalArrangement: Arrangement.Horizontal,
 ) {
-    Log.e(LOG_TAG, "messagebuble, selected message: " + message)
+    //Log.e(LOG_TAG, "messagebuble, selected message: " + message)
     val (maxWidth, maxHeight) = getMaxMessageDimensions()
     var aspectRatio by remember { mutableFloatStateOf(1f) }
     var dimensionsLoaded by remember { mutableStateOf(false) }
@@ -367,7 +371,7 @@ fun ImageBox(
     imageHeight: Dp,
     onReactionClick: () -> Unit
 ) {
-    Log.e(LOG_TAG, "ImageBox, selected message: " + message)
+    //Log.e(LOG_TAG, "ImageBox, selected message: " + message)
     Box(
         modifier = Modifier
             .width(imageWidth)
