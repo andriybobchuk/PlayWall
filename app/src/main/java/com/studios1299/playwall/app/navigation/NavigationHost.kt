@@ -220,9 +220,7 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
                         )
                     }
                 ),
-                onExit = {
-                    navController.popBackStack()
-                }
+                onExit = { navController.navigateUp() }
             )
         }
 
@@ -300,7 +298,8 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
                             )
                         }
                     ),
-                    onBackClick = { navController.popBackStack() }
+                    //onBackClick = { navController.popBackStack() }
+                    onBackClick = { navController.navigateUp() }
                 )
             }
         }
@@ -312,9 +311,8 @@ private fun NavGraphBuilder.sharedGraph(navController: NavHostController) {
         val policyType = WebContent.valueOf(backStackEntry.arguments?.getString("webType") ?: WebContent.TOS.name)
         WebViewScreen(
             policyType = policyType,
-            onBackClick = {
-                navController.popBackStack()
-            }
+            //onBackClick = { navController.popBackStack() }
+            onBackClick = { navController.navigateUp() }
         )
     }
 }
