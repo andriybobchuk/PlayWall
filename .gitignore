@@ -1,6 +1,6 @@
 .gradle/
 /app/google-services.json
-/app/src/main/java/com/studios1299/playwall/core/data/Credentials.kt
+/app/src/main/java/com/studios1299/playwall/app/Secret.kt
 /local.properties
 /.idea/caches
 /.idea/libraries

@@ -8,7 +8,7 @@ import aws.sdk.kotlin.services.s3.model.PutObjectRequest
 import aws.sdk.kotlin.services.s3.presigners.presignGetObject
 import aws.smithy.kotlin.runtime.content.ByteStream
 import aws.smithy.kotlin.runtime.content.fromFile
-import com.studios1299.playwall.core.data.Credentials
+import com.studios1299.playwall.app.Credentials
 import java.io.File
 import java.net.URI
 import java.util.UUID
