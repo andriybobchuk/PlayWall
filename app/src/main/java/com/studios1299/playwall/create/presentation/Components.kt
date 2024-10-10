@@ -80,15 +80,15 @@ fun Topbar(
         title = "Create",
         actions = listOf(
             Toolbars.ToolBarAction(
-                icon = Icons.Default.Download,
-                contentDescription = "Download image",
-                onClick = { download() },
+                icon = Icons.Outlined.Send,
+                contentDescription = "Send to friend",
+                onClick = send,
                 enabled = isImageSelected
             ),
             Toolbars.ToolBarAction(
-                icon = Icons.Outlined.Send,
-                contentDescription = "Set as friend's wallpaper",
-                onClick = send,
+                icon = Icons.Default.Download,
+                contentDescription = "Download image",
+                onClick = { download() },
                 enabled = isImageSelected
             )
             ,
