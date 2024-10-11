@@ -84,7 +84,7 @@ fun RegisterScreenRoot(
             try {
                 val result = account.getResult(ApiException::class.java)
                 val credentials = GoogleAuthProvider.getCredential(result.idToken, null)
-                viewModel.googleRegister(credentials)
+                viewModel.googleRegister(credentials, context)
                 Toast.makeText(
                     context,
                     R.string.registration_successful,
@@ -296,7 +296,7 @@ private fun RegisterScreen(
                 enabled = state.canRegister,
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    onAction(RegisterAction.OnRegisterClick)
+                    onAction(RegisterAction.OnRegisterClick(context))
                 }
             )
             Spacer(modifier = Modifier.height(10.dp))

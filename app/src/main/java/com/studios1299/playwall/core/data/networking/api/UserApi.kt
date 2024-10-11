@@ -32,6 +32,6 @@ interface UserApi {
     suspend fun updatePushToken(
         @Header("Authorization") authHeader: String,
         @Body createUserRequest: Map<String, String>
-    ): Response<Void>
+    ): Response<Unit>
 
 }

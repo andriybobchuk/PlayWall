@@ -1,5 +1,7 @@
 package com.studios1299.playwall.auth.presentation.register
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text2.input.textAsFlow
 import androidx.compose.runtime.getValue
@@ -15,6 +17,7 @@ import com.studios1299.playwall.core.presentation.UiText
 import com.studios1299.playwall.core.presentation.asUiText
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.data.UserDataValidator
+import com.studios1299.playwall.auth.presentation.getScreenRatio
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.launchIn
@@ -70,7 +73,7 @@ class RegisterViewModel(
 
     fun onAction(action: RegisterAction) {
         when(action) {
-            RegisterAction.OnRegisterClick -> register()
+            is RegisterAction.OnRegisterClick -> register(action.context)
             RegisterAction.OnTogglePasswordVisibilityClick -> {
                 state = state.copy(
                     isPasswordVisible = !state.isPasswordVisible
@@ -83,12 +86,13 @@ class RegisterViewModel(
         }
     }
 
-    private fun register() {
+    private fun register(context: Context) {
         viewModelScope.launch {
             state = state.copy(isRegistering = true)
             val result = repository.register(
                 email = state.email.text.toString().trim(),
-                password = state.password.text.toString()
+                password = state.password.text.toString(),
+                screenRatio = getScreenRatio(context)
             )
             state = state.copy(isRegistering = false)
 
@@ -139,10 +143,10 @@ class RegisterViewModel(
         }
     }
 
-    fun googleRegister(credential: AuthCredential) {
+    fun googleRegister(credential: AuthCredential, context: Context) {
         viewModelScope.launch {
             state = state.copy(isRegistering = true)
-            val result = repository.googleLogin(credential)
+            val result = repository.googleRegister(credential, getScreenRatio(context))
             state = state.copy(isRegistering = false)
 
             when(result) {

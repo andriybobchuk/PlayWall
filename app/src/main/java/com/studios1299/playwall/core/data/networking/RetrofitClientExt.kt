@@ -34,6 +34,7 @@ object RetrofitClientExt {
                     SmartResult.Error(DataError.Network.UNKNOWN)
                 }
             }
+            response.code() == 400 -> SmartResult.Error(DataError.Network.BAD_REQUEST)
             response.code() == 401 -> SmartResult.Error(DataError.Network.UNAUTHORIZED)
             response.code() == 403 -> SmartResult.Error(DataError.Network.FORBIDDEN)
             response.code() == 404 -> SmartResult.Error(DataError.Network.NOT_FOUND)

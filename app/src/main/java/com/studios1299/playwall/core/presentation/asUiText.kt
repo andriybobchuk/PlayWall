@@ -46,7 +46,7 @@ fun DataError.asUiText(): UiText {
         )
 
         DataError.Network.NOT_FOUND -> TODO()
-        DataError.Network.INTERNAL_SERVER_ERROR -> TODO()
+        DataError.Network.INTERNAL_SERVER_ERROR -> UiText.DynamicString("Internal server error")
         DataError.Network.NOT_IMPLEMENTED -> TODO()
         DataError.Network.BAD_GATEWAY -> TODO()
         DataError.Network.SERVICE_UNAVAILABLE -> TODO()

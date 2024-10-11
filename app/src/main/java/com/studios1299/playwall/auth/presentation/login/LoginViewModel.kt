@@ -1,5 +1,6 @@
 package com.studios1299.playwall.auth.presentation.login
 
+import android.content.Context
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text2.input.textAsFlow
 import androidx.compose.runtime.getValue
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import com.google.firebase.auth.AuthCredential
+import com.studios1299.playwall.auth.presentation.getScreenRatio
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -107,6 +109,5 @@ class LoginViewModel(
             }
         }
     }
-
 }
 
