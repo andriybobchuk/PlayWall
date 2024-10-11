@@ -80,7 +80,7 @@ class FirebaseAuthRepositoryImpl(
                 screenRatio = screenRatio
             )
             if (createUserResult is SmartResult.Error) {
-                firebaseAuth.signOut()
+                //firebaseAuth.signOut()
                 return createUserResult
             }
 
