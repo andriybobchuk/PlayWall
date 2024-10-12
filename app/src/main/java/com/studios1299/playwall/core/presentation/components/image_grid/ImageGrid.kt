@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.R
+import com.studios1299.playwall.explore.presentation.detail.LikeButton
+import com.studios1299.playwall.explore.presentation.detail.PostDetailAction
 import com.studios1299.playwall.explore.presentation.explore.ExploreAction
 
 @Composable
@@ -60,20 +62,28 @@ fun ImageGrid(
             ) {
                 items(state.wallpapers.size) { index ->
                     val photo = state.wallpapers[index]
-                    GlideImage(
-                        model = photo.fileName,
-                        contentDescription = "wallpaper",
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .clickable {
-                                Log.e("ImageGrid", "Clicked on photo with id ${photo.id}")
-                                if (state.wallpapers.isNotEmpty()) {
-                                    onAction(ExploreAction.OnPhotoClick(photo.id))
+                   // Box {
+                        GlideImage(
+                            model = photo.fileName,
+                            contentDescription = "wallpaper",
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .clickable {
+                                    Log.e("ImageGrid", "Clicked on photo with id ${photo.id}")
+                                    if (state.wallpapers.isNotEmpty()) {
+                                        onAction(ExploreAction.OnPhotoClick(photo.id))
+                                    }
                                 }
-                            }
-                            .background(MaterialTheme.colorScheme.outline),
-                        contentScale = ContentScale.Crop,
-                    )
+                                .background(MaterialTheme.colorScheme.outline),
+                            contentScale = ContentScale.Crop,
+                        )
+//                        LikeButton(
+//                            likeCount = photo.savedCount,
+//                            isLiked = photo.isLiked,
+//                            onClick = { onAction(ExploreAction.ToggleLike(photo.id)) },
+//                            verticalAlignment = Alignment.CenterVertically
+//                        )
+                   // }
                 }
             }
         }

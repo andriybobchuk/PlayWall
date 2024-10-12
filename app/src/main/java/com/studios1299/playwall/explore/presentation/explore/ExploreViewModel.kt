@@ -1,5 +1,6 @@
 package com.studios1299.playwall.explore.presentation.explore
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -37,6 +38,7 @@ class ExploreViewModel(
                 }
             }
             ExploreAction.LoadPhotos -> loadPhotos()
+            is ExploreAction.ToggleLike -> likeWallpaper(action.photoId)
         }
     }
 
@@ -59,6 +61,39 @@ class ExploreViewModel(
                 }, isLoading = false)
             }
         }
+    }
+
+    // TODO: Boilerplate from PostDetailViewModel
+    private fun likeWallpaper(wallpaperId: Int) {
+        val updatedWallpapers = state.wallpapers.map { wallpaper ->
+            if (wallpaper.id == wallpaperId) {
+                val isLikedNow = !wallpaper.isLiked
+                val countIncrement = if (isLikedNow) 1 else -1
+                wallpaper.copy(
+                    isLiked = isLikedNow,
+                    savedCount = wallpaper.savedCount + countIncrement
+                ).also {
+                    Preferences.setWallpaperLiked(wallpaperId, isLikedNow)
+
+                    viewModelScope.launch {
+                        if (isLikedNow) {
+                            val result = repository.saveWallpaper(wallpaperId)
+                            if (result is SmartResult.Error) {
+                                Log.e("likeWallpaper", "Error saving wallpaper: ${result.error}")
+                            }
+                        } else {
+                            val result = repository.removeSavedWallpaper(wallpaperId)
+                            if (result is SmartResult.Error) {
+                                Log.e("likeWallpaper", "Error removing saved wallpaper: ${result.error}")
+                            }
+                        }
+                    }
+                }
+            } else {
+                wallpaper
+            }
+        }
+        state = state.copy(wallpapers = updatedWallpapers)
     }
 
     private fun navigateToPhotoDetail(photoId: Int) {

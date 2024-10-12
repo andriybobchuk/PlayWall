@@ -165,10 +165,11 @@ fun PostDetailScreen(
                 val currentPhoto = state.wallpapers[pagerState.currentPage]
                 LikeButton(
                     likeCount = currentPhoto.savedCount,
-                    isLiked = currentPhoto.isLiked
-                ) {
-                    viewModel.onAction(PostDetailAction.ToggleLike(currentPhoto.id))
-                }
+                    isLiked = currentPhoto.isLiked,
+                    onClick = {
+                        viewModel.onAction(PostDetailAction.ToggleLike(currentPhoto.id))
+                    }
+                )
             }
         },
         floatingActionButtonPosition = FabPosition.EndOverlay
@@ -234,8 +235,13 @@ fun PostDetailScreen(
 }
 
 @Composable
-fun LikeButton(likeCount: Int, isLiked: Boolean, onClick: () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+fun LikeButton(
+    likeCount: Int,
+    isLiked: Boolean,
+    onClick: () -> Unit,
+    verticalAlignment: Alignment.Vertical = Alignment.CenterVertically
+) {
+    Row(verticalAlignment = verticalAlignment) {
         IconButton(onClick = onClick) {
             Icon(
                 imageVector = if (isLiked) Icons.Filled.Bookmark else Icons.Default.BookmarkBorder,
