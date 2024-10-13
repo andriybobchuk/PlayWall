@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
@@ -23,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -62,7 +64,7 @@ fun ImageGrid(
             ) {
                 items(state.wallpapers.size) { index ->
                     val photo = state.wallpapers[index]
-                   // Box {
+                    Box {
                         GlideImage(
                             model = photo.fileName,
                             contentDescription = "wallpaper",
@@ -77,13 +79,18 @@ fun ImageGrid(
                                 .background(MaterialTheme.colorScheme.outline),
                             contentScale = ContentScale.Crop,
                         )
-//                        LikeButton(
-//                            likeCount = photo.savedCount,
-//                            isLiked = photo.isLiked,
-//                            onClick = { onAction(ExploreAction.ToggleLike(photo.id)) },
-//                            verticalAlignment = Alignment.CenterVertically
-//                        )
-                   // }
+                        Box(modifier = Modifier.align(Alignment.BottomEnd)) {
+                            LikeButton(
+                                likeCount = photo.savedCount,
+                                isLiked = photo.isLiked,
+                                onClick = { onAction(ExploreAction.ToggleLike(photo.id)) },
+                                modifier = Modifier,
+                                shadow = true,
+                                iconColor = Color.White,
+                                counterVisible = false
+                            )
+                        }
+                    }
                 }
             }
         }

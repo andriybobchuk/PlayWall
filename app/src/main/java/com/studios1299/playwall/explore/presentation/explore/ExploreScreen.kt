@@ -1,6 +1,7 @@
 package com.studios1299.playwall.explore.presentation.explore
 
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -25,6 +26,7 @@ fun ExploreScreenRoot(
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is ExploreEvent.NavigateToPhotoDetail -> {
+                Log.e("Rerouting", "rereouting... in root")
                 onNavigateToPhotoDetail(event.initialPhotoIndex)
             }
             is ExploreEvent.ShowError -> {

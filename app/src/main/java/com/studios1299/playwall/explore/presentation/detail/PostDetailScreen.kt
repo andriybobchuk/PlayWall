@@ -45,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -56,6 +57,9 @@ import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.core.presentation.components.Toolbars
+import com.studios1299.playwall.explore.presentation.explore.ExploreState
+import com.studios1299.playwall.explore.presentation.explore.ExploreStateSingleton
+import com.studios1299.playwall.explore.presentation.explore.ExploreViewModel
 import com.studios1299.playwall.feature.play.presentation.chat.util.timestampAsDateTime
 import com.studios1299.playwall.feature.play.presentation.play.Friend
 import kotlinx.coroutines.launch
@@ -94,7 +98,7 @@ fun PostDetailScreenRoot(
 )
 @Composable
 fun PostDetailScreen(
-    state: PostDetailState,
+    state: ExploreState,
     viewModel: PostDetailViewModel,
     onSwipe: (Int) -> Unit,
     onExit: () -> Unit
@@ -239,19 +243,33 @@ fun LikeButton(
     likeCount: Int,
     isLiked: Boolean,
     onClick: () -> Unit,
-    verticalAlignment: Alignment.Vertical = Alignment.CenterVertically
+    modifier: Modifier = Modifier,
+    shadow: Boolean = false,
+    iconColor: Color? = null,
+    counterVisible: Boolean = true
 ) {
-    Row(verticalAlignment = verticalAlignment) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         IconButton(onClick = onClick) {
             Icon(
+                modifier = (if (shadow) Modifier.shadow(2.dp) else Modifier),
                 imageVector = if (isLiked) Icons.Filled.Bookmark else Icons.Default.BookmarkBorder,
                 contentDescription = "Like",
-                tint = if (isLiked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                tint = if (isLiked) MaterialTheme.colorScheme.error else iconColor ?: MaterialTheme.colorScheme.onSurface // Apply icon color or default
             )
         }
-        Text(text = likeCount.toString(), style = MaterialTheme.typography.bodyLarge)
+        if (counterVisible) {
+            Text(
+                text = likeCount.toString(),
+                style = MaterialTheme.typography.bodyLarge,
+                color = iconColor ?: MaterialTheme.colorScheme.onSurface, // Apply the same color to the text
+            )
+        }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

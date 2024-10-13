@@ -177,18 +177,21 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
                 bottomNavbar = { BottomNavigationBar(navController, 0) }
             )
         }
+        val sharedExploreViewModel = ExploreViewModel(
+            MyApp.appModule.coreRepository
+        )
         composable(Graphs.Main.Screens.explore) {
             ExploreScreenRoot(
                 viewModel = viewModel<ExploreViewModel>(
                     factory = viewModelFactory {
-                        ExploreViewModel(
-                            MyApp.appModule.coreRepository
-                        )
+                        sharedExploreViewModel
                     }
                 ),
                 onNavigateToPhotoDetail = { selectedPhoto ->
                     val fromProfile = false
+                    Log.e("Rerouting", "rereouting...")
                     navController.navigate("${Graphs.Main.Screens.explore_image}/${selectedPhoto}/$fromProfile")
+                    Log.e("Rerouting", "rereouted probablyt with " +selectedPhoto)
                 },
                 bottomNavbar = { BottomNavigationBar(
                     navController = navController,
@@ -220,7 +223,7 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
                         )
                     }
                 ),
-                onExit = { navController.navigateUp() }
+                 onExit = { navController.navigateUp() }
             )
         }
 

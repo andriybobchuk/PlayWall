@@ -20,8 +20,16 @@ class ExploreViewModel(
     private val repository: CoreRepository
 ) : ViewModel() {
 
-    var state by mutableStateOf(ExploreState())
-        private set
+//    var state by mutableStateOf(ExploreState())
+//        private set
+
+    val state: ExploreState
+        get() = ExploreStateSingleton.state
+
+    // Function to update the singleton state
+    fun updateExploreState(newState: ExploreState) {
+        ExploreStateSingleton.updateState(newState)
+    }
 
     private val eventChannel = Channel<ExploreEvent>()
     val events = eventChannel.receiveAsFlow()
@@ -44,10 +52,10 @@ class ExploreViewModel(
 
     private fun loadPhotos() {
         viewModelScope.launch {
-            state = state.copy(isLoading = true)
+            updateExploreState(state.copy(isLoading = true))
             val photos = repository.loadExploreWallpapers(0, 18)
             if (photos is SmartResult.Success) {
-                state = state.copy(wallpapers =
+                updateExploreState(state.copy(wallpapers =
                 photos.data.map {
                     ExploreWallpaper(
                         id = it.id,
@@ -58,7 +66,7 @@ class ExploreViewModel(
                         isLiked = Preferences.isWallpaperLiked(it.id),
                         dateCreated = it.dateCreated,
                     )
-                }, isLoading = false)
+                }, isLoading = false))
             }
         }
     }
@@ -93,17 +101,19 @@ class ExploreViewModel(
                 wallpaper
             }
         }
-        state = state.copy(wallpapers = updatedWallpapers)
+        updateExploreState(state.copy(wallpapers = updatedWallpapers))
     }
 
     private fun navigateToPhotoDetail(photoId: Int) {
 
         if (photoId != -1) {
             viewModelScope.launch {
+                Log.e("Rerouting", "photoid != null -> navigate in VM...")
                 eventChannel.send(ExploreEvent.NavigateToPhotoDetail(photoId))
             }
         } else {
             viewModelScope.launch {
+                Log.e("Rerouting", "rereouting NULL")
                 eventChannel.send(ExploreEvent.ShowError(UiText.StringResource(R.string.error_photo_not_found)))
             }
         }
