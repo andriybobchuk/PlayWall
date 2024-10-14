@@ -78,8 +78,12 @@ import com.studios1299.playwall.core.data.ChangeWallpaperWorker
 import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
+import com.studios1299.playwall.core.presentation.components.Banners
 import com.studios1299.playwall.core.presentation.components.Buttons
 import com.studios1299.playwall.core.presentation.components.Images
+import com.studios1299.playwall.core.presentation.components.ShimmerLoadingForUserProfile
+import com.studios1299.playwall.core.presentation.components.ShimmerLoadingForWallpaperGrid
+import com.studios1299.playwall.core.presentation.components.ShimmerWallpaperGridItem
 import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
@@ -204,6 +208,7 @@ fun ProfileScreen(
                     Toolbars.ToolBarAction(
                         icon = Icons.Default.Edit,
                         contentDescription = stringResource(R.string.edit),
+                        enabled = state.isOnline,
                         onClick = { onAction(ProfileAction.OnEditProfileClick) }
                     ),
                     Toolbars.ToolBarAction(
@@ -224,31 +229,38 @@ fun ProfileScreen(
                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)),
         ) {
             item {
+                if (!state.isOnline) {
+                    Banners.OfflineStatus()
+                }
                 Spacer(modifier = Modifier.height(10.dp))
                 Box(Modifier.fillMaxSize()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .align(Alignment.Center)
-                    ) {
-                        Images.Circle(
-                            modifier = Modifier.align(Alignment.CenterHorizontally),
-                            model = state.userAvatar,
-                            size = 70.dp
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        if (state.userName.text.isNotEmpty()) {
+                    if (state.isLoading) {
+                        ShimmerLoadingForUserProfile()
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .align(Alignment.Center)
+                        ) {
+                            Images.Circle(
+                                modifier = Modifier.align(Alignment.CenterHorizontally),
+                                model = state.userAvatar,
+                                size = 70.dp
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            if (state.userName.text.isNotEmpty()) {
+                                Text(
+                                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                                    text = state.userName.text.toString(),
+                                    style = MaterialTheme.typography.titleLarge
+                                )
+                            }
                             Text(
                                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                                text = state.userName.text.toString(),
-                                style = MaterialTheme.typography.titleLarge
+                                text = state.email.text.toString(),
+                                style = MaterialTheme.typography.bodyLarge
                             )
                         }
-                        Text(
-                            modifier = Modifier.align(Alignment.CenterHorizontally),
-                            text = state.email.text.toString(),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -280,6 +292,7 @@ fun ProfileScreen(
                             SelectorMenuItem(
                                 icon = Icons.Default.Wallpaper,
                                 label = "Change Wallpaper on",
+                                enabled = state.isOnline,
                                 selectedOption = state.selectedWallpaperOption,
                                 options = WallpaperOption.getDisplayNames(), // Pass the enum options directly
                                 onOptionSelected = { option ->
@@ -290,6 +303,7 @@ fun ProfileScreen(
                         {
                             SwitchMenuItem(
                                 icon = Icons.Default.Save,
+                                enabled = state.isOnline,
                                 label = "Save wallpapers set by friends",
                                 isChecked = state.isSaveWallpapersEnabled,
                                 onCheckedChange = { onAction(ProfileAction.ToggleSaveWallpapers) }
@@ -298,6 +312,7 @@ fun ProfileScreen(
                         {
                             SettingMenuItem(
                                 icon = Icons.Default.Restore,
+                                enabled = state.isOnline,
                                 label = "Rollback to previous wallpaper",
                                 onClick = {
                                     val workData = workDataOf("file_name" to Preferences.getPreviousWallpaperId())
@@ -312,6 +327,7 @@ fun ProfileScreen(
                         {
                             SettingMenuItem(
                                 icon = Icons.Default.Restore,
+                                enabled = state.isOnline,
                                 label = "Rollback to default wallpaper",
                                 onClick = {
                                     CoroutineScope(Dispatchers.IO).launch {
@@ -332,20 +348,6 @@ fun ProfileScreen(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(16.dp)
                 )
-            }
-            item {
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    if (state.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                    } else if (state.wallpapers.isEmpty()) {
-                        Text(
-                            text = "No photos available",
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                    }
-                }
             }
             items(state.wallpapers.chunked(3)) { photoRow ->
                 PhotoGridRow(photoRow, state, onAction)
@@ -459,22 +461,40 @@ fun PhotoGridRow(
             .padding(horizontal = 12.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        exploreWallpapers.forEach { photo ->
-            Images.Square(
-                modifier = Modifier
-                    .weight(1f)
-                    .aspectRatio(1f),
-                model = photo.fileName,
-                onClick = {
-                    if (state.wallpapers.isNotEmpty()) {
-                        onAction(ProfileAction.OnPhotoClick(photo.id))
+
+        if (state.isLoading) {
+            //ShimmerLoadingForWallpaperGrid()
+Log.e("PPPP", "PPP")
+            repeat(3) {
+                ShimmerWallpaperGridItem()
+            }
+//            repeat(3 - 18) {
+//                Spacer(modifier = Modifier.weight(1f))
+//            }
+        } else if (state.wallpapers.isEmpty()) {
+        Text(
+            text = "No photos available",
+        )
+        } else {
+            exploreWallpapers.forEach { photo ->
+                Images.Square(
+                    modifier = Modifier
+                        .weight(1f)
+                        .aspectRatio(1f),
+                    model = photo.fileName,
+                    onClick = {
+                        if (state.wallpapers.isNotEmpty()) {
+                            onAction(ProfileAction.OnPhotoClick(photo.id))
+                        }
                     }
-                }
-            )
+                )
+            }
+            repeat(3 - exploreWallpapers.size) {
+                Spacer(modifier = Modifier.weight(1f))
+            }
         }
-        repeat(3 - exploreWallpapers.size) {
-            Spacer(modifier = Modifier.weight(1f))
-        }
+
+
     }
 }
 
@@ -482,12 +502,17 @@ fun PhotoGridRow(
 fun SettingMenuItem(
     icon: ImageVector,
     label: String,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(onClick = {
+                if (enabled) {
+                    onClick()
+                }
+            })
             .background(MaterialTheme.colorScheme.surface),
     ) {
         Row(
@@ -507,7 +532,7 @@ fun SettingMenuItem(
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = if (enabled) { MaterialTheme.colorScheme.onSurface} else {MaterialTheme.colorScheme.onSurface.copy(0.5f)}
             )
         }
     }
@@ -518,6 +543,7 @@ fun SettingMenuItem(
 fun SelectorMenuItem(
     icon: ImageVector,
     label: String,
+    enabled: Boolean = true,
     selectedOption: WallpaperOption,
     options: List<String>,
     onOptionSelected: (String) -> Unit
@@ -527,7 +553,11 @@ fun SelectorMenuItem(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { isSheetOpen = true }
+            .clickable {
+                if (enabled) {
+                    isSheetOpen = true
+                }
+            }
             .background(MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(14.dp),
     ) {
@@ -552,7 +582,7 @@ fun SelectorMenuItem(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = if (enabled) { MaterialTheme.colorScheme.onSurface} else {MaterialTheme.colorScheme.onSurface.copy(0.5f)}
                 )
             }
             Text(
@@ -621,6 +651,7 @@ fun SelectorMenuItem(
 fun SwitchMenuItem(
     icon: ImageVector,
     label: String,
+    enabled: Boolean = true,
     isChecked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
@@ -657,6 +688,7 @@ fun SwitchMenuItem(
             }
             Switch(
                 checked = isChecked,
+                enabled = enabled,
                 onCheckedChange = onCheckedChange,
             )
         }

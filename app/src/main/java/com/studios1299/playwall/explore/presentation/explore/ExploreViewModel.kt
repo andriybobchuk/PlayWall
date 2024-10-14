@@ -8,18 +8,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.data.local.Preferences
+import com.studios1299.playwall.core.data.networking.NetworkMonitor
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.error_handling.map
 import com.studios1299.playwall.core.presentation.UiText
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ExploreViewModel(
     private val repository: CoreRepository
 ) : ViewModel() {
 
+   // val isOnline = NetworkMonitor.isOnline
 //    var state by mutableStateOf(ExploreState())
 //        private set
 
@@ -35,7 +39,15 @@ class ExploreViewModel(
     val events = eventChannel.receiveAsFlow()
 
     init {
-        onAction(ExploreAction.LoadPhotos)
+        viewModelScope.launch {
+            NetworkMonitor.isOnline.collect { online ->
+                updateExploreState(state.copy(isOnline = online))
+                if (online) {
+                    onAction(ExploreAction.LoadPhotos(forceRefresh = true))
+                }
+            }
+        }
+        onAction(ExploreAction.LoadPhotos(forceRefresh = false))
     }
 
     fun onAction(action: ExploreAction) {
@@ -45,31 +57,43 @@ class ExploreViewModel(
                     navigateToPhotoDetail(action.photoId)
                 }
             }
-            ExploreAction.LoadPhotos -> loadPhotos()
+            is ExploreAction.LoadPhotos -> loadPhotos(action.forceRefresh)
             is ExploreAction.ToggleLike -> likeWallpaper(action.photoId)
         }
     }
-
-    private fun loadPhotos() {
+    private fun loadPhotos(forceRefresh: Boolean) {
         viewModelScope.launch {
+            // Set loading state on the main thread
             updateExploreState(state.copy(isLoading = true))
-            val photos = repository.loadExploreWallpapers(0, 18)
+
+            // Fetch data on a background thread
+            val photos = withContext(Dispatchers.IO) {
+                repository.loadExploreWallpapers(0, 18, forceRefresh)
+            }
+
+            // Update UI state on the main thread
             if (photos is SmartResult.Success) {
-                updateExploreState(state.copy(wallpapers =
-                photos.data.map {
-                    ExploreWallpaper(
-                        id = it.id,
-                        fileName = it.fileName,
-                        type = it.type,
-                        sentCount = it.sentCount,
-                        savedCount = it.savedCount,
-                        isLiked = Preferences.isWallpaperLiked(it.id),
-                        dateCreated = it.dateCreated,
-                    )
-                }, isLoading = false))
+                updateExploreState(state.copy(
+                    wallpapers = photos.data.map {
+                        ExploreWallpaper(
+                            id = it.id,
+                            fileName = it.fileName,
+                            type = it.type,
+                            sentCount = it.sentCount,
+                            savedCount = it.savedCount,
+                            isLiked = Preferences.isWallpaperLiked(it.id),
+                            dateCreated = it.dateCreated,
+                        )
+                    },
+                    isLoading = false
+                ))
+            } else {
+                // Handle any failure, maybe set `isLoading` to false here as well
+                //updateExploreState(state.copy(isLoading = false))
             }
         }
     }
+
 
     // TODO: Boilerplate from PostDetailViewModel
     private fun likeWallpaper(wallpaperId: Int) {

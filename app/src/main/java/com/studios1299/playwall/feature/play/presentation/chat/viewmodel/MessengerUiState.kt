@@ -14,6 +14,7 @@ data class MessengerUiState(
     val pickedImageCaption: String = "",
     val currentMessageId: String = "",
     val selectedMessage: Message? = null,
+    val isOnline: Boolean = true
 )
 
 data class PaginationState(

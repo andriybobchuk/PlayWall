@@ -15,6 +15,7 @@ data class PlayState @OptIn(ExperimentalFoundationApi::class) constructor(
     val isSelectMode: Boolean = false,
     val selectedFriends: List<Int> = emptyList(),
     val exploreWallpapers: List<ExploreWallpaper> = emptyList(),
+    val isOnline: Boolean = true
 )
 
 data class Friend(

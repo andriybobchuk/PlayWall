@@ -11,15 +11,8 @@ data class ExploreState(
     override val isLoading: Boolean = false,
     val friends: List<Friend> = emptyList(),
     val currentPhotoIndex: Int = 0,
+    val isOnline: Boolean = true
 ) : ImageGridState()
-
-//object ExploreStateSingleton {
-//    var state: ExploreState = ExploreState()
-//
-//    fun updateState(newState: ExploreState) {
-//        state = newState
-//    }
-//}
 
 object ExploreStateSingleton {
     var state: ExploreState by mutableStateOf(ExploreState())
@@ -28,9 +21,6 @@ object ExploreStateSingleton {
         state = newState
     }
 }
-
-
-
 data class ExploreWallpaper(
     val id: Int,
     val fileName: String,

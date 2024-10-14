@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import com.google.firebase.auth.AuthCredential
 import com.studios1299.playwall.auth.presentation.getScreenRatio
+import com.studios1299.playwall.core.data.networking.NetworkMonitor
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -36,6 +37,11 @@ class LoginViewModel(
     val events = eventChannel.receiveAsFlow()
 
     init {
+        viewModelScope.launch {
+            NetworkMonitor.isOnline.collect { online ->
+                state = state.copy(isOnline = online)
+            }
+        }
         combine(state.email.textAsFlow(), state.password.textAsFlow()) { email, password ->
             state = state.copy(
                 canLogin = userDataValidator.isValidEmail(

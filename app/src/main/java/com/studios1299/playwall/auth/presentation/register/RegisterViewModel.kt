@@ -18,6 +18,7 @@ import com.studios1299.playwall.core.presentation.asUiText
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.data.UserDataValidator
 import com.studios1299.playwall.auth.presentation.getScreenRatio
+import com.studios1299.playwall.core.data.networking.NetworkMonitor
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.launchIn
@@ -39,6 +40,11 @@ class RegisterViewModel(
     val events = eventChannel.receiveAsFlow()
 
     init {
+        viewModelScope.launch {
+            NetworkMonitor.isOnline.collect { online ->
+                state = state.copy(isOnline = online)
+            }
+        }
         state.email.textAsFlow()
             .onEach { email ->
                 val isValidEmail = userDataValidator.isValidEmail(email.toString())

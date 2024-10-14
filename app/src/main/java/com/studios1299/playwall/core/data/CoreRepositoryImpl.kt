@@ -3,6 +3,8 @@ package com.studios1299.playwall.core.data
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.studios1299.playwall.core.data.local.Preferences
+import com.studios1299.playwall.core.data.local.dao.ExploreWallpaperDao
+import com.studios1299.playwall.core.data.local.entity.ExploreWallpaperEntity
 import com.studios1299.playwall.core.data.networking.RetrofitClient
 import com.studios1299.playwall.core.data.networking.RetrofitClientExt
 import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
@@ -29,12 +31,15 @@ import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.error_handling.logSmartResult
 import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.feature.play.presentation.play.Friend
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import retrofit2.Response
 import java.io.File
 
 class FirebaseCoreRepositoryImpl(
     private val firebaseAuth: FirebaseAuth,
+    private val localDao: ExploreWallpaperDao
 ) : CoreRepository {
     companion object {
         private const val LOG_TAG = "FirebaseCoreRepositoryImpl"
@@ -152,7 +157,7 @@ class FirebaseCoreRepositoryImpl(
                 SmartResult.Success(friendsWithAvatars)
             } else {
                 Log.e("getFriends", "Error occurred: SmartResult was not successful")
-                SmartResult.Error(DataError.Network.UNKNOWN)
+                result
             }
         } catch (e: Exception) {
             Log.e("getFriends", "Exception occurred: ${e.message}", e)
@@ -529,46 +534,312 @@ class FirebaseCoreRepositoryImpl(
 
 
     // EXPLORE WALLPAPER MANAGEMENT
-    override suspend fun loadExploreWallpapers(page: Int, pageSize: Int): SmartResult<List<ExploreWallpaperResponse>, DataError.Network> {
-        return try {
-            Log.e("loadExploreWallpapers", "Starting request to load explore wallpapers. Page: $page, PageSize: $pageSize")
+//    override suspend fun loadExploreWallpapers(page: Int, pageSize: Int): SmartResult<List<ExploreWallpaperResponse>, DataError.Network> {
+//        return try {
+//            Log.e("loadExploreWallpapers", "Starting request to load explore wallpapers. Page: $page, PageSize: $pageSize")
+//
+//            val result = performAuthRequest { token ->
+//                Log.e("loadExploreWallpapers", "Token obtained: $token")
+//                RetrofitClient.wallpaperApi.loadExploreWallpapers(token, page, pageSize)
+//            }
+//
+//            Log.e("loadExploreWallpapers", "Result obtained from API call: $result")
+//
+//            if (result is SmartResult.Success) {
+//                Log.e("loadExploreWallpapers", "Successfully loaded explore wallpapers: ${result.data}")
+//
+//
+//                val withLoadedImages = result.data.map {
+//                    if (it.fileName == null) {
+//                        it.copy(fileName = "")
+//                    } else {
+//                        val avatarUrlResult = pathToLink(it.fileName)
+//                        val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
+//                            avatarUrlResult.data
+//                        } else {
+//                            ""
+//                        }
+//                        it.copy(fileName = avatarUrl)
+//                    }
+//                }
+//
+//
+//                SmartResult.Success(withLoadedImages)
+//            } else {
+//                Log.e("loadExploreWallpapers", "Failed to load explore wallpapers, returning UNKNOWN error")
+//                SmartResult.Error(DataError.Network.UNKNOWN)
+//            }
+//        } catch (e: Exception) {
+//            Log.e("loadExploreWallpapers", "Exception occurred: ${e.message}", e)
+//            SmartResult.Error(DataError.Network.UNKNOWN)
+//        }
+//    }
+//
+//    override suspend fun loadExploreWallpapers(
+//        page: Int,
+//        pageSize: Int,
+//        forceRefresh: Boolean
+//    ): SmartResult<List<ExploreWallpaperResponse>, DataError.Network> {
+//        Log.e("Repository", "Starting loadExploreWallpapers with page: $page, pageSize: $pageSize")
+//
+//        // Try to load from Room first
+//        if (!forceRefresh) {
+//            val cachedWallpapers = localDao.getAllWallpapers()
+//            Log.e("Repository", "Cached wallpapers count: ${cachedWallpapers.size}")
+//
+//            if (cachedWallpapers.isNotEmpty()) {
+//                // Return modified cached data
+//                Log.e("Repository", "Returning cached data")
+//                val modifiedCachedWallpapers = cachedWallpapers.map {
+//                    ExploreWallpaperResponse(
+//                        id = it.id,
+//                        fileName = it.fileName,
+//                        type = it.type,
+//                        sentCount = it.sentCount,
+//                        savedCount = it.savedCount,
+//                        dateUpdated = it.dateCreated,
+//                        dateCreated = it.dateCreated
+//                    )
+//                }
+//                return SmartResult.Success(modifiedCachedWallpapers) // Return the modified list
+//            } else {
+//                Log.e("Repository", "No cached data found, fetching from API")
+//            }
+//        }
+//
+//        // If no cached data, fetch from the API
+//        return try {
+//            val result = performAuthRequest { token ->
+//                Log.e("Repository", "Making API request with token: $token")
+//                RetrofitClient.wallpaperApi.loadExploreWallpapers(token, page, pageSize)
+//            }
+//
+//            if (result is SmartResult.Success) {
+//                Log.e("Repository", "Successfully fetched wallpapers from API: ${result.data.size}")
+//
+//                // Cache the fetched data
+//                val entitiesToInsert = result.data.map { wallpaper ->
+//                    val avatarUrlResult = pathToLink(wallpaper.fileName)
+//                    ExploreWallpaperEntity(
+//                        id = wallpaper.id,
+//                        fileName = if (avatarUrlResult is SmartResult.Success) {
+//                            avatarUrlResult.data
+//                        } else {
+//                            ""
+//                        },
+//                        type = wallpaper.type,
+//                        sentCount = wallpaper.sentCount,
+//                        savedCount = wallpaper.savedCount,
+//                        isLiked = false, // Adjust as necessary
+//                        dateCreated = wallpaper.dateCreated
+//                    )
+//                }
+//
+//                // Log the data being inserted
+//                Log.e("Repository", "Inserting ${entitiesToInsert.size} wallpapers into Room")
+//                localDao.insertWallpapers(entitiesToInsert)
+//
+//                // Also, return the modified list from the API result
+//                val modifiedApiWallpapers = result.data.map { wallpaper ->
+//                    val avatarUrlResult = pathToLink(wallpaper.fileName)
+//                    ExploreWallpaperResponse(
+//                        id = wallpaper.id,
+//                        fileName = if (avatarUrlResult is SmartResult.Success) {
+//                            avatarUrlResult.data
+//                        } else {
+//                            ""
+//                        },
+//                        type = wallpaper.type,
+//                        sentCount = wallpaper.sentCount,
+//                        savedCount = wallpaper.savedCount,
+//                        dateUpdated = wallpaper.dateCreated,
+//                        dateCreated = wallpaper.dateCreated
+//                    )
+//                }
+//
+//                return SmartResult.Success(modifiedApiWallpapers) // Return modified API data
+//            } else {
+//                Log.e("Repository", "API request failed: ${result}")
+//            }
+//
+//            result // Return the result (Success/Error)
+//        } catch (e: Exception) {
+//            Log.e("Repository", "Exception occurred: ${e.message}", e)
+//            SmartResult.Error(DataError.Network.UNKNOWN)
+//        }
+//    }
+    override suspend fun loadExploreWallpapers(
+        page: Int,
+        pageSize: Int,
+        forceRefresh: Boolean
+    ): SmartResult<List<ExploreWallpaperResponse>, DataError.Network> = withContext(Dispatchers.IO) {
+        Log.e("Repository", "Starting loadExploreWallpapers with page: $page, pageSize: $pageSize")
 
+        // Try to load from Room first
+        if (!forceRefresh) {
+            val cachedWallpapers = localDao.getAllWallpapersSortedByOrder() // Fetch in correct order
+            Log.e("Repository", "Cached wallpapers count: ${cachedWallpapers.size}")
+
+            if (cachedWallpapers.isNotEmpty()) {
+                // Return modified cached data
+                Log.e("Repository", "Returning cached data")
+                val modifiedCachedWallpapers = cachedWallpapers.map {
+                    ExploreWallpaperResponse(
+                        id = it.id,
+                        fileName = it.fileName,
+                        type = it.type,
+                        sentCount = it.sentCount,
+                        savedCount = it.savedCount,
+                        dateUpdated = it.dateCreated,
+                        dateCreated = it.dateCreated
+                    )
+                }
+                return@withContext SmartResult.Success(modifiedCachedWallpapers) // Return the modified list
+            } else {
+                Log.e("Repository", "No cached data found, fetching from API")
+            }
+        }
+
+        // If no cached data, fetch from the API
+        return@withContext try {
             val result = performAuthRequest { token ->
-                Log.e("loadExploreWallpapers", "Token obtained: $token")
+                Log.e("Repository", "Making API request with token: $token")
                 RetrofitClient.wallpaperApi.loadExploreWallpapers(token, page, pageSize)
             }
 
-            Log.e("loadExploreWallpapers", "Result obtained from API call: $result")
-
             if (result is SmartResult.Success) {
-                Log.e("loadExploreWallpapers", "Successfully loaded explore wallpapers: ${result.data}")
+                Log.e("Repository", "Successfully fetched wallpapers from API: ${result.data.size}")
 
-
-                val withLoadedImages = result.data.map {
-                    if (it.fileName == null) {
-                        it.copy(fileName = "")
-                    } else {
-                        val avatarUrlResult = pathToLink(it.fileName)
-                        val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
+                // Cache the fetched data, preserving the order by assigning a sequential "order" field
+                val entitiesToInsert = result.data.mapIndexed { index, wallpaper ->
+                    val avatarUrlResult = pathToLink(wallpaper.fileName)
+                    ExploreWallpaperEntity(
+                        id = wallpaper.id,
+                        fileName = if (avatarUrlResult is SmartResult.Success) {
                             avatarUrlResult.data
                         } else {
                             ""
-                        }
-                        it.copy(fileName = avatarUrl)
-                    }
+                        },
+                        type = wallpaper.type,
+                        sentCount = wallpaper.sentCount,
+                        savedCount = wallpaper.savedCount,
+                        isLiked = false, // Adjust as necessary
+                        dateCreated = wallpaper.dateCreated,
+                        order = index // Store the order in which the wallpaper was fetched
+                    )
                 }
 
+                // Log the data being inserted
+                Log.e("Repository", "Inserting ${entitiesToInsert.size} wallpapers into Room")
+                localDao.insertWallpapers(entitiesToInsert)
 
-                SmartResult.Success(withLoadedImages)
+                // Also, return the modified list from the API result in the original order
+                val modifiedApiWallpapers = result.data.map { wallpaper ->
+                    val avatarUrlResult = pathToLink(wallpaper.fileName)
+                    ExploreWallpaperResponse(
+                        id = wallpaper.id,
+                        fileName = if (avatarUrlResult is SmartResult.Success) {
+                            avatarUrlResult.data
+                        } else {
+                            ""
+                        },
+                        type = wallpaper.type,
+                        sentCount = wallpaper.sentCount,
+                        savedCount = wallpaper.savedCount,
+                        dateUpdated = wallpaper.dateCreated,
+                        dateCreated = wallpaper.dateCreated
+                    )
+                }
+
+                return@withContext SmartResult.Success(modifiedApiWallpapers) // Return modified API data
             } else {
-                Log.e("loadExploreWallpapers", "Failed to load explore wallpapers, returning UNKNOWN error")
-                SmartResult.Error(DataError.Network.UNKNOWN)
+                Log.e("Repository", "API request failed: ${result}")
             }
+
+            result // Return the result (Success/Error)
         } catch (e: Exception) {
-            Log.e("loadExploreWallpapers", "Exception occurred: ${e.message}", e)
+            Log.e("Repository", "Exception occurred: ${e.message}", e)
             SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }
+
+
+//    override suspend fun loadExploreWallpapers(page: Int, pageSize: Int, forceRefresh: Boolean): SmartResult<List<ExploreWallpaperResponse>, DataError.Network> {
+//        Log.e("Repository", "Starting loadExploreWallpapers with page: $page, pageSize: $pageSize")
+//
+//        // Try to load from Room first
+//        if (!forceRefresh) {
+//            val cachedWallpapers = localDao.getAllWallpapers()
+//            Log.e("Repository", "Cached wallpapers count: ${cachedWallpapers.size}")
+//
+//            if (cachedWallpapers.isNotEmpty()) {
+//                // Return cached data
+//                Log.e("Repository", "Returning cached data")
+//                return SmartResult.Success(cachedWallpapers.map {
+//                    val avatarUrlResult = pathToLink(it.fileName)
+//                    ExploreWallpaperResponse(
+//                        id = it.id,
+//                        fileName = if (avatarUrlResult is SmartResult.Success) {
+//                            avatarUrlResult.data
+//                        } else {
+//                            ""
+//                        },
+//                        type = it.type,
+//                        sentCount = it.sentCount,
+//                        savedCount = it.savedCount,
+//                        dateUpdated = it.dateCreated,
+//                        dateCreated = it.dateCreated
+//                    )
+//                })
+//            } else {
+//                Log.e("Repository", "No cached data found, fetching from API")
+//            }
+//        }
+//
+//        // If no cached data, fetch from the API
+//        return try {
+//            val result = performAuthRequest { token ->
+//                Log.e("Repository", "Making API request with token: $token")
+//                RetrofitClient.wallpaperApi.loadExploreWallpapers(token, page, pageSize)
+//            }
+//
+//            if (result is SmartResult.Success) {
+//                Log.e("Repository", "Successfully fetched wallpapers from API: ${result.data.size}")
+//
+//                // Cache the fetched data
+//                val entitiesToInsert = result.data.map { wallpaper ->
+//                    val avatarUrlResult = pathToLink(wallpaper.fileName)
+//                    Log.e("Repository", "fileName: $wallpaper.fileName")
+//                    Log.e("Repository", "avatarUrlResult: $avatarUrlResult")
+//                    ExploreWallpaperEntity(
+//                        id = wallpaper.id,
+//                        fileName = if (avatarUrlResult is SmartResult.Success) {
+//                            avatarUrlResult.data
+//                        } else {
+//                            ""
+//                        },
+//                        type = wallpaper.type,
+//                        sentCount = wallpaper.sentCount,
+//                        savedCount = wallpaper.savedCount,
+//                        isLiked = false, // Adjust as necessary
+//                        dateCreated = wallpaper.dateCreated
+//                    )
+//                }
+//
+//                // Log the data being inserted
+//                Log.e("Repository", "Inserting ${entitiesToInsert.size} wallpapers into Room")
+//                localDao.insertWallpapers(entitiesToInsert)
+//            } else {
+//                Log.e("Repository", "API request failed: ${result}")
+//            }
+//
+//            result // Return the result (Success/Error)
+//        } catch (e: Exception) {
+//            Log.e("Repository", "Exception occurred: ${e.message}", e)
+//            SmartResult.Error(DataError.Network.UNKNOWN)
+//        }
+//    }
+
 
     override suspend fun saveWallpaper(wallpaperId: Int): SmartResult<Unit, DataError.Network> {
         return try {

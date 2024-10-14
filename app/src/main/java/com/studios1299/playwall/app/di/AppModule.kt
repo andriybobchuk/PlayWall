@@ -10,6 +10,8 @@ import com.studios1299.playwall.auth.data.FirebaseAuthRepositoryImpl
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.domain.PatternValidator
 import com.studios1299.playwall.core.data.FirebaseCoreRepositoryImpl
+import com.studios1299.playwall.core.data.local.dao.ExploreWallpaperDao
+import com.studios1299.playwall.core.data.local.database.AppDatabase.Companion.getDatabase
 import com.studios1299.playwall.core.domain.CoreRepository
 
 /**
@@ -87,7 +89,8 @@ class AppModuleImpl(
 
     override val coreRepository: CoreRepository by lazy {
         FirebaseCoreRepositoryImpl(
-            firebaseAuth = firebaseAuth
+            firebaseAuth = firebaseAuth,
+            localDao = getDatabase(appContext).exploreWallpaperDao()
         )
     }
     override val authRepository: AuthRepository by lazy {

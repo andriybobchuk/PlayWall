@@ -17,7 +17,8 @@ data class ProfileState @OptIn(ExperimentalFoundationApi::class) constructor(
     override val wallpapers: List<ExploreWallpaper> = emptyList(),
     override val isLoading: Boolean = false,
 
-    val isEditProfileDialogOpen: Boolean = false
+    val isEditProfileDialogOpen: Boolean = false,
+    val isOnline: Boolean = true
 
 ) : ImageGridState()
 

@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.studios1299.playwall.core.data.local.Preferences
+import com.studios1299.playwall.core.data.networking.NetworkMonitor
 import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.DeclineRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
@@ -34,6 +35,14 @@ class PlayViewModel(
     val events = eventChannel.receiveAsFlow()
 
     init {
+        viewModelScope.launch {
+            NetworkMonitor.isOnline.collect { online ->
+                state = state.copy(isOnline = online)
+                if (online) {
+                    loadFriendsAndRequests()
+                }
+            }
+        }
         loadFriendsAndRequests()
     }
 
@@ -154,7 +163,7 @@ class PlayViewModel(
                     )
                 }
                 is SmartResult.Error -> {
-                    eventChannel.send(PlayEvent.ShowError(friendRequestsResult.error.asUiText()))
+                   // eventChannel.send(PlayEvent.ShowError(friendRequestsResult.error.asUiText()))
                 }
             }
         }

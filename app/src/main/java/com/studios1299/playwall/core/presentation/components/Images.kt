@@ -32,6 +32,8 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import com.facebook.shimmer.Shimmer
+import com.facebook.shimmer.ShimmerDrawable
 import com.studios1299.playwall.R
 
 object Images {
@@ -66,6 +68,10 @@ object Images {
                 )
             }
         } else {
+            val shimmerDrawable = ShimmerDrawable().apply {
+                setShimmer(Shimmer.AlphaHighlightBuilder().setDuration(1000).setBaseAlpha(0.2f).setHighlightAlpha(0.1f).setDirection(Shimmer.Direction.LEFT_TO_RIGHT).build())
+            }
+
             GlideImage(
                 model = model,
                 contentDescription = stringResource(R.string.image),
@@ -77,14 +83,16 @@ object Images {
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
                 contentScale = ContentScale.Crop,
                 requestBuilderTransform = { requestBuilder ->
-                    requestBuilder.addListener(object : RequestListener<Drawable> {
+                    requestBuilder
+                        .placeholder(shimmerDrawable)
+                        .addListener(object : RequestListener<Drawable> {
                         override fun onLoadFailed(
                             e: GlideException?,
                             model: Any?,
                             target: Target<Drawable>,
                             isFirstResource: Boolean
                         ): Boolean {
-                            Log.d(LOG_TAG, "Image load failed: ${model}")
+                            Log.e(LOG_TAG, "Image load failed: ${model}")
                             imageLoadFailed = true
                             return false
                         }
@@ -96,7 +104,7 @@ object Images {
                             dataSource: DataSource,
                             isFirstResource: Boolean
                         ): Boolean {
-                            Log.v(LOG_TAG, "Image loaded successfully: ${model}")
+                            Log.d(LOG_TAG, "Image loaded successfully: ${model}")
                             imageLoadFailed = false
                             return false
                         }
@@ -105,22 +113,6 @@ object Images {
             )
         }
     }
-
-    //            GlideImage(
-//                model = photo.url,
-//                contentDescription = photo.description,
-//                modifier = Modifier
-//                    .weight(1f)
-//                    .aspectRatio(1f)
-//                    .clickable {
-//                        if (state.wallpapers.isNotEmpty()) {
-//                            onAction(ProfileAction.OnPhotoClick(photo.id))
-//                        }
-//                    }
-//                    .clip(RoundedCornerShape(8.dp))
-//                    .background(MaterialTheme.colorScheme.surface),
-//                contentScale = ContentScale.Crop
-//            )
 
     @OptIn(ExperimentalGlideComposeApi::class)
     @Composable
@@ -149,6 +141,10 @@ object Images {
                 )
             }
         } else {
+            val shimmerDrawable = ShimmerDrawable().apply {
+                setShimmer(Shimmer.AlphaHighlightBuilder().setDuration(1000).setBaseAlpha(0.2f).setHighlightAlpha(0.1f).setDirection(Shimmer.Direction.LEFT_TO_RIGHT).build())
+            }
+
             GlideImage(
                 model = model,
                 contentDescription = stringResource(R.string.image),
@@ -159,14 +155,16 @@ object Images {
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
                 contentScale = ContentScale.Crop,
                 requestBuilderTransform = { requestBuilder ->
-                    requestBuilder.addListener(object : RequestListener<Drawable> {
+                    requestBuilder
+                        .placeholder(shimmerDrawable)
+                        .addListener(object : RequestListener<Drawable> {
                         override fun onLoadFailed(
                             e: GlideException?,
                             model: Any?,
                             target: Target<Drawable>,
                             isFirstResource: Boolean
                         ): Boolean {
-                            Log.d(LOG_TAG, "Image load failed: ${model}")
+                            Log.e(LOG_TAG, "Image load failed: ${model}")
                             imageLoadFailed = true
                             return false
                         }
@@ -178,7 +176,7 @@ object Images {
                             dataSource: DataSource,
                             isFirstResource: Boolean
                         ): Boolean {
-                            Log.v(LOG_TAG, "Image loaded successfully: ${model}")
+                            Log.d(LOG_TAG, "Image loaded successfully: ${model}")
                             imageLoadFailed = false
                             return false
                         }

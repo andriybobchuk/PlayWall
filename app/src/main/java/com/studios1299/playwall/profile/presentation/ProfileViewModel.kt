@@ -13,9 +13,11 @@ import androidx.lifecycle.viewModelScope
 import com.studios1299.playwall.R
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.core.data.local.Preferences
+import com.studios1299.playwall.core.data.networking.NetworkMonitor
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.data.s3.uriToFile
 import com.studios1299.playwall.core.domain.CoreRepository
+import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.core.presentation.UiText
@@ -38,6 +40,15 @@ class ProfileViewModel(
     val events = eventChannel.receiveAsFlow()
 
     init {
+        viewModelScope.launch {
+            NetworkMonitor.isOnline.collect { online ->
+                state = state.copy(isOnline = online)
+                if (online) {
+                    loadUserProfile()
+                    loadSavedWallpapers(0, 10)
+                }
+            }
+        }
         loadUserProfile()
         loadSavedWallpapers(0, 10)
     }
@@ -90,7 +101,11 @@ class ProfileViewModel(
                     Log.d("loadUserProfile()", "avatarId=" + profileResult.data.avatarId)
                 }
                 is SmartResult.Error -> {
-                    eventChannel.send(ProfileEvent.ShowError(profileResult.error.asUiText()))
+                    if (state.isOnline) {
+                        eventChannel.send(ProfileEvent.ShowError(profileResult.error.asUiText()))
+                    } else {
+                        eventChannel.send(ProfileEvent.ShowError(DataError.Network.NO_INTERNET.asUiText()))
+                    }
                 }
             }
         }
@@ -181,7 +196,7 @@ class ProfileViewModel(
                 state = state.copy(wallpapers = savedWallpapers, isLoading = false)
             } else {
                 Log.e("loadSavedWallpapers", "Shit saved wpps: " + result)
-                state = state.copy(isLoading = false)
+                //state = state.copy(isLoading = false)
                 // Handle error, if needed
             }
         }

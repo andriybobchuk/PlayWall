@@ -42,7 +42,7 @@ interface CoreRepository {
     suspend fun markMessagesAsRead(friendshipId: Int, lastMessageId: Int): SmartResult<Unit, DataError.Network>
 
     // EXPLORE WALLPAPER MANAGEMENT
-    suspend fun loadExploreWallpapers(page: Int, pageSize: Int): SmartResult<List<ExploreWallpaperResponse>, DataError.Network>
+    suspend fun loadExploreWallpapers(page: Int, pageSize: Int, forceRefresh: Boolean): SmartResult<List<ExploreWallpaperResponse>, DataError.Network>
     suspend fun saveWallpaper(wallpaperId: Int): SmartResult<Unit, DataError.Network>
     suspend fun removeSavedWallpaper(wallpaperId: Int): SmartResult<Unit, DataError.Network>
     suspend fun loadSavedWallpapers(page: Int, pageSize: Int): SmartResult<List<ExploreWallpaperResponse>, DataError.Network>

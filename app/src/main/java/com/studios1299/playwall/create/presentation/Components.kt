@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import aws.sdk.kotlin.services.s3.model.LoggingEnabled
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import ja.burhanrashid52.photoeditor.PhotoEditor
 import java.io.File
@@ -73,6 +74,7 @@ fun NoImagePlaceholder(
 fun Topbar(
     download: () -> Unit,
     send: () -> Unit,
+    sendEnabled: Boolean,
     setAsMyWallpaper: () -> Unit,
     isImageSelected: Boolean
 ) {
@@ -83,7 +85,7 @@ fun Topbar(
                 icon = Icons.Outlined.Send,
                 contentDescription = "Send to friend",
                 onClick = send,
-                enabled = isImageSelected
+                enabled = isImageSelected && sendEnabled
             ),
             Toolbars.ToolBarAction(
                 icon = Icons.Default.Download,

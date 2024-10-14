@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.studios1299.playwall.core.data.networking.NetworkMonitor
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.data.s3.uriToFile
@@ -33,6 +34,11 @@ class CreateViewModel(
 
     init {
         loadFriends()
+        viewModelScope.launch {
+            NetworkMonitor.isOnline.collect { online ->
+                _state.value = _state.value.copy(isOnline = online)
+            }
+        }
     }
 
     fun onAction(action: CreateScreenAction) {

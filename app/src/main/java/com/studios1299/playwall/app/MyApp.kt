@@ -3,10 +3,12 @@ package com.studios1299.playwall.app
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import com.studios1299.playwall.app.config.FirebaseManager
 import com.studios1299.playwall.app.di.AppModule
 import com.studios1299.playwall.app.di.AppModuleImpl
 import com.studios1299.playwall.core.data.local.Preferences
+import com.studios1299.playwall.core.data.networking.NetworkMonitor
 
 class MyApp: Application() {
 
@@ -25,5 +27,7 @@ class MyApp: Application() {
 
         // Shared prefs:
         Preferences.initialize(this)
+
+        NetworkMonitor.initialize(this)
     }
 }

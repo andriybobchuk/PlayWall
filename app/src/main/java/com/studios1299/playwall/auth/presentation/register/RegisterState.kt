@@ -12,5 +12,6 @@ data class RegisterState @OptIn(ExperimentalFoundationApi::class) constructor(
     val passwordValidationState: PasswordValidationState = PasswordValidationState(),
     val isRegistering: Boolean = false,
     val canRegister: Boolean = false,
-    val isTermsAccepted: Boolean = false
+    val isTermsAccepted: Boolean = false,
+    val isOnline: Boolean = true
 )

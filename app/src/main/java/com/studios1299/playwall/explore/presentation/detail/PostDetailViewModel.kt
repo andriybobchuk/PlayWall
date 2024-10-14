@@ -14,6 +14,7 @@ import androidx.work.workDataOf
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.data.ChangeWallpaperWorker
 import com.studios1299.playwall.core.data.local.Preferences
+import com.studios1299.playwall.core.data.networking.NetworkMonitor
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.domain.CoreRepository
@@ -53,7 +54,12 @@ class PostDetailViewModel(
         if (fromProfile) {
             loadSavedWallpapers()
         } else {
-            loadAllWallpapers()
+            loadAllWallpapers(false)
+        }
+        viewModelScope.launch {
+            NetworkMonitor.isOnline.collect { online ->
+                updateExploreState(state.copy(isOnline = online))
+            }
         }
         loadFriends()
     }
@@ -66,13 +72,13 @@ class PostDetailViewModel(
         }
     }
 
-    private fun loadAllWallpapers() {
+    private fun loadAllWallpapers(forceRefresh: Boolean) {
         viewModelScope.launch {
             Log.e("PostDetailViewModel", "Loading photos...")
             updateExploreState(state.copy(isLoading = true))
 
             try {
-                val photos = repository.loadExploreWallpapers(0, 18) // Fetches all photos
+                val photos = repository.loadExploreWallpapers(0, 18, forceRefresh) // Fetches all photos
 
                 if (photos is SmartResult.Success) {
                     updateExploreState(state.copy(wallpapers =

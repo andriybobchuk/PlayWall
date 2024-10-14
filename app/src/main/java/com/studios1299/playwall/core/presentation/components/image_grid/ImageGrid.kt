@@ -32,26 +32,28 @@ import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.R
+import com.studios1299.playwall.core.presentation.components.Images
+import com.studios1299.playwall.core.presentation.components.ShimmerLoadingForWallpaperGrid
 import com.studios1299.playwall.explore.presentation.detail.LikeButton
 import com.studios1299.playwall.explore.presentation.detail.PostDetailAction
 import com.studios1299.playwall.explore.presentation.explore.ExploreAction
+import com.studios1299.playwall.explore.presentation.explore.ExploreState
 
 @Composable
 @OptIn(ExperimentalGlideComposeApi::class)
 fun ImageGrid(
-    innerPadding: PaddingValues,
+   // innerPadding: PaddingValues,
     state: ImageGridState,
-    onAction: (ExploreAction) -> Unit
+    onAction: (ExploreAction) -> Unit,
+    exploreState: ExploreState,
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding)
+           // .padding(innerPadding)
     ) {
         if (state.isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center)
-            )
+            ShimmerLoadingForWallpaperGrid()
         } else if (state.wallpapers.isEmpty()) {
             Text(
                 text = "No photos available",
@@ -65,30 +67,29 @@ fun ImageGrid(
                 items(state.wallpapers.size) { index ->
                     val photo = state.wallpapers[index]
                     Box {
-                        GlideImage(
-                            model = photo.fileName,
-                            contentDescription = "wallpaper",
+                        Images.Square(
                             modifier = Modifier
-                                .aspectRatio(1f)
-                                .clickable {
-                                    Log.e("ImageGrid", "Clicked on photo with id ${photo.id}")
-                                    if (state.wallpapers.isNotEmpty()) {
-                                        onAction(ExploreAction.OnPhotoClick(photo.id))
-                                    }
+                                //.weight(1f)
+                                .aspectRatio(1f),
+                            model = photo.fileName,
+                            onClick = {
+                                Log.e("ImageGrid", "Clicked on photo with id ${photo.id}")
+                                if (state.wallpapers.isNotEmpty()) {
+                                    onAction(ExploreAction.OnPhotoClick(photo.id))
                                 }
-                                .background(MaterialTheme.colorScheme.outline),
-                            contentScale = ContentScale.Crop,
+                            }
                         )
-                        Box(modifier = Modifier.align(Alignment.BottomEnd)) {
-                            LikeButton(
-                                likeCount = photo.savedCount,
-                                isLiked = photo.isLiked,
-                                onClick = { onAction(ExploreAction.ToggleLike(photo.id)) },
-                                modifier = Modifier,
-                                shadow = true,
-                                iconColor = Color.White,
-                                counterVisible = false
-                            )
+                        if (exploreState.isOnline) {
+                            Box(modifier = Modifier.align(Alignment.BottomEnd)) {
+                                LikeButton(
+                                    likeCount = photo.savedCount,
+                                    isLiked = photo.isLiked,
+                                    onClick = { onAction(ExploreAction.ToggleLike(photo.id)) },
+                                    modifier = Modifier,
+                                    iconColor = Color.White,
+                                    counterVisible = false
+                                )
+                            }
                         }
                     }
                 }

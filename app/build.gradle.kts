@@ -167,4 +167,17 @@ dependencies {
 //    implementation(libs.s3)
     implementation("aws.sdk.kotlin:s3:1.0.0")
 
+    // Shimmer
+    implementation ("com.facebook.shimmer:shimmer:0.5.0")
+    implementation("com.valentinilk.shimmer:compose-shimmer:1.3.1")
+
+
+    val room_version = "2.6.1"
+    implementation("androidx.room:room-runtime:$room_version") // Room runtime
+    kapt("androidx.room:room-compiler:$room_version") // Use kapt for annotation processing in Kotlin
+    implementation("androidx.room:room-ktx:$room_version") // For coroutines support
+
+    // swipe to refress
+    implementation ("com.google.accompanist:accompanist-swiperefresh:0.24.13-rc")
+
 }

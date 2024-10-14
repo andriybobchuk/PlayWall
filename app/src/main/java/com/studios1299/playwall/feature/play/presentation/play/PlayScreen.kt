@@ -72,8 +72,10 @@ import com.studios1299.playwall.R
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.data.s3.uriToFile
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
+import com.studios1299.playwall.core.presentation.components.Banners
 import com.studios1299.playwall.core.presentation.components.Buttons
 import com.studios1299.playwall.core.presentation.components.Images
+import com.studios1299.playwall.core.presentation.components.ShimmerLoadingForFriendsList
 import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
@@ -98,7 +100,11 @@ fun PlayScreenRoot(
     ObserveAsEvents(viewModel.events) { event ->
         when(event) {
             is PlayEvent.ShowError -> {
-                Toast.makeText(context, event.error.asString(context), Toast.LENGTH_LONG).show()
+                if (state.isOnline) {
+                    Toast.makeText(context, event.error.asString(context), Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(context, "No internet", Toast.LENGTH_LONG).show()
+                }
             }
             is PlayEvent.NavigateToChat -> {
                 onNavigateToChat(event.friendId)
@@ -322,6 +328,16 @@ fun PlayScreen(
                 .padding(combinedPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
+            if (!state.isOnline) {
+                item {
+                    Banners.OfflineStatus()
+                }
+            }
+            if (state.isLoading) {
+                item {
+                    ShimmerLoadingForFriendsList(Modifier)
+                }
+            }
             if (!state.isSelectMode) {
                 items(state.friendRequests) { request ->
                     FriendRequestItem(
@@ -682,9 +698,11 @@ fun SavedWallpaperSheet(
 
                 Box(Modifier.fillMaxWidth()) {
                     if (state.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.align(Alignment.Center)
-                        )
+                        ShimmerLoadingForFriendsList(modifier = Modifier.fillMaxSize())
+                        Log.e("Shimmering", "Loading...")
+//                        CircularProgressIndicator(
+//                            modifier = Modifier.align(Alignment.Center)
+//                        )
                     } else if (state.exploreWallpapers.isEmpty()) {
                         Text(
                             text = stringResource(R.string.no_photos_available),

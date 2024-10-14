@@ -177,14 +177,16 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
                 bottomNavbar = { BottomNavigationBar(navController, 0) }
             )
         }
-        val sharedExploreViewModel = ExploreViewModel(
-            MyApp.appModule.coreRepository
-        )
+//        val sharedExploreViewModel = ExploreViewModel(
+//            MyApp.appModule.coreRepository
+//        )
         composable(Graphs.Main.Screens.explore) {
             ExploreScreenRoot(
                 viewModel = viewModel<ExploreViewModel>(
                     factory = viewModelFactory {
-                        sharedExploreViewModel
+                        ExploreViewModel(
+                            MyApp.appModule.coreRepository
+                        )
                     }
                 ),
                 onNavigateToPhotoDetail = { selectedPhoto ->

@@ -55,6 +55,7 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
+import com.studios1299.playwall.core.presentation.components.Banners
 import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.explore.presentation.explore.ExploreState
@@ -139,33 +140,35 @@ fun PostDetailScreen(
             )
         },
         bottomBar = {
-            BottomAppBar {
-                Button(
-                    modifier = Modifier.padding(2.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                    ),
-                    onClick = {
-                        coroutineScope.launch { isFriendsSheetOpen.value = true }
-                }) {
-                    Text(text = "Set as friend's", color = MaterialTheme.colorScheme.primary)
-                }
-                Button(
-                    modifier = Modifier.padding(2.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                    ),
-                    onClick = {
-                        viewModel.setAsWallpaper(state.wallpapers[pagerState.currentPage].fileName, context)
-                        Toast.makeText(context,
-                            "Done!", Toast.LENGTH_SHORT).show()
-                }) {
-                    Text(text = "Set as mine", color = MaterialTheme.colorScheme.primary)
+            if (state.isOnline) {
+                BottomAppBar {
+                    Button(
+                        modifier = Modifier.padding(2.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        ),
+                        onClick = {
+                            coroutineScope.launch { isFriendsSheetOpen.value = true }
+                        }) {
+                        Text(text = "Set as friend's", color = MaterialTheme.colorScheme.primary)
+                    }
+                    Button(
+                        modifier = Modifier.padding(2.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        ),
+                        onClick = {
+                            viewModel.setAsWallpaper(state.wallpapers[pagerState.currentPage].fileName, context)
+                            Toast.makeText(context,
+                                "Done!", Toast.LENGTH_SHORT).show()
+                        }) {
+                        Text(text = "Set as mine", color = MaterialTheme.colorScheme.primary)
+                    }
                 }
             }
         },
         floatingActionButton = {
-            if (!state.isLoading) {
+            if (!state.isLoading && state.isOnline) {
                 val currentPhoto = state.wallpapers[pagerState.currentPage]
                 LikeButton(
                     likeCount = currentPhoto.savedCount,
@@ -178,12 +181,17 @@ fun PostDetailScreen(
         },
         floatingActionButtonPosition = FabPosition.EndOverlay
     ) { innerPadding ->
-        Box(modifier = Modifier
+        Column(modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding)) {
+
+            if (!state.isOnline) {
+                Banners.OfflineStatus()
+            }
             if (state.isLoading) {
+
                 CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
+                    //modifier = Modifier.align(Alignment.Center)
                 )
             }
             VerticalPager(

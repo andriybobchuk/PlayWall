@@ -15,6 +15,7 @@ data class CreateScreenState(
     val brushSize: Float? = null,
     val isImageSelected: Boolean = selectedImageUri != Uri.EMPTY,
     val showReplacePhotoDialog: Boolean = false,
-    val friends: List<Friend> = emptyList()
+    val friends: List<Friend> = emptyList(),
+    val isOnline: Boolean = true
 )
 

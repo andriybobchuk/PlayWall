@@ -189,6 +189,7 @@ fun CreateScreen(
                 send = {
                     coroutineScope.launch { isFriendsSheetOpen.value = true }
                 },
+                sendEnabled = state.isOnline,
                 setAsMyWallpaper = {
                     CoroutineScope(Dispatchers.Main).launch {
                         if (photoEditor != null && photoEditorView != null) {
