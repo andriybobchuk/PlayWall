@@ -4,7 +4,11 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.local.dao.ExploreWallpaperDao
+import com.studios1299.playwall.core.data.local.dao.FriendDao
 import com.studios1299.playwall.core.data.local.entity.ExploreWallpaperEntity
+import com.studios1299.playwall.core.data.local.entity.FriendEntity
+import com.studios1299.playwall.core.data.local.toDomain
+import com.studios1299.playwall.core.data.local.toEntity
 import com.studios1299.playwall.core.data.networking.RetrofitClient
 import com.studios1299.playwall.core.data.networking.RetrofitClientExt
 import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
@@ -31,6 +35,7 @@ import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.error_handling.logSmartResult
 import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.feature.play.presentation.play.Friend
+import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -39,7 +44,8 @@ import java.io.File
 
 class FirebaseCoreRepositoryImpl(
     private val firebaseAuth: FirebaseAuth,
-    private val localDao: ExploreWallpaperDao
+    private val exploreDao: ExploreWallpaperDao,
+    private val friendsDao: FriendDao,
 ) : CoreRepository {
     companion object {
         private const val LOG_TAG = "FirebaseCoreRepositoryImpl"
@@ -120,61 +126,66 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-    override suspend fun getFriends(): SmartResult<List<Friend>, DataError.Network> {
-        return try {
-            Log.e("getFriends", "Starting the getFriends request")
+    override suspend fun getFriends(forceUpdate: Boolean): SmartResult<List<Friend>, DataError.Network> {
+        try {
+            // Check cache first if not forced to update
+            if (!forceUpdate) {
+                val cachedFriends = friendsDao.getAllFriends() // Load friends with status = accepted
+                if (cachedFriends.isNotEmpty()) {
+                    val result: List<Friend> = cachedFriends.map { it.toDomain() }
+                    return SmartResult.Success(result) // Convert entities to domain
+                }
+            }
 
+            // Fetch from remote if forced or no cache
             val result = performAuthRequest { token ->
-                Log.e("getFriends", "Token obtained: $token")
                 RetrofitClient.friendsApi.getFriends(token)
             }
 
             if (result is SmartResult.Success) {
-                Log.e("getFriends", "Successfully fetched friends list: ${result.data}")
-
                 val friendsWithAvatars = result.data.map { friend ->
-                    Log.e("getFriends", "Processing friend with ID: ${friend.id}")
-
                     if (friend.avatarId == null) {
-                        Log.e("getFriends", "Avatar ID is null for friend ID: ${friend.id}, setting to empty string")
                         friend.copy(avatarId = "")
                     } else {
-                        Log.e("getFriends", "Avatar ID exists for friend ID: ${friend.id}, attempting to fetch URL")
-
                         val avatarUrlResult = pathToLink(friend.avatarId)
-
                         if (avatarUrlResult is SmartResult.Success) {
-                            Log.e("getFriends", "Successfully obtained avatar URL for friend ID: ${friend.id}: ${avatarUrlResult.data}")
                             friend.copy(avatarId = avatarUrlResult.data)
                         } else {
-                            Log.e("getFriends", "Failed to obtain avatar URL for friend ID: ${friend.id}, setting avatar to empty string")
                             friend.copy(avatarId = "")
                         }
                     }
                 }
 
-                Log.e("getFriends", "Finished processing friends list with avatars: $friendsWithAvatars")
-                SmartResult.Success(friendsWithAvatars)
+                // Cache the result
+                friendsDao.deleteAllFriends() // Clear old cache
+                friendsDao.insertFriends(friendsWithAvatars.map { it.toEntity() }) // Insert new cache
+
+                return SmartResult.Success(friendsWithAvatars.filter { it.status == FriendshipStatus.accepted })
             } else {
-                Log.e("getFriends", "Error occurred: SmartResult was not successful")
-                result
+                return result
             }
         } catch (e: Exception) {
-            Log.e("getFriends", "Exception occurred: ${e.message}", e)
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            return SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }
 
+    override suspend fun getFriendRequests(forceUpdate: Boolean): SmartResult<List<Friend>, DataError.Network> {
+        try {
+            // Check cache first if not forced to update
+            if (!forceUpdate) {
+                val cachedFriendRequests = friendsDao.getAllFriendRequests() // Load requests with status = pending
+                if (cachedFriendRequests.isNotEmpty()) {
+                    return SmartResult.Success(cachedFriendRequests.map { it.toDomain() })
+                }
+            }
 
-    override suspend fun getFriendRequests(): SmartResult<List<Friend>, DataError.Network> {
-        return try {
+            // Fetch from remote if forced or no cache
             val result = performAuthRequest { token ->
                 RetrofitClient.friendsApi.getFriendRequests(token)
             }
 
             if (result is SmartResult.Success) {
                 val friendsWithAvatars = result.data.map { friend ->
-
                     if (friend.avatarId == null) {
                         friend.copy(avatarId = "")
                     } else {
@@ -187,15 +198,228 @@ class FirebaseCoreRepositoryImpl(
                         friend.copy(avatarId = avatarUrl)
                     }
                 }
-                SmartResult.Success(friendsWithAvatars)
+
+                // Cache the result
+                friendsDao.deleteAllFriends() // Clear old cache
+                friendsDao.insertFriends(friendsWithAvatars.map { it.toEntity() })
+
+                return SmartResult.Success(friendsWithAvatars.filter { it.status == FriendshipStatus.pending })
             } else {
-                SmartResult.Error(DataError.Network.UNKNOWN)
+                return SmartResult.Error(DataError.Network.UNKNOWN)
             }
         } catch (e: Exception) {
-            Log.e(LOG_TAG, "Exception: " + e.message)
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            return SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }
+
+
+//    override suspend fun getFriends(forceUpdate: Boolean): SmartResult<List<Friend>, DataError.Network> {
+//        try {
+//            // Check cache first if not forced to update
+//            if (!forceUpdate) {
+//                val cachedFriends = friendsDao.getAllFriends()
+//                if (cachedFriends.isNotEmpty()) {
+//                    return SmartResult.Success(cachedFriends.map {
+//                        Friend(
+//                            friendshipId= it.friendshipId,
+//                            id = it.id,
+//                        nick =it.nick,
+//                        email = it.email,
+//                        avatarId = it.avatarId,
+//                        status = it.status,
+//                        requesterId = it.requesterId,
+//                        lastMessageDate = it.lastMessageDate,
+//                        lastMessageStatus = it.lastMessageStatus,
+//                        lastMessageSender =it.lastMessageSender
+//                        )
+//                    })
+//                }
+//            }
+//
+//            // Fetch from remote if forced or no cache
+//            val result = performAuthRequest { token ->
+//                RetrofitClient.friendsApi.getFriends(token)
+//            }
+//
+//            if (result is SmartResult.Success) {
+//                val friendsWithAvatars = result.data.map { friend ->
+//                    if (friend.avatarId == null) {
+//                        friend.copy(avatarId = "")
+//                    } else {
+//                        val avatarUrlResult = pathToLink(friend.avatarId)
+//                        if (avatarUrlResult is SmartResult.Success) {
+//                            friend.copy(avatarId = avatarUrlResult.data)
+//                        } else {
+//                            friend.copy(avatarId = "")
+//                        }
+//                    }
+//                }
+//
+//                // Cache the result
+//                friendsDao.deleteAllFriends() // Clear old cache
+//                friendsDao.insertFriends(friendsWithAvatars.map { FriendEntity(
+//                    friendshipId= it.friendshipId,
+//                    id = it.id,
+//                    nick =it.nick,
+//                    email = it.email,
+//                    avatarId = it.avatarId,
+//                    status = it.status,
+//                    requesterId = it.requesterId,
+//                    lastMessageDate = it.lastMessageDate,
+//                    lastMessageStatus = it.lastMessageStatus,
+//                    lastMessageSender =it.lastMessageSender
+//                ) }) // Insert new cache
+//
+//                return SmartResult.Success(friendsWithAvatars)
+//            } else {
+//                return result
+//            }
+//        } catch (e: Exception) {
+//            return SmartResult.Error(DataError.Network.UNKNOWN)
+//        }
+//    }
+//
+//    override suspend fun getFriendRequests(forceUpdate: Boolean): SmartResult<List<Friend>, DataError.Network> {
+//        try {
+//            // Check cache first if not forced to update
+//            if (!forceUpdate) {
+//                val cachedFriendRequests = friendsDao.getAllFriends() // Reuse table for requests
+//                if (cachedFriendRequests.isNotEmpty()) {
+//                    return SmartResult.Success(cachedFriendRequests.map { Friend(
+//                        friendshipId= it.friendshipId,
+//                        id = it.id,
+//                        nick =it.nick,
+//                        email = it.email,
+//                        avatarId = it.avatarId,
+//                        status = it.status,
+//                        requesterId = it.requesterId,
+//                        lastMessageDate = it.lastMessageDate,
+//                        lastMessageStatus = it.lastMessageStatus,
+//                        lastMessageSender =it.lastMessageSender
+//                    ) })
+//                }
+//            }
+//
+//            // Fetch from remote if forced or no cache
+//            val result = performAuthRequest { token ->
+//                RetrofitClient.friendsApi.getFriendRequests(token)
+//            }
+//
+//            if (result is SmartResult.Success) {
+//                val friendsWithAvatars = result.data.map { friend ->
+//                    if (friend.avatarId == null) {
+//                        friend.copy(avatarId = "")
+//                    } else {
+//                        val avatarUrlResult = pathToLink(friend.avatarId)
+//                        val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
+//                            avatarUrlResult.data
+//                        } else {
+//                            ""
+//                        }
+//                        friend.copy(avatarId = avatarUrl)
+//                    }
+//                }
+//
+//                // Cache the result
+//                friendsDao.deleteAllFriends() // Clear old cache
+//                friendsDao.insertFriends(friendsWithAvatars.map { FriendEntity(
+//                    friendshipId= it.friendshipId,
+//                    id = it.id,
+//                    nick =it.nick,
+//                    email = it.email,
+//                    avatarId = it.avatarId,
+//                    status = it.status,
+//                    requesterId = it.requesterId,
+//                    lastMessageDate = it.lastMessageDate,
+//                    lastMessageStatus = it.lastMessageStatus,
+//                    lastMessageSender =it.lastMessageSender
+//                ) })
+//
+//                return SmartResult.Success(friendsWithAvatars)
+//            } else {
+//                return SmartResult.Error(DataError.Network.UNKNOWN)
+//            }
+//        } catch (e: Exception) {
+//            return SmartResult.Error(DataError.Network.UNKNOWN)
+//        }
+//    }
+
+//    override suspend fun getFriends(): SmartResult<List<Friend>, DataError.Network> {
+//        return try {
+//            Log.e("getFriends", "Starting the getFriends request")
+//
+//            val result = performAuthRequest { token ->
+//                Log.e("getFriends", "Token obtained: $token")
+//                RetrofitClient.friendsApi.getFriends(token)
+//            }
+//
+//            if (result is SmartResult.Success) {
+//                Log.e("getFriends", "Successfully fetched friends list: ${result.data}")
+//
+//                val friendsWithAvatars = result.data.map { friend ->
+//                    Log.e("getFriends", "Processing friend with ID: ${friend.id}")
+//
+//                    if (friend.avatarId == null) {
+//                        Log.e("getFriends", "Avatar ID is null for friend ID: ${friend.id}, setting to empty string")
+//                        friend.copy(avatarId = "")
+//                    } else {
+//                        Log.e("getFriends", "Avatar ID exists for friend ID: ${friend.id}, attempting to fetch URL")
+//
+//                        val avatarUrlResult = pathToLink(friend.avatarId)
+//
+//                        if (avatarUrlResult is SmartResult.Success) {
+//                            Log.e("getFriends", "Successfully obtained avatar URL for friend ID: ${friend.id}: ${avatarUrlResult.data}")
+//                            friend.copy(avatarId = avatarUrlResult.data)
+//                        } else {
+//                            Log.e("getFriends", "Failed to obtain avatar URL for friend ID: ${friend.id}, setting avatar to empty string")
+//                            friend.copy(avatarId = "")
+//                        }
+//                    }
+//                }
+//
+//                Log.e("getFriends", "Finished processing friends list with avatars: $friendsWithAvatars")
+//                SmartResult.Success(friendsWithAvatars)
+//            } else {
+//                Log.e("getFriends", "Error occurred: SmartResult was not successful")
+//                result
+//            }
+//        } catch (e: Exception) {
+//            Log.e("getFriends", "Exception occurred: ${e.message}", e)
+//            SmartResult.Error(DataError.Network.UNKNOWN)
+//        }
+//    }
+
+//
+//    override suspend fun getFriendRequests(): SmartResult<List<Friend>, DataError.Network> {
+//        return try {
+//            val result = performAuthRequest { token ->
+//                RetrofitClient.friendsApi.getFriendRequests(token)
+//            }
+//
+//            if (result is SmartResult.Success) {
+//                val friendsWithAvatars = result.data.map { friend ->
+//
+//                    if (friend.avatarId == null) {
+//                        friend.copy(avatarId = "")
+//                    } else {
+//                        val avatarUrlResult = pathToLink(friend.avatarId)
+//                        val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
+//                            avatarUrlResult.data
+//                        } else {
+//                            ""
+//                        }
+//                        friend.copy(avatarId = avatarUrl)
+//                    }
+//                }
+//                SmartResult.Success(friendsWithAvatars)
+//            } else {
+//                SmartResult.Error(DataError.Network.UNKNOWN)
+//            }
+//        } catch (e: Exception) {
+//            Log.e(LOG_TAG, "Exception: " + e.message)
+//            SmartResult.Error(DataError.Network.UNKNOWN)
+//        }
+//    }
 
     override suspend fun acceptFriendRequest(acceptRequest: AcceptRequest): SmartResult<Unit, DataError.Network> {
         return performAuthRequest { token ->
@@ -677,7 +901,7 @@ class FirebaseCoreRepositoryImpl(
 
         // Try to load from Room first
         if (!forceRefresh) {
-            val cachedWallpapers = localDao.getAllWallpapersSortedByOrder() // Fetch in correct order
+            val cachedWallpapers = exploreDao.getAllWallpapersSortedByOrder() // Fetch in correct order
             Log.e("Repository", "Cached wallpapers count: ${cachedWallpapers.size}")
 
             if (cachedWallpapers.isNotEmpty()) {
@@ -731,7 +955,7 @@ class FirebaseCoreRepositoryImpl(
 
                 // Log the data being inserted
                 Log.e("Repository", "Inserting ${entitiesToInsert.size} wallpapers into Room")
-                localDao.insertWallpapers(entitiesToInsert)
+                exploreDao.insertWallpapers(entitiesToInsert)
 
                 // Also, return the modified list from the API result in the original order
                 val modifiedApiWallpapers = result.data.map { wallpaper ->

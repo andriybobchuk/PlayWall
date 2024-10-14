@@ -39,7 +39,7 @@ class PlayViewModel(
             NetworkMonitor.isOnline.collect { online ->
                 state = state.copy(isOnline = online)
                 if (online) {
-                    loadFriendsAndRequests()
+                    loadFriendsAndRequests(true)
                 }
             }
         }
@@ -137,37 +137,68 @@ class PlayViewModel(
             )
         }
     }
+//
+//    @OptIn(ExperimentalFoundationApi::class)
+//    private fun loadFriendsAndRequests() {
+//        viewModelScope.launch {
+//            state = state.copy(isLoading = true)
+//
+//            when (val friendsResult = repository.getFriends()) {
+//                is SmartResult.Success -> {
+//                    state = state.copy(
+//                        friends = friendsResult.data,
+//                        isLoading = false
+//                    )
+//                }
+//                is SmartResult.Error -> {
+//                    eventChannel.send(PlayEvent.ShowError(friendsResult.error.asUiText()))
+//                }
+//            }
+//
+//            when (val friendRequestsResult = repository.getFriendRequests()) {
+//                is SmartResult.Success -> {
+//                    state = state.copy(
+//                        friendRequests = friendRequestsResult.data,
+//                        isLoading = false
+//                    )
+//                }
+//                is SmartResult.Error -> {
+//                   // eventChannel.send(PlayEvent.ShowError(friendRequestsResult.error.asUiText()))
+//                }
+//            }
+//        }
+//    }
+@OptIn(ExperimentalFoundationApi::class)
+private fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
+    viewModelScope.launch {
+        state = state.copy(isLoading = true)
 
-    @OptIn(ExperimentalFoundationApi::class)
-    private fun loadFriendsAndRequests() {
-        viewModelScope.launch {
-            state = state.copy(isLoading = true)
-
-            when (val friendsResult = repository.getFriends()) {
-                is SmartResult.Success -> {
-                    state = state.copy(
-                        friends = friendsResult.data,
-                        isLoading = false
-                    )
-                }
-                is SmartResult.Error -> {
-                    eventChannel.send(PlayEvent.ShowError(friendsResult.error.asUiText()))
-                }
+        when (val friendsResult = repository.getFriends(forceUpdate)) {
+            is SmartResult.Success -> {
+                state = state.copy(
+                    friends = friendsResult.data,
+                    isLoading = false
+                )
             }
+            is SmartResult.Error -> {
+                eventChannel.send(PlayEvent.ShowError(friendsResult.error.asUiText()))
+            }
+        }
 
-            when (val friendRequestsResult = repository.getFriendRequests()) {
-                is SmartResult.Success -> {
-                    state = state.copy(
-                        friendRequests = friendRequestsResult.data,
-                        isLoading = false
-                    )
-                }
-                is SmartResult.Error -> {
-                   // eventChannel.send(PlayEvent.ShowError(friendRequestsResult.error.asUiText()))
-                }
+        when (val friendRequestsResult = repository.getFriendRequests(forceUpdate)) {
+            is SmartResult.Success -> {
+                state = state.copy(
+                    friendRequests = friendRequestsResult.data,
+                    isLoading = false
+                )
+            }
+            is SmartResult.Error -> {
+                // eventChannel.send(PlayEvent.ShowError(friendRequestsResult.error.asUiText()))
             }
         }
     }
+}
+
 
     private fun acceptFriendRequest(requestId: Int) {
         viewModelScope.launch {
@@ -258,7 +289,7 @@ class PlayViewModel(
     fun refreshFriends() {
         Log.e("PlayViewModel", "Refreshing friends list")
         viewModelScope.launch {
-            val result = repository.getFriends()
+            val result = repository.getFriends(true)
             if (result is SmartResult.Success) {
                 state = state.copy(friends = result.data)
                 Log.e("PlayViewModel", "Friends list refreshed successfully")

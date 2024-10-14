@@ -259,7 +259,7 @@ fun PlayScreen(
                         Toolbars.ToolBarAction(
                             icon = Icons.Outlined.Cancel,
                             contentDescription = "Cancel",
-                            onClick = { onAction(PlayAction.OnExitSelectMode) }
+                            onClick = { onAction(PlayAction.OnExitSelectMode) },
                         )
                     ),
                     scrollBehavior = scrollBehavior
@@ -271,12 +271,14 @@ fun PlayScreen(
                         Toolbars.ToolBarAction(
                             icon = Icons.Default.CheckCircleOutline,
                             contentDescription = "Select",
-                            onClick = { onAction(PlayAction.OnEnterSelectMode) }
+                            onClick = { onAction(PlayAction.OnEnterSelectMode) },
+                            enabled = state.isOnline
                         ),
                         Toolbars.ToolBarAction(
                             icon = Icons.Default.PersonAddAlt,
                             contentDescription = "Invite friend",
-                            onClick = { isInviteSheetOpen.value = true }
+                            onClick = { isInviteSheetOpen.value = true },
+                            enabled = state.isOnline
                         )
                     ),
                     scrollBehavior = scrollBehavior

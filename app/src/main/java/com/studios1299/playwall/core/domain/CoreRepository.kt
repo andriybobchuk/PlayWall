@@ -25,8 +25,8 @@ interface CoreRepository {
 
     // FRIENDS
     suspend fun inviteFriend(email: String): SmartResult<Unit, DataError.Network>
-    suspend fun getFriends(): SmartResult<List<Friend>, DataError.Network>
-    suspend fun getFriendRequests(): SmartResult<List<Friend>, DataError.Network>
+    suspend fun getFriends(forceUpdate: Boolean): SmartResult<List<Friend>, DataError.Network>
+    suspend fun getFriendRequests(forceUpdate: Boolean): SmartResult<List<Friend>, DataError.Network>
     suspend fun acceptFriendRequest(acceptRequest: AcceptRequest): SmartResult<Unit, DataError.Network>
     suspend fun declineFriendRequest(declineRequest: DeclineRequest): SmartResult<Unit, DataError.Network>
     suspend fun removeUser(friendshipId: Int): SmartResult<Unit, DataError.Network>

@@ -5,10 +5,14 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import android.content.Context
 import com.studios1299.playwall.core.data.local.dao.ExploreWallpaperDao
+import com.studios1299.playwall.core.data.local.dao.FriendDao
 import com.studios1299.playwall.core.data.local.entity.ExploreWallpaperEntity
-@Database(entities = [ExploreWallpaperEntity::class], version = 3, exportSchema = false)
+import com.studios1299.playwall.core.data.local.entity.FriendEntity
+
+@Database(entities = [ExploreWallpaperEntity::class, FriendEntity::class], version = 4, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun exploreWallpaperDao(): ExploreWallpaperDao
+    abstract fun friendDao(): FriendDao
 
     companion object {
         @Volatile
@@ -29,3 +33,4 @@ abstract class AppDatabase : RoomDatabase() {
         }
     }
 }
+

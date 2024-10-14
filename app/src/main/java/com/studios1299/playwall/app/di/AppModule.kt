@@ -1,7 +1,6 @@
 package com.studios1299.playwall.app.di
 
 import android.content.Context
-import android.content.SharedPreferences
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.messaging.FirebaseMessaging
@@ -10,7 +9,6 @@ import com.studios1299.playwall.auth.data.FirebaseAuthRepositoryImpl
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.domain.PatternValidator
 import com.studios1299.playwall.core.data.FirebaseCoreRepositoryImpl
-import com.studios1299.playwall.core.data.local.dao.ExploreWallpaperDao
 import com.studios1299.playwall.core.data.local.database.AppDatabase.Companion.getDatabase
 import com.studios1299.playwall.core.domain.CoreRepository
 
@@ -90,7 +88,8 @@ class AppModuleImpl(
     override val coreRepository: CoreRepository by lazy {
         FirebaseCoreRepositoryImpl(
             firebaseAuth = firebaseAuth,
-            localDao = getDatabase(appContext).exploreWallpaperDao()
+            exploreDao = getDatabase(appContext).exploreWallpaperDao(),
+            friendsDao = getDatabase(appContext).friendDao()
         )
     }
     override val authRepository: AuthRepository by lazy {

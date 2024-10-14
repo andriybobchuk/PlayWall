@@ -92,7 +92,7 @@ class CreateViewModel(
 
     fun loadFriends() {
         viewModelScope.launch {
-            val result = repository.getFriends()
+            val result = repository.getFriends(true)
             if (result is SmartResult.Success) {
                 _state.update { currentState ->
                     currentState.copy(friends = result.data)

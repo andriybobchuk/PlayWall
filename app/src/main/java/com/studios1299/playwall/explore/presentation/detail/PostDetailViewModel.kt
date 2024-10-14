@@ -151,7 +151,7 @@ class PostDetailViewModel(
 
     private fun loadFriends() {
         viewModelScope.launch {
-            val result = repository.getFriends()
+            val result = repository.getFriends(true)
             if (result is SmartResult.Success) {
                 updateExploreState(state.copy(friends = result.data))
             }
