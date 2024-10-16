@@ -30,7 +30,8 @@ data class Friend(
     val requesterId: Int,
     val lastMessageDate: String?,      // Date of the last message
     val lastMessageStatus: MessageStatus?,    // Status of the last message (read/unread)
-    val lastMessageSender: Int?
+    val lastMessageSender: Int?,
+    val screenRatio: Float
 )
 
 enum class FriendshipStatus {

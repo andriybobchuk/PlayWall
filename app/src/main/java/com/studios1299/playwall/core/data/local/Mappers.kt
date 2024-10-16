@@ -15,7 +15,8 @@ fun FriendEntity.toDomain(): Friend {
         requesterId = this.requesterId,
         lastMessageDate = this.lastMessageDate,
         lastMessageStatus = this.lastMessageStatus,
-        lastMessageSender = this.lastMessageSender
+        lastMessageSender = this.lastMessageSender,
+        screenRatio = this.screenRatio
     )
 }
 
@@ -31,6 +32,7 @@ fun Friend.toEntity(): FriendEntity {
         requesterId = this.requesterId,
         lastMessageDate = this.lastMessageDate,
         lastMessageStatus = this.lastMessageStatus,
-        lastMessageSender = this.lastMessageSender
+        lastMessageSender = this.lastMessageSender,
+        screenRatio = this.screenRatio
     )
 }

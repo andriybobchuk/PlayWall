@@ -351,6 +351,7 @@ fun PlayScreen(
             }
             items(state.friends) { friend ->
                 if (friend.status != FriendshipStatus.blocked) {
+                    // Swipe actions (mute and unfriend) will only be available when online
                     val mute = SwipeAction(
                         icon = {
                             Icon(
@@ -375,22 +376,20 @@ fun PlayScreen(
                                 text = "Unfriend",
                                 color = Color.White
                             )
-                               },
+                        },
                         background = Color.Red,
                         isUndo = true,
                         onSwipe = {
                             selectedFriendshipId = friend.friendshipId
                             selectedFriendId = friend.id
                             showUnfriendDialog = true
-                                  },
+                        }
                     )
 
-                   // val context = LocalContext.current
                     SwipeableActionsBox(
-                        modifier = Modifier
-                            .padding(vertical = 5.dp),
-                        startActions = listOf(mute),
-                        endActions = listOf(unfriend),
+                        modifier = Modifier.padding(vertical = 5.dp),
+                        startActions = if (state.isOnline) listOf(mute) else emptyList(), // Disable swipe if offline
+                        endActions = if (state.isOnline) listOf(unfriend) else emptyList(), // Disable swipe if offline
                         swipeThreshold = 120.dp,
                     ) {
                         FriendItem(
@@ -404,6 +403,7 @@ fun PlayScreen(
                     }
                 }
             }
+
             items(state.friends) { friend ->
                 if(!state.isSelectMode
                     && friend.status == FriendshipStatus.blocked) {

@@ -123,7 +123,7 @@ fun MessageItem(
         )
     }
     ReactSheet(
-        recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1),
+        recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1, screenRatio = 2f),
         viewModel = viewModel,
         message = message,
         currentUserId = currentUserId?:-1,

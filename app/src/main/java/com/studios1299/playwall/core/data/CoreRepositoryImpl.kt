@@ -212,215 +212,6 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-
-//    override suspend fun getFriends(forceUpdate: Boolean): SmartResult<List<Friend>, DataError.Network> {
-//        try {
-//            // Check cache first if not forced to update
-//            if (!forceUpdate) {
-//                val cachedFriends = friendsDao.getAllFriends()
-//                if (cachedFriends.isNotEmpty()) {
-//                    return SmartResult.Success(cachedFriends.map {
-//                        Friend(
-//                            friendshipId= it.friendshipId,
-//                            id = it.id,
-//                        nick =it.nick,
-//                        email = it.email,
-//                        avatarId = it.avatarId,
-//                        status = it.status,
-//                        requesterId = it.requesterId,
-//                        lastMessageDate = it.lastMessageDate,
-//                        lastMessageStatus = it.lastMessageStatus,
-//                        lastMessageSender =it.lastMessageSender
-//                        )
-//                    })
-//                }
-//            }
-//
-//            // Fetch from remote if forced or no cache
-//            val result = performAuthRequest { token ->
-//                RetrofitClient.friendsApi.getFriends(token)
-//            }
-//
-//            if (result is SmartResult.Success) {
-//                val friendsWithAvatars = result.data.map { friend ->
-//                    if (friend.avatarId == null) {
-//                        friend.copy(avatarId = "")
-//                    } else {
-//                        val avatarUrlResult = pathToLink(friend.avatarId)
-//                        if (avatarUrlResult is SmartResult.Success) {
-//                            friend.copy(avatarId = avatarUrlResult.data)
-//                        } else {
-//                            friend.copy(avatarId = "")
-//                        }
-//                    }
-//                }
-//
-//                // Cache the result
-//                friendsDao.deleteAllFriends() // Clear old cache
-//                friendsDao.insertFriends(friendsWithAvatars.map { FriendEntity(
-//                    friendshipId= it.friendshipId,
-//                    id = it.id,
-//                    nick =it.nick,
-//                    email = it.email,
-//                    avatarId = it.avatarId,
-//                    status = it.status,
-//                    requesterId = it.requesterId,
-//                    lastMessageDate = it.lastMessageDate,
-//                    lastMessageStatus = it.lastMessageStatus,
-//                    lastMessageSender =it.lastMessageSender
-//                ) }) // Insert new cache
-//
-//                return SmartResult.Success(friendsWithAvatars)
-//            } else {
-//                return result
-//            }
-//        } catch (e: Exception) {
-//            return SmartResult.Error(DataError.Network.UNKNOWN)
-//        }
-//    }
-//
-//    override suspend fun getFriendRequests(forceUpdate: Boolean): SmartResult<List<Friend>, DataError.Network> {
-//        try {
-//            // Check cache first if not forced to update
-//            if (!forceUpdate) {
-//                val cachedFriendRequests = friendsDao.getAllFriends() // Reuse table for requests
-//                if (cachedFriendRequests.isNotEmpty()) {
-//                    return SmartResult.Success(cachedFriendRequests.map { Friend(
-//                        friendshipId= it.friendshipId,
-//                        id = it.id,
-//                        nick =it.nick,
-//                        email = it.email,
-//                        avatarId = it.avatarId,
-//                        status = it.status,
-//                        requesterId = it.requesterId,
-//                        lastMessageDate = it.lastMessageDate,
-//                        lastMessageStatus = it.lastMessageStatus,
-//                        lastMessageSender =it.lastMessageSender
-//                    ) })
-//                }
-//            }
-//
-//            // Fetch from remote if forced or no cache
-//            val result = performAuthRequest { token ->
-//                RetrofitClient.friendsApi.getFriendRequests(token)
-//            }
-//
-//            if (result is SmartResult.Success) {
-//                val friendsWithAvatars = result.data.map { friend ->
-//                    if (friend.avatarId == null) {
-//                        friend.copy(avatarId = "")
-//                    } else {
-//                        val avatarUrlResult = pathToLink(friend.avatarId)
-//                        val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
-//                            avatarUrlResult.data
-//                        } else {
-//                            ""
-//                        }
-//                        friend.copy(avatarId = avatarUrl)
-//                    }
-//                }
-//
-//                // Cache the result
-//                friendsDao.deleteAllFriends() // Clear old cache
-//                friendsDao.insertFriends(friendsWithAvatars.map { FriendEntity(
-//                    friendshipId= it.friendshipId,
-//                    id = it.id,
-//                    nick =it.nick,
-//                    email = it.email,
-//                    avatarId = it.avatarId,
-//                    status = it.status,
-//                    requesterId = it.requesterId,
-//                    lastMessageDate = it.lastMessageDate,
-//                    lastMessageStatus = it.lastMessageStatus,
-//                    lastMessageSender =it.lastMessageSender
-//                ) })
-//
-//                return SmartResult.Success(friendsWithAvatars)
-//            } else {
-//                return SmartResult.Error(DataError.Network.UNKNOWN)
-//            }
-//        } catch (e: Exception) {
-//            return SmartResult.Error(DataError.Network.UNKNOWN)
-//        }
-//    }
-
-//    override suspend fun getFriends(): SmartResult<List<Friend>, DataError.Network> {
-//        return try {
-//            Log.e("getFriends", "Starting the getFriends request")
-//
-//            val result = performAuthRequest { token ->
-//                Log.e("getFriends", "Token obtained: $token")
-//                RetrofitClient.friendsApi.getFriends(token)
-//            }
-//
-//            if (result is SmartResult.Success) {
-//                Log.e("getFriends", "Successfully fetched friends list: ${result.data}")
-//
-//                val friendsWithAvatars = result.data.map { friend ->
-//                    Log.e("getFriends", "Processing friend with ID: ${friend.id}")
-//
-//                    if (friend.avatarId == null) {
-//                        Log.e("getFriends", "Avatar ID is null for friend ID: ${friend.id}, setting to empty string")
-//                        friend.copy(avatarId = "")
-//                    } else {
-//                        Log.e("getFriends", "Avatar ID exists for friend ID: ${friend.id}, attempting to fetch URL")
-//
-//                        val avatarUrlResult = pathToLink(friend.avatarId)
-//
-//                        if (avatarUrlResult is SmartResult.Success) {
-//                            Log.e("getFriends", "Successfully obtained avatar URL for friend ID: ${friend.id}: ${avatarUrlResult.data}")
-//                            friend.copy(avatarId = avatarUrlResult.data)
-//                        } else {
-//                            Log.e("getFriends", "Failed to obtain avatar URL for friend ID: ${friend.id}, setting avatar to empty string")
-//                            friend.copy(avatarId = "")
-//                        }
-//                    }
-//                }
-//
-//                Log.e("getFriends", "Finished processing friends list with avatars: $friendsWithAvatars")
-//                SmartResult.Success(friendsWithAvatars)
-//            } else {
-//                Log.e("getFriends", "Error occurred: SmartResult was not successful")
-//                result
-//            }
-//        } catch (e: Exception) {
-//            Log.e("getFriends", "Exception occurred: ${e.message}", e)
-//            SmartResult.Error(DataError.Network.UNKNOWN)
-//        }
-//    }
-
-//
-//    override suspend fun getFriendRequests(): SmartResult<List<Friend>, DataError.Network> {
-//        return try {
-//            val result = performAuthRequest { token ->
-//                RetrofitClient.friendsApi.getFriendRequests(token)
-//            }
-//
-//            if (result is SmartResult.Success) {
-//                val friendsWithAvatars = result.data.map { friend ->
-//
-//                    if (friend.avatarId == null) {
-//                        friend.copy(avatarId = "")
-//                    } else {
-//                        val avatarUrlResult = pathToLink(friend.avatarId)
-//                        val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
-//                            avatarUrlResult.data
-//                        } else {
-//                            ""
-//                        }
-//                        friend.copy(avatarId = avatarUrl)
-//                    }
-//                }
-//                SmartResult.Success(friendsWithAvatars)
-//            } else {
-//                SmartResult.Error(DataError.Network.UNKNOWN)
-//            }
-//        } catch (e: Exception) {
-//            Log.e(LOG_TAG, "Exception: " + e.message)
-//            SmartResult.Error(DataError.Network.UNKNOWN)
-//        }
-//    }
-
     override suspend fun acceptFriendRequest(acceptRequest: AcceptRequest): SmartResult<Unit, DataError.Network> {
         return performAuthRequest { token ->
             RetrofitClient.friendsApi.acceptFriendRequest(token, acceptRequest)
@@ -505,7 +296,8 @@ class FirebaseCoreRepositoryImpl(
                     since = userData.since,
                     status = userData.status,
                     requesterId = userData.requesterId,
-                    friendshipId = userData.friendshipId
+                    friendshipId = userData.friendshipId,
+                    screenRatio = userData.screenRatio
                 )
 
                 Log.e("getUserData", "Returning UserDataResponse: $userDataResponse")
@@ -592,6 +384,7 @@ class FirebaseCoreRepositoryImpl(
                 Log.e(LOG_TAG, "Friend ID: " + recipientId.toInt())
                 RetrofitClient.wallpaperApi.getRecipientData(token, recipientId.toInt())
             }
+            Log.e(LOG_TAG, "ImagePicker: raw ${result}")
             if (result is SmartResult.Success) {
                 val userData = result.data
                 val avatarUrlResult = pathToLink(userData.avatarId)
@@ -600,6 +393,7 @@ class FirebaseCoreRepositoryImpl(
                 } else {
                     ""
                 }
+                Log.e(LOG_TAG, "ImagePicker: rat ${userData.screenRatio}")
                 SmartResult.Success(
                     UserDataResponse(
                         id = userData.id,
@@ -609,7 +403,8 @@ class FirebaseCoreRepositoryImpl(
                         since = userData.since,
                         status = userData.status,
                         requesterId = userData.requesterId,
-                        friendshipId = userData.friendshipId
+                        friendshipId = userData.friendshipId,
+                        screenRatio = userData.screenRatio
                     )
                 )
             } else {
@@ -657,38 +452,6 @@ class FirebaseCoreRepositoryImpl(
             SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }
-//
-//    override suspend fun getWallpaperHistory(userId: String, page: Int, pageSize: Int): SmartResult<List<WallpaperHistoryResponse>, DataError.Network> {
-//        return try {
-//
-//            val result = performAuthRequest { token ->
-//                RetrofitClient.wallpaperApi.getWallpaperHistory(token, userId.toInt(), page, pageSize)
-//            }
-//            Log.e(LOG_TAG, "getWallpaperHistory: "+result)
-//
-//            if (result is SmartResult.Success) {
-//                SmartResult.Success(result.data.data.map { wallpaper ->
-//
-//                    if (wallpaper.fileName == null) {
-//                        wallpaper.copy(fileName = "")
-//                    } else {
-//                        val wallpaperUrlResult = pathToLink(wallpaper.fileName)
-//                        val wallpaperUrl = if (wallpaperUrlResult is SmartResult.Success) {
-//                            wallpaperUrlResult.data
-//                        } else {
-//                            ""
-//                        }
-//                        wallpaper.copy(fileName = wallpaperUrl)
-//                    }
-//                })
-//            } else {
-//                SmartResult.Error(DataError.Network.UNKNOWN)
-//            }
-//        } catch (e: Exception) {
-//            Log.e(LOG_TAG, "Exception in getWallpaperHistory(): " + e.message)
-//            SmartResult.Error(DataError.Network.UNKNOWN)
-//        }
-//    }
 
     override suspend fun react(wallpaperId: Int, reaction: String?): SmartResult<Unit, DataError.Network> {
         return try {
@@ -754,144 +517,6 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-
-
-
-    // EXPLORE WALLPAPER MANAGEMENT
-//    override suspend fun loadExploreWallpapers(page: Int, pageSize: Int): SmartResult<List<ExploreWallpaperResponse>, DataError.Network> {
-//        return try {
-//            Log.e("loadExploreWallpapers", "Starting request to load explore wallpapers. Page: $page, PageSize: $pageSize")
-//
-//            val result = performAuthRequest { token ->
-//                Log.e("loadExploreWallpapers", "Token obtained: $token")
-//                RetrofitClient.wallpaperApi.loadExploreWallpapers(token, page, pageSize)
-//            }
-//
-//            Log.e("loadExploreWallpapers", "Result obtained from API call: $result")
-//
-//            if (result is SmartResult.Success) {
-//                Log.e("loadExploreWallpapers", "Successfully loaded explore wallpapers: ${result.data}")
-//
-//
-//                val withLoadedImages = result.data.map {
-//                    if (it.fileName == null) {
-//                        it.copy(fileName = "")
-//                    } else {
-//                        val avatarUrlResult = pathToLink(it.fileName)
-//                        val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
-//                            avatarUrlResult.data
-//                        } else {
-//                            ""
-//                        }
-//                        it.copy(fileName = avatarUrl)
-//                    }
-//                }
-//
-//
-//                SmartResult.Success(withLoadedImages)
-//            } else {
-//                Log.e("loadExploreWallpapers", "Failed to load explore wallpapers, returning UNKNOWN error")
-//                SmartResult.Error(DataError.Network.UNKNOWN)
-//            }
-//        } catch (e: Exception) {
-//            Log.e("loadExploreWallpapers", "Exception occurred: ${e.message}", e)
-//            SmartResult.Error(DataError.Network.UNKNOWN)
-//        }
-//    }
-//
-//    override suspend fun loadExploreWallpapers(
-//        page: Int,
-//        pageSize: Int,
-//        forceRefresh: Boolean
-//    ): SmartResult<List<ExploreWallpaperResponse>, DataError.Network> {
-//        Log.e("Repository", "Starting loadExploreWallpapers with page: $page, pageSize: $pageSize")
-//
-//        // Try to load from Room first
-//        if (!forceRefresh) {
-//            val cachedWallpapers = localDao.getAllWallpapers()
-//            Log.e("Repository", "Cached wallpapers count: ${cachedWallpapers.size}")
-//
-//            if (cachedWallpapers.isNotEmpty()) {
-//                // Return modified cached data
-//                Log.e("Repository", "Returning cached data")
-//                val modifiedCachedWallpapers = cachedWallpapers.map {
-//                    ExploreWallpaperResponse(
-//                        id = it.id,
-//                        fileName = it.fileName,
-//                        type = it.type,
-//                        sentCount = it.sentCount,
-//                        savedCount = it.savedCount,
-//                        dateUpdated = it.dateCreated,
-//                        dateCreated = it.dateCreated
-//                    )
-//                }
-//                return SmartResult.Success(modifiedCachedWallpapers) // Return the modified list
-//            } else {
-//                Log.e("Repository", "No cached data found, fetching from API")
-//            }
-//        }
-//
-//        // If no cached data, fetch from the API
-//        return try {
-//            val result = performAuthRequest { token ->
-//                Log.e("Repository", "Making API request with token: $token")
-//                RetrofitClient.wallpaperApi.loadExploreWallpapers(token, page, pageSize)
-//            }
-//
-//            if (result is SmartResult.Success) {
-//                Log.e("Repository", "Successfully fetched wallpapers from API: ${result.data.size}")
-//
-//                // Cache the fetched data
-//                val entitiesToInsert = result.data.map { wallpaper ->
-//                    val avatarUrlResult = pathToLink(wallpaper.fileName)
-//                    ExploreWallpaperEntity(
-//                        id = wallpaper.id,
-//                        fileName = if (avatarUrlResult is SmartResult.Success) {
-//                            avatarUrlResult.data
-//                        } else {
-//                            ""
-//                        },
-//                        type = wallpaper.type,
-//                        sentCount = wallpaper.sentCount,
-//                        savedCount = wallpaper.savedCount,
-//                        isLiked = false, // Adjust as necessary
-//                        dateCreated = wallpaper.dateCreated
-//                    )
-//                }
-//
-//                // Log the data being inserted
-//                Log.e("Repository", "Inserting ${entitiesToInsert.size} wallpapers into Room")
-//                localDao.insertWallpapers(entitiesToInsert)
-//
-//                // Also, return the modified list from the API result
-//                val modifiedApiWallpapers = result.data.map { wallpaper ->
-//                    val avatarUrlResult = pathToLink(wallpaper.fileName)
-//                    ExploreWallpaperResponse(
-//                        id = wallpaper.id,
-//                        fileName = if (avatarUrlResult is SmartResult.Success) {
-//                            avatarUrlResult.data
-//                        } else {
-//                            ""
-//                        },
-//                        type = wallpaper.type,
-//                        sentCount = wallpaper.sentCount,
-//                        savedCount = wallpaper.savedCount,
-//                        dateUpdated = wallpaper.dateCreated,
-//                        dateCreated = wallpaper.dateCreated
-//                    )
-//                }
-//
-//                return SmartResult.Success(modifiedApiWallpapers) // Return modified API data
-//            } else {
-//                Log.e("Repository", "API request failed: ${result}")
-//            }
-//
-//            result // Return the result (Success/Error)
-//        } catch (e: Exception) {
-//            Log.e("Repository", "Exception occurred: ${e.message}", e)
-//            SmartResult.Error(DataError.Network.UNKNOWN)
-//        }
-//    }
     override suspend fun loadExploreWallpapers(
         page: Int,
         pageSize: Int,
@@ -988,83 +613,6 @@ class FirebaseCoreRepositoryImpl(
     }
 
 
-//    override suspend fun loadExploreWallpapers(page: Int, pageSize: Int, forceRefresh: Boolean): SmartResult<List<ExploreWallpaperResponse>, DataError.Network> {
-//        Log.e("Repository", "Starting loadExploreWallpapers with page: $page, pageSize: $pageSize")
-//
-//        // Try to load from Room first
-//        if (!forceRefresh) {
-//            val cachedWallpapers = localDao.getAllWallpapers()
-//            Log.e("Repository", "Cached wallpapers count: ${cachedWallpapers.size}")
-//
-//            if (cachedWallpapers.isNotEmpty()) {
-//                // Return cached data
-//                Log.e("Repository", "Returning cached data")
-//                return SmartResult.Success(cachedWallpapers.map {
-//                    val avatarUrlResult = pathToLink(it.fileName)
-//                    ExploreWallpaperResponse(
-//                        id = it.id,
-//                        fileName = if (avatarUrlResult is SmartResult.Success) {
-//                            avatarUrlResult.data
-//                        } else {
-//                            ""
-//                        },
-//                        type = it.type,
-//                        sentCount = it.sentCount,
-//                        savedCount = it.savedCount,
-//                        dateUpdated = it.dateCreated,
-//                        dateCreated = it.dateCreated
-//                    )
-//                })
-//            } else {
-//                Log.e("Repository", "No cached data found, fetching from API")
-//            }
-//        }
-//
-//        // If no cached data, fetch from the API
-//        return try {
-//            val result = performAuthRequest { token ->
-//                Log.e("Repository", "Making API request with token: $token")
-//                RetrofitClient.wallpaperApi.loadExploreWallpapers(token, page, pageSize)
-//            }
-//
-//            if (result is SmartResult.Success) {
-//                Log.e("Repository", "Successfully fetched wallpapers from API: ${result.data.size}")
-//
-//                // Cache the fetched data
-//                val entitiesToInsert = result.data.map { wallpaper ->
-//                    val avatarUrlResult = pathToLink(wallpaper.fileName)
-//                    Log.e("Repository", "fileName: $wallpaper.fileName")
-//                    Log.e("Repository", "avatarUrlResult: $avatarUrlResult")
-//                    ExploreWallpaperEntity(
-//                        id = wallpaper.id,
-//                        fileName = if (avatarUrlResult is SmartResult.Success) {
-//                            avatarUrlResult.data
-//                        } else {
-//                            ""
-//                        },
-//                        type = wallpaper.type,
-//                        sentCount = wallpaper.sentCount,
-//                        savedCount = wallpaper.savedCount,
-//                        isLiked = false, // Adjust as necessary
-//                        dateCreated = wallpaper.dateCreated
-//                    )
-//                }
-//
-//                // Log the data being inserted
-//                Log.e("Repository", "Inserting ${entitiesToInsert.size} wallpapers into Room")
-//                localDao.insertWallpapers(entitiesToInsert)
-//            } else {
-//                Log.e("Repository", "API request failed: ${result}")
-//            }
-//
-//            result // Return the result (Success/Error)
-//        } catch (e: Exception) {
-//            Log.e("Repository", "Exception occurred: ${e.message}", e)
-//            SmartResult.Error(DataError.Network.UNKNOWN)
-//        }
-//    }
-
-
     override suspend fun saveWallpaper(wallpaperId: Int): SmartResult<Unit, DataError.Network> {
         return try {
             performAuthRequest { token ->
@@ -1131,8 +679,21 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-
-
+    override suspend fun getFriendScreenRatio(friendId: Int): SmartResult<Float, DataError.Network> {
+        return try {
+            val result =  performAuthRequest { token ->
+                RetrofitClient.userApi.getFriendScreenRatio(token, friendId)
+            }
+            if (result is SmartResult.Success) {
+                val screenRatio = result.data.screenRatio
+                SmartResult.Success(screenRatio)
+            } else {
+                SmartResult.Error(DataError.Network.NOT_FOUND)
+            }
+        } catch (e: Exception) {
+            SmartResult.Error(DataError.Network.UNKNOWN)
+        }
+    }
 
 
 

@@ -2,12 +2,14 @@ package com.studios1299.playwall.core.data.networking.api
 
 import com.studios1299.playwall.core.data.networking.request.user.CreateUserRequest
 import com.studios1299.playwall.core.data.networking.request.user.UpdateProfileRequest
+import com.studios1299.playwall.core.data.networking.response.GetScreenRatioResponse
 import com.studios1299.playwall.core.data.networking.response.UserDataResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface UserApi {
 
@@ -34,4 +36,9 @@ interface UserApi {
         @Body createUserRequest: Map<String, String>
     ): Response<Unit>
 
+    @GET("api/user/getFriendScreenRatio")
+    suspend fun getFriendScreenRatio(
+        @Header("Authorization") authHeader: String,
+        @Query("friendId") friendId: Int
+    ): Response<GetScreenRatioResponse>
 }

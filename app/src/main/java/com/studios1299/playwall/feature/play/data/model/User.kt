@@ -12,4 +12,5 @@ data class User(
     val status: FriendshipStatus,
     val requesterId: Int,
     val friendshipId: Int,
+    val screenRatio: Float
 )

@@ -50,6 +50,8 @@ interface CoreRepository {
 
     suspend fun reportWallpaper(wallpaperId: Int): SmartResult<Unit, DataError.Network>
 
+    suspend fun getFriendScreenRatio(friendId: Int): SmartResult<Float, DataError.Network>
+
     // PREFERENCE MANAGEMENT (DEPRECATED)
     fun getWallpaperDestination(): WallpaperOption
     fun setWallpaperDestination(option: WallpaperOption)

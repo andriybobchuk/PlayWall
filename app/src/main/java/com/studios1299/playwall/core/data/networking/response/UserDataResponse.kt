@@ -10,5 +10,6 @@ data class UserDataResponse(
     val since: String? = "",
     val status: FriendshipStatus? = FriendshipStatus.accepted,
     val requesterId: Int = -1,
-    val friendshipId: Int = -1
+    val friendshipId: Int = -1,
+    val screenRatio: Float = 2f
 )

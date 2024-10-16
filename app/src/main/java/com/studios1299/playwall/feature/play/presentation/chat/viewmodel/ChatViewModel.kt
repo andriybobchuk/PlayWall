@@ -192,6 +192,7 @@ class ChatViewModel(
         viewModelScope.launch {
             when (val result = chatRepository.getUserDataById(friendId)) {
                 is SmartResult.Success -> {
+                    Log.e(LOG_TAG, "ImagePicker: rat in VW ${result.data.screenRatio}")
                     _uiState.update { currentState ->
                         currentState.copy(
                             recipient = User(
@@ -202,7 +203,8 @@ class ChatViewModel(
                                 since = result.data.since?:"",
                                 status = result.data.status?:FriendshipStatus.accepted,
                                 requesterId = result.data.requesterId,
-                                friendshipId = result.data.friendshipId
+                                friendshipId = result.data.friendshipId,
+                                screenRatio = result.data.screenRatio
                         ))
                     }
                 }
@@ -245,7 +247,8 @@ class ChatViewModel(
                             since = result.data.since?:"",
                             status = result.data.status?:FriendshipStatus.accepted,
                             requesterId = result.data.requesterId,
-                            friendshipId = result.data.friendshipId
+                            friendshipId = result.data.friendshipId,
+                            screenRatio = result.data.screenRatio
                         ))
                     }
                 }

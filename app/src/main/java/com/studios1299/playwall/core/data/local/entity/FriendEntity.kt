@@ -16,5 +16,6 @@ data class FriendEntity(
     val requesterId: Int,
     val lastMessageDate: String?,
     val lastMessageStatus: MessageStatus?,
-    val lastMessageSender: Int?
+    val lastMessageSender: Int?,
+    val screenRatio: Float
 )

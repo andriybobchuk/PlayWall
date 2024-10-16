@@ -111,6 +111,7 @@ dependencies {
     implementation(libs.firebase.config.ktx)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.firebase.messaging.ktx)
+    implementation(libs.androidx.runtime.livedata)
 
     // Test:
     testImplementation(libs.junit)
@@ -179,5 +180,9 @@ dependencies {
 
     // swipe to refress
     implementation ("com.google.accompanist:accompanist-swiperefresh:0.24.13-rc")
+
+    // crop image
+    implementation ("com.github.yalantis:ucrop:2.2.8")
+
 
 }

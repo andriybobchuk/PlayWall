@@ -1,5 +1,8 @@
 package com.studios1299.playwall.feature.play.presentation.chat
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,13 +40,14 @@ import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequ
 import com.studios1299.playwall.feature.play.data.model.User
 import com.studios1299.playwall.feature.play.presentation.chat.util.BuildCounterDisplay
 import com.studios1299.playwall.feature.play.presentation.chat.util.ConnectivityStatus
-import com.studios1299.playwall.feature.play.presentation.chat.overlays.ImagePicker
 import com.studios1299.playwall.feature.play.presentation.chat.overlays.ImageViewer
 import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.MessengerUiState
 import com.studios1299.playwall.feature.play.presentation.chat.util.isSameDay
 import com.studios1299.playwall.feature.play.presentation.chat.util.timestampAsDate
 import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
+import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.launch
+import java.io.File
 
 /**
  * Main screen for the messenger feature, displaying the header, messages list,
@@ -100,7 +104,7 @@ fun MessengerScreen(
             .fillMaxSize()
             .padding(it)) {
             MessengerScreenHeader(
-                recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1),
+                recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1, screenRatio = 2f),
                 viewModel = viewModel,
                 onBackClick = onBackClick,
             )
@@ -110,7 +114,7 @@ fun MessengerScreen(
                     .fillMaxSize()
             ) {
                 MessagesList(
-                    recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1),
+                    recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1, screenRatio = 2f),
                     viewModel = viewModel,
                     uiState = uiState,
                     scrollState = scrollState
@@ -122,7 +126,7 @@ fun MessengerScreen(
                 ) {
                     SendImageButton(
                         onClick = { requestPermissionAndPickImage() },
-                        recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1),
+                        recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1, screenRatio = 2f),
                         modifier = Modifier
                             .padding(end = 8.dp)
                     )
@@ -140,7 +144,6 @@ fun MessengerScreen(
         }
     }
 }
-
 @Composable
 private fun FullscreenOverlays(
     uiState: MessengerUiState,
@@ -150,6 +153,40 @@ private fun FullscreenOverlays(
     val pickedImageUri = uiState.pickedImageUri
     val context = LocalContext.current
 
+    // Define UCrop launcher
+    val cropLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val resultUri = UCrop.getOutput(result.data ?: return@rememberLauncherForActivityResult)
+        if (resultUri != null) {
+            // Send the cropped image
+            viewModel.sendWallpaper(
+                context = context,
+                uri = resultUri,
+                comment = null,
+                reaction = null,
+            )
+            viewModel.setPickedImage(null) // Clear the picked image after sending
+        }
+    }
+
+    // Launch UCrop directly
+    fun launchUCrop(sourceUri: Uri, screenRatio: Float?) {
+        val destinationUri = Uri.fromFile(File(context.cacheDir, "cropped_image_${System.currentTimeMillis()}.jpg"))
+
+        val uCrop = UCrop.of(sourceUri, destinationUri)
+            .withAspectRatio(screenRatio ?: 1f, 1f) // Set the aspect ratio based on screen ratio
+            .withMaxResultSize(4096, 4096) // Optional: Adjust to your requirements
+            .withOptions(UCrop.Options().apply {
+                setCompressionQuality(100) // Keep the quality high
+                setFreeStyleCropEnabled(false) // Allow free-style cropping if needed
+                setHideBottomControls(true) // Hide controls for a cleaner UI
+                setToolbarTitle("Adjust wallpaper") // Set title for UCrop
+            })
+
+        cropLauncher.launch(uCrop.getIntent(context))
+    }
+
     if (selectedMessage != null) {
         ImageViewer(
             uiState = uiState,
@@ -157,24 +194,13 @@ private fun FullscreenOverlays(
             onDismiss = { viewModel.setSelectedMessage(null) },
         )
     } else if (pickedImageUri != null) {
-        ImagePicker(
-            imageUri = uiState.pickedImageUri,
-            caption = uiState.pickedImageCaption,
-            onSendClick = { uri, caption ->
-                viewModel.sendWallpaper(
-                    context = context,
-                    uri = uri,
-                    comment = null,
-                    reaction = null,
-                )
-                viewModel.setPickedImage(null)
-            },
-            onDismiss = {
-                viewModel.setPickedImage(null)
-            }
+        launchUCrop(
+            sourceUri = pickedImageUri,
+            screenRatio = 1/(uiState.recipient?.screenRatio?:2f)
         )
     }
 }
+
 
 /**
  * Displays a list of messages grouped by date separated by DateHeader tags.
@@ -213,7 +239,7 @@ fun MessagesList(
                 horizontalArrangement = Arrangement.End
             ) {
                 MessageItem(
-                    recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1),
+                    recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1, screenRatio = 2f),
                     viewModel = viewModel,
                     message = message,
                     uiState = uiState,

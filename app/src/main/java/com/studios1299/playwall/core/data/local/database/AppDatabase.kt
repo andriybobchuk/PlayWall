@@ -9,7 +9,7 @@ import com.studios1299.playwall.core.data.local.dao.FriendDao
 import com.studios1299.playwall.core.data.local.entity.ExploreWallpaperEntity
 import com.studios1299.playwall.core.data.local.entity.FriendEntity
 
-@Database(entities = [ExploreWallpaperEntity::class, FriendEntity::class], version = 4, exportSchema = false)
+@Database(entities = [ExploreWallpaperEntity::class, FriendEntity::class], version = 5, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun exploreWallpaperDao(): ExploreWallpaperDao
     abstract fun friendDao(): FriendDao
