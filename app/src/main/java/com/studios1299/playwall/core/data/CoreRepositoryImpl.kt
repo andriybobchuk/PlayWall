@@ -6,7 +6,6 @@ import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.local.dao.ExploreWallpaperDao
 import com.studios1299.playwall.core.data.local.dao.FriendDao
 import com.studios1299.playwall.core.data.local.entity.ExploreWallpaperEntity
-import com.studios1299.playwall.core.data.local.entity.FriendEntity
 import com.studios1299.playwall.core.data.local.toDomain
 import com.studios1299.playwall.core.data.local.toEntity
 import com.studios1299.playwall.core.data.networking.RetrofitClient
@@ -25,9 +24,9 @@ import com.studios1299.playwall.core.data.networking.request.wallpapers.Reaction
 import com.studios1299.playwall.core.data.networking.request.wallpapers.RemoveSavedWallpaperRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ReportRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.SaveWallpaperRequest
-import com.studios1299.playwall.core.data.networking.response.ExploreWallpaperResponse
-import com.studios1299.playwall.core.data.networking.response.UserDataResponse
-import com.studios1299.playwall.core.data.networking.response.WallpaperHistoryResponse
+import com.studios1299.playwall.core.data.networking.response.wallpapers.ExploreWallpaperResponse
+import com.studios1299.playwall.core.data.networking.response.user.UserDataResponse
+import com.studios1299.playwall.core.data.networking.response.wallpapers.WallpaperHistoryResponse
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.DataError
@@ -361,12 +360,12 @@ class FirebaseCoreRepositoryImpl(
     // Wallpapers
     override suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<Unit, DataError.Network> {
         return try {
-            Log.e("DEBUGG", "changewallpaper start")
+            Log.e("changeWallpaper", "changewallpaper start with $request")
             val response = performAuthRequest { token ->
                 RetrofitClient.wallpaperApi.changeWallpaper(token, request)
             }
             if (response is SmartResult.Success) {
-                Log.e("DEBUGG", "resposnse" + response.data)
+                Log.e("changeWallpaper", "resposnse" + response.data)
                 SmartResult.Success(Unit)
             } else {
                 Log.e("changeWallpaper", "Error in response: ${logSmartResult(response)}")

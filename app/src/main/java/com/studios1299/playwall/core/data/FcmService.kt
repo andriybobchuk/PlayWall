@@ -35,12 +35,16 @@ import androidx.work.workDataOf
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.studios1299.playwall.R
+import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.data.local.Preferences
-import com.studios1299.playwall.core.data.networking.response.WallpaperHistoryResponse
+import com.studios1299.playwall.core.data.networking.response.wallpapers.WallpaperHistoryResponse
 import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.data.model.Reaction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
@@ -49,6 +53,8 @@ object WallpaperEventManager {
 }
 
 class FcmService : FirebaseMessagingService() {
+
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.e("FcmService", "onMessageReceived(): start: $remoteMessage")
@@ -121,8 +127,18 @@ class FcmService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
+        Log.e("FcmService", "FCM Token was changed")
         Log.e("FcmService", "New token: $token")
         Preferences.setFcmToken(token)
+
+        scope.launch {
+            MyApp.appModule.authRepository.updatePushToken()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        scope.cancel()
     }
 
     private fun sendWallpaperNotification(fileName: String) {

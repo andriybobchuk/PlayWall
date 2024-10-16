@@ -7,10 +7,11 @@ import com.studios1299.playwall.core.data.networking.request.wallpapers.Reaction
 import com.studios1299.playwall.core.data.networking.request.wallpapers.RemoveSavedWallpaperRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ReportRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.SaveWallpaperRequest
-import com.studios1299.playwall.core.data.networking.response.ExploreWallpaperResponse
-import com.studios1299.playwall.core.data.networking.response.UserDataResponse
-import com.studios1299.playwall.core.data.networking.response.WallpaperHistoryApiResponse
-import com.studios1299.playwall.core.data.networking.response.WallpaperHistoryResponse
+import com.studios1299.playwall.core.data.networking.response.ApiResponse
+import com.studios1299.playwall.core.data.networking.response.wallpapers.ExploreWallpaperResponse
+import com.studios1299.playwall.core.data.networking.response.user.UserDataResponse
+import com.studios1299.playwall.core.data.networking.response.wallpapers.ChangeWallpaperResponse
+import com.studios1299.playwall.core.data.networking.response.wallpapers.WallpaperHistoryApiResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -25,7 +26,7 @@ interface WallpaperApi {
     suspend fun changeWallpaper(
         @Header("Authorization") authHeader: String,
         @Body changeWallpaperRequest: ChangeWallpaperRequest
-    ): Response<Void>
+    ): Response<ApiResponse<ChangeWallpaperResponse>>
 
 //    @GET("api/wallpaperHistory/{recipientId}")
 //    suspend fun getWallpaperHistory(

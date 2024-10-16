@@ -2,8 +2,8 @@ package com.studios1299.playwall.core.data.networking.api
 
 import com.studios1299.playwall.core.data.networking.request.user.CreateUserRequest
 import com.studios1299.playwall.core.data.networking.request.user.UpdateProfileRequest
-import com.studios1299.playwall.core.data.networking.response.GetScreenRatioResponse
-import com.studios1299.playwall.core.data.networking.response.UserDataResponse
+import com.studios1299.playwall.core.data.networking.response.user.GetScreenRatioResponse
+import com.studios1299.playwall.core.data.networking.response.user.UserDataResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET

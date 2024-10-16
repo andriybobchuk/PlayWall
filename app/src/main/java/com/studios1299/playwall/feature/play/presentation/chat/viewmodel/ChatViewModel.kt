@@ -10,14 +10,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.studios1299.playwall.core.data.WallpaperEventManager
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
-import com.studios1299.playwall.core.data.networking.response.WallpaperHistoryResponse
+import com.studios1299.playwall.core.data.networking.response.wallpapers.WallpaperHistoryResponse
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.data.s3.uriToFile
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.error_handling.logSmartResult
 import com.studios1299.playwall.feature.play.data.model.Message
-import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.data.model.User
 import com.studios1299.playwall.feature.play.data.DefaultPaginator
 import com.studios1299.playwall.feature.play.data.model.Reaction

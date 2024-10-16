@@ -1,4 +1,4 @@
-package com.studios1299.playwall.core.data.networking.response
+package com.studios1299.playwall.core.data.networking.response.user
 
 import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
 

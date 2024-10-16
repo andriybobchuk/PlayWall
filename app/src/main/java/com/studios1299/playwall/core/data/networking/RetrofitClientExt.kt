@@ -24,7 +24,10 @@ object RetrofitClientExt {
     }
 
     inline fun <reified T> responseToSmartResult(response: Response<T>): SmartResult<T, DataError.Network> {
-        Log.e(LOG_TAG, "responseToSmartResult(): Response message: ${response.message()}, Error body: ${response.errorBody().toString()}")
+        Log.e(LOG_TAG, "responseToSmartResult(): ${response.code()}")
+        Log.e(LOG_TAG, "responseToSmartResult(): ${response.message()}")
+        Log.e(LOG_TAG, "responseToSmartResult(): ${response.errorBody()}")
+        Log.e(LOG_TAG, "responseToSmartResult(): ${response.body()}")
         return when {
             response.isSuccessful -> {
                 val body = response.body()

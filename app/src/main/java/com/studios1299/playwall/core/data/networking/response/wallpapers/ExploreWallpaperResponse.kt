@@ -1,4 +1,4 @@
-package com.studios1299.playwall.core.data.networking.response
+package com.studios1299.playwall.core.data.networking.response.wallpapers
 
 data class ExploreWallpaperResponse(
     val id: Int,

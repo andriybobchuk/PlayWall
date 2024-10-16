@@ -16,11 +16,17 @@ import com.studios1299.playwall.core.domain.error_handling.EmptyResult
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.error_handling.asEmptyDataResult
 import kotlinx.coroutines.tasks.await
+import retrofit2.Response
 
 class FirebaseAuthRepositoryImpl(
     private val firebaseAuth: FirebaseAuth,
     private val firebaseMessaging: FirebaseMessaging,
 ) : AuthRepository {
+
+    companion object {
+        private const val LOG_TAG = "FirebaseAuthRepositoryImpl"
+    }
+
     override suspend fun login(email: String, password: String): SmartResult<User, DataError.Network> {
         return try {
             val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
@@ -30,24 +36,8 @@ class FirebaseAuthRepositoryImpl(
                 val idToken = firebaseUser.getIdToken(false).await().token
                 Preferences.setAuthToken(idToken!!)
 
-                val fcmToken = Preferences.getFcmToken()
-                if (fcmToken != null) {
-
-                    try {
-                        val requestBody = mapOf("pushToken" to fcmToken)
-                        val res = RetrofitClient.userApi.updatePushToken("Bearer $idToken", requestBody)
-                        if(res.isSuccessful){
-                            Log.e("Login", "FCM token updated after login")
-                        } else {
-                            Log.e("Login", "FCM token fucked " + res)
-                        }
-                    } catch (e: Exception) {
-                        Log.e("Login", "Exception"+ e.message)
-                    }
-
-                } else {
-                    Log.e("Login", "Why isn't there any FCM token in Preferences?")
-                }
+                val updateTokenResult = updatePushToken()
+                Log.e("Login", "FCM token updated after login: $updateTokenResult")
 
                 SmartResult.Success(User(firebaseUser.uid, firebaseUser.email ?: ""))
             } else {
@@ -85,7 +75,7 @@ class FirebaseAuthRepositoryImpl(
             }
 
             // Update the push token after successfully creating the user
-            val updateTokenResult = updatePushToken(firebaseIdToken)
+            val updateTokenResult = updatePushToken()
             if (updateTokenResult is SmartResult.Error) {
                 return updateTokenResult
             }
@@ -125,18 +115,76 @@ class FirebaseAuthRepositoryImpl(
         }
     }
 
-    suspend fun updatePushToken(firebaseIdToken: String): EmptyResult<DataError.Network> {
+    override suspend fun updatePushToken(): EmptyResult<DataError.Network> {
         return try {
-            val firebaseFcmToken = firebaseMessaging.token.await()
+            performAuthRequest { token ->
+                Log.e("updatePushToken", "Start updating FCM token in the repo")
+                val firebaseFcmToken = firebaseMessaging.token.await()
+                Preferences.setFcmToken(firebaseFcmToken)
+                val requestBody = mapOf("pushToken" to firebaseFcmToken)
 
-            val authHeader = "Bearer $firebaseIdToken"
-            val requestBody = mapOf("pushToken" to firebaseFcmToken)
-
-            return RetrofitClientExt.safeCall {
-                RetrofitClient.userApi.updatePushToken(authHeader, requestBody)
+                Log.e("updatePushToken", "Finished updating FCM token in the repo")
+                RetrofitClient.userApi.updatePushToken(token, requestBody)
             }
         } catch (e: Exception) {
             SmartResult.Error(DataError.Network.UNKNOWN)
+        }
+    }
+
+    private suspend fun getFirebaseToken(): String? {
+        return Preferences.getAuthToken() ?: refreshFirebaseToken().let {
+            if (it is SmartResult.Success) it.data else null
+        }
+    }
+
+    private suspend fun refreshFirebaseToken(): SmartResult<String, DataError.Network> {
+        return try {
+            val user = firebaseAuth.currentUser ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
+
+            val token = user.getIdToken(true).await().token
+            if (token != null) {
+                Preferences.setAuthToken(token)
+                SmartResult.Success(token)
+            } else {
+                SmartResult.Error(DataError.Network.UNAUTHORIZED)
+            }
+        } catch (e: Exception) {
+            SmartResult.Error(DataError.Network.UNKNOWN)
+        }
+    }
+
+    /**
+     * This function wraps network calls with the token management and safeCall logic.
+     * It first tries with the current token, and if a 401 error occurs, it refreshes the token and retries once.
+     * All calls are also wrapped in safeCall to handle exceptions and avoid crashes.
+     */
+    private suspend inline fun <reified T> performAuthRequest(
+        request: (authHeader: String) -> Response<T>
+    ): SmartResult<T, DataError.Network> {
+        val token = getFirebaseToken() ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
+
+        return RetrofitClientExt.safeCall {
+            val result = request("Bearer $token")
+            Log.e(LOG_TAG, "Token: $token")
+
+            if (result.code() == 401 || result.code() == 403) {
+                // If the result is unauthorized or forbidden, attempt to refresh the token
+                val refreshedToken = refreshFirebaseToken()
+                if (refreshedToken is SmartResult.Success) {
+                    Log.e(LOG_TAG, "Refreshed token: ${refreshedToken.data}")
+                    val retryResult = request("Bearer ${refreshedToken.data}")
+
+                    // Handle the result of the retry attempt with the refreshed token
+                    return RetrofitClientExt.responseToSmartResult(retryResult)
+                } else {
+                    Log.e(LOG_TAG, "Token refresh failed")
+                    // Return the original 401/403 error if token refresh failed
+                    return RetrofitClientExt.responseToSmartResult(result)
+                }
+            } else {
+                // If no 401/403 occurred, return the result as-is
+                return RetrofitClientExt.responseToSmartResult(result)
+            }
         }
     }
 
@@ -222,7 +270,7 @@ class FirebaseAuthRepositoryImpl(
             }
 
             // Update the push token after successfully creating the user
-            val updateTokenResult = updatePushToken(firebaseIdToken)
+            val updateTokenResult = updatePushToken()
             if (updateTokenResult is SmartResult.Error) {
                 return updateTokenResult
             }
@@ -247,7 +295,7 @@ class FirebaseAuthRepositoryImpl(
             Preferences.setAuthToken(firebaseIdToken)
 
             // Update the push token after successfully login
-            val updateTokenResult = updatePushToken(firebaseIdToken)
+            val updateTokenResult = updatePushToken()
             if (updateTokenResult is SmartResult.Error) {
                 Log.e("Google login", updateTokenResult.error.toString())
                 //return updateTokenResult
