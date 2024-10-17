@@ -19,6 +19,7 @@ import com.studios1299.playwall.core.domain.error_handling.logSmartResult
 import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.data.model.User
 import com.studios1299.playwall.feature.play.data.DefaultPaginator
+import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.data.model.Reaction
 import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +27,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 class ChatViewModel(
     private val chatRepository: CoreRepository,
@@ -256,25 +261,33 @@ class ChatViewModel(
     }
 
     fun sendWallpaper(context: Context, uri: Uri?, comment: String?, reaction: String?) {
+        Log.e("sendWallpaper", "Function called with uri: $uri, comment: $comment, reaction: $reaction")
+
         viewModelScope.launch {
             var s3Filename: String? = null
+
             if (uri != null) {
+                Log.e("sendWallpaper", "Converting Uri to File...")
                 val wallpaperFile = uriToFile(context, uri)
                 if (wallpaperFile == null || !wallpaperFile.exists()) {
                     Log.e("sendWallpaper", "Failed to convert Uri to File or file does not exist.")
                     return@launch
                 }
+                Log.e("sendWallpaper", "Uploading file to S3...")
                 val filename = chatRepository.uploadFile(wallpaperFile, S3Handler.Folder.WALLPAPERS)
                 if (filename is SmartResult.Success) {
                     s3Filename = filename.data
+                    Log.e("sendWallpaper", "File uploaded successfully. S3 Filename: $s3Filename")
                 } else {
-                    Log.e("sendWallpaper", "Failed to upload file to S3")
+                    Log.e("sendWallpaper", "Failed to upload file to S3: ${logSmartResult(filename)}")
                     return@launch
                 }
+            } else {
+                Log.e("sendWallpaper", "Uri is null, cannot proceed.")
             }
 
             if (s3Filename == null) {
-                Log.e("sendWallpaper", "Failed: filename is S3 is null")
+                Log.e("sendWallpaper", "Failed: filename in S3 is null")
                 return@launch
             }
 
@@ -287,12 +300,76 @@ class ChatViewModel(
                 type = "private"
             )
 
+            Log.e("sendWallpaper", "ChangeWallpaperRequest prepared: $changeWallpaperRequest")
+
+            // Optimistically update the UI state with the new message
+            val currentTimestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone("UTC") // Set timezone to UTC
+            }.format(Date())
+
+            val optimisticMessage = Message(
+                id = -1, // Temporary ID, replace with actual once received
+                imageUrl = S3Handler.pathToDownloadableLink(s3Filename)!!,
+                caption = comment,
+                timestamp = currentTimestamp,
+                status = MessageStatus.unread,
+               // reaction = reaction,
+                reaction = Reaction.sad,
+                senderId = uiState.value.currentUser!!.id,
+                recipientId = friendId.toInt()
+            )
+
+            Log.e("sendWallpaper", "Optimistically adding message: $optimisticMessage")
+
+            // Update the UI state immediately
+            _uiState.update { currentState ->
+                val messages = currentState.messages + optimisticMessage
+
+                val sortedMessages = messages.sortedByDescending {
+                    it.timestamp.takeIf { it.isNotEmpty() }?.let { timestamp ->
+                        // Parse the timestamp string to a Date object and convert it to Long for sorting
+                        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
+                            timeZone = TimeZone.getTimeZone("UTC") // Set timezone to UTC
+                        }.parse(timestamp)?.time
+                    } ?: Long.MAX_VALUE // If timestamp is empty, place it at the end
+                }
+                Log.e("sendWallpaper", "UI state updated with new message. Current message count: ${messages.size}")
+                currentState.copy(messages = sortedMessages)
+            }
+
+            // Send the wallpaper request
+            Log.e("sendWallpaper", "Sending wallpaper request to server...")
             val response = chatRepository.changeWallpaper(changeWallpaperRequest)
 
             if (response is SmartResult.Success) {
-                Log.e("sendWallpaper", "Wallpaper sent successfully.")
+                Log.e("sendWallpaper", "Wallpaper sent successfully. Response: $response")
+                // Update the message with the actual data returned from the response
+                _uiState.update { currentState ->
+                    val updatedMessages = currentState.messages.map { message ->
+                        if (message.id == -1 && response.data != null) { // Find the optimistic message
+                            Log.e("sendWallpaper", "Updating optimistic message with server response data.")
+                            message.copy(
+                                id = response.data.id, // Update with the actual ID
+                                timestamp = response.data.timestamp ?: "",
+                                status = response.data.status ?: MessageStatus.unread,
+                                reaction = response.data.reaction
+                            )
+                        } else {
+                            message
+                        }
+                    }
+                    Log.e("sendWallpaper", "UI state updated with final message data. Current message count: ${updatedMessages.size}")
+
+                    currentState.copy(messages = updatedMessages)
+                }
             } else {
                 Log.e("sendWallpaper", "Error sending wallpaper: ${logSmartResult(response)}")
+                // Remove the optimistic message if the request fails
+                _uiState.update { currentState ->
+                    val filteredMessages = currentState.messages.filter { it.id != -1 } // Remove optimistic message
+                    Log.e("sendWallpaper", "Optimistic message removed. Current message count: ${filteredMessages.size}")
+                    currentState.copy(messages = filteredMessages)
+                }
             }
         }
     }

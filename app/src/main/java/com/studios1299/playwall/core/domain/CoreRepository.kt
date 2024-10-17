@@ -5,6 +5,7 @@ import com.studios1299.playwall.core.data.networking.request.friendships.Decline
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
 import com.studios1299.playwall.core.data.networking.response.wallpapers.ExploreWallpaperResponse
 import com.studios1299.playwall.core.data.networking.response.user.UserDataResponse
+import com.studios1299.playwall.core.data.networking.response.wallpapers.ChangeWallpaperResponse
 import com.studios1299.playwall.core.data.networking.response.wallpapers.WallpaperHistoryResponse
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.domain.error_handling.DataError
@@ -35,7 +36,7 @@ interface CoreRepository {
     suspend fun unblockUser(friendshipId: Int, userId: Int): SmartResult<Unit, DataError.Network>
 
     // WALLPAPER MANAGEMENT
-    suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<Unit, DataError.Network>
+    suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<ChangeWallpaperResponse?, DataError.Network>
     suspend fun getUserDataById(recipientId: String): SmartResult<UserDataResponse, DataError.Network>
     suspend fun getWallpaperHistory(userId: String, page: Int, pageSize: Int): SmartResult<List<WallpaperHistoryResponse>, DataError.Network>
     suspend fun react(wallpaperId: Int, reaction: String?): SmartResult<Unit, DataError.Network>

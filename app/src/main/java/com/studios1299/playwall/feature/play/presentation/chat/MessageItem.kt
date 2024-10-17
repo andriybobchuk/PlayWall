@@ -265,7 +265,7 @@ private fun MessageBubble(
     val (imageWidth, imageHeight) = if (dimensionsLoaded) {
         calculateImageDimensions(aspectRatio, maxWidth, maxHeight)
     } else {
-        Pair(maxWidth, 170.dp)
+        Pair(125.dp, maxHeight)
     }
     FetchImageAspectRatio(message.imageUrl) { ratio ->
         aspectRatio = ratio

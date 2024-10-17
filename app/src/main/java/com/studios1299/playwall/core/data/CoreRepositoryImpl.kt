@@ -26,6 +26,7 @@ import com.studios1299.playwall.core.data.networking.request.wallpapers.ReportRe
 import com.studios1299.playwall.core.data.networking.request.wallpapers.SaveWallpaperRequest
 import com.studios1299.playwall.core.data.networking.response.wallpapers.ExploreWallpaperResponse
 import com.studios1299.playwall.core.data.networking.response.user.UserDataResponse
+import com.studios1299.playwall.core.data.networking.response.wallpapers.ChangeWallpaperResponse
 import com.studios1299.playwall.core.data.networking.response.wallpapers.WallpaperHistoryResponse
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.domain.CoreRepository
@@ -358,15 +359,15 @@ class FirebaseCoreRepositoryImpl(
 
 
     // Wallpapers
-    override suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<Unit, DataError.Network> {
+    override suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<ChangeWallpaperResponse?, DataError.Network> {
         return try {
             Log.e("changeWallpaper", "changewallpaper start with $request")
             val response = performAuthRequest { token ->
                 RetrofitClient.wallpaperApi.changeWallpaper(token, request)
             }
             if (response is SmartResult.Success) {
-                Log.e("changeWallpaper", "resposnse" + response.data)
-                SmartResult.Success(Unit)
+                Log.e("changeWallpaper", "resposnse" + response.data.data)
+                SmartResult.Success(response.data.data)
             } else {
                 Log.e("changeWallpaper", "Error in response: ${logSmartResult(response)}")
                 SmartResult.Error(DataError.Network.UNKNOWN)
