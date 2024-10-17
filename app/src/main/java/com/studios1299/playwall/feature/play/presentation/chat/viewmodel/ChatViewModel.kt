@@ -115,12 +115,21 @@ class ChatViewModel(
             if (existingMessageIndex != -1) {
                 Log.e(LOG_TAG, "Updating existing message with id: ${wallpaperHistoryResponse.id}")
                 // Update the message if it already exists
-                val updatedMessage = currentMessages[existingMessageIndex].copy(
-                    caption = wallpaperHistoryResponse.comment ?: "",
-                    reaction = wallpaperHistoryResponse.reaction,
-                    timestamp = wallpaperHistoryResponse.timeSent
-                )
-                currentMessages[existingMessageIndex] = updatedMessage
+                if (wallpaperHistoryResponse.comment != null) {
+                    currentMessages[existingMessageIndex] = currentMessages[existingMessageIndex].copy(
+                        caption =  wallpaperHistoryResponse.comment,
+                    )
+                } else if (wallpaperHistoryResponse.reaction != null) {
+                    if (wallpaperHistoryResponse.reaction == Reaction.none) {
+                        currentMessages[existingMessageIndex] = currentMessages[existingMessageIndex].copy(
+                            reaction = null,
+                        )
+                    } else {
+                        currentMessages[existingMessageIndex] = currentMessages[existingMessageIndex].copy(
+                            reaction = wallpaperHistoryResponse.reaction,
+                        )
+                    }
+                }
             } else {
                 Log.e(LOG_TAG, "Adding new message with id: ${wallpaperHistoryResponse.id}")
                 // Add the new message
@@ -314,7 +323,7 @@ class ChatViewModel(
                 timestamp = currentTimestamp,
                 status = MessageStatus.unread,
                // reaction = reaction,
-                reaction = Reaction.sad,
+                reaction = Reaction.none,
                 senderId = uiState.value.currentUser!!.id,
                 recipientId = friendId.toInt()
             )
@@ -395,7 +404,7 @@ class ChatViewModel(
     }
 
     fun addOrUpdateReaction(messageId: Int, reaction: Reaction?) {
-        Log.e("addOrUpdateReaction", "Reacting...")
+        Log.e("addOrUpdateReaction", "Reacting with " + messageId)
         viewModelScope.launch {
             val result = if (reaction != null && reaction.emoji.isNotEmpty()) {
                 chatRepository.react(messageId, reaction.name)

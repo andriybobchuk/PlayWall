@@ -22,7 +22,8 @@ enum class Reaction(val emoji: String) {
     haha("😂"),
     wow("😮"),
     sad("😢"),
-    angry("😡");
+    angry("😡"),
+    none("");
 
     override fun toString(): String {
         return emoji

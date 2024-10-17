@@ -60,7 +60,7 @@ class FcmService : FirebaseMessagingService() {
         Log.e("FcmService", "onMessageReceived(): start: $remoteMessage")
 
         val notificationType = remoteMessage.data["type"] // e.g., "wallpaper", "friend_request", "reaction"
-        val wallpaperId = remoteMessage.data["wallpaperId"]?.toIntOrNull() ?: -1
+        val wallpaperId = remoteMessage.data["wallpaperId"]
         val requesterId = remoteMessage.data["requesterId"]?.toIntOrNull() ?: -1
         val recipientId = remoteMessage.data["recipientId"]?.toIntOrNull() ?: -1
         val fileName = remoteMessage.data["fileName"]
@@ -68,41 +68,47 @@ class FcmService : FirebaseMessagingService() {
         val reaction = remoteMessage.data["reaction"]
         val timeSent = remoteMessage.data["timeSent"]
 
-        // Build the WallpaperHistoryResponse dynamically
-        val wallpaperHistoryResponse = WallpaperHistoryResponse(
-            id = wallpaperId,
-            fileName = fileName ?: "",
-            type = notificationType ?: "unknown",
-            requesterId = requesterId,
-            recipientId = recipientId,
-            comment = comment,
-            reaction = reaction?.let { Reaction.valueOf(it) },
-            timeSent = timeSent ?: "",
-            status = MessageStatus.unread
-        )
 
-        when (notificationType) {
-            "wallpaper" -> {
-                Log.e("FcmService", "New wallpaper received")
-                emitWallpaperUpdate(wallpaperHistoryResponse)
-                handleWallpaperDownload(fileName)
-            }
-            "reaction" -> {
-                Log.e("FcmService", "New reaction received: $reaction")
-                emitWallpaperUpdate(wallpaperHistoryResponse)
-            }
-            "reaction_removed" -> {
-                Log.e("FcmService", "Reaction removed for wallpaper")
-                emitWallpaperUpdate(wallpaperHistoryResponse.copy(reaction = null))
-            }
-            "comment" -> {
-                Log.e("FcmService", "New comment received: $comment")
-                emitWallpaperUpdate(wallpaperHistoryResponse)
-            }
-            else -> {
-                Log.e("FcmService", "Unknown notification type: $notificationType")
+        if (wallpaperId != null) {
+            // Build the WallpaperHistoryResponse dynamically
+            val wallpaperHistoryResponse = WallpaperHistoryResponse(
+                id = wallpaperId.toInt(),
+                fileName = fileName ?: "",
+                type = notificationType ?: "unknown",
+                requesterId = requesterId,
+                recipientId = recipientId,
+                comment = comment,
+                reaction = reaction?.let { Reaction.valueOf(it) },
+                timeSent = timeSent ?: "",
+                status = MessageStatus.unread
+            )
+
+            when (notificationType) {
+                "wallpaper" -> {
+                    Log.e("FcmService", "New wallpaper received")
+                    emitWallpaperUpdate(wallpaperHistoryResponse)
+                    handleWallpaperDownload(fileName)
+                }
+                "reaction" -> {
+                    Log.e("FcmService", "New reaction received: $reaction for message $wallpaperId")
+                    emitWallpaperUpdate(wallpaperHistoryResponse)
+                }
+                "reaction_removed" -> {
+                    Log.e("FcmService", "Reaction removed for wallpaper")
+                    emitWallpaperUpdate(wallpaperHistoryResponse.copy(reaction = Reaction.none))
+                }
+                "comment" -> {
+                    Log.e("FcmService", "New comment received: $comment")
+                    emitWallpaperUpdate(wallpaperHistoryResponse)
+                }
+                else -> {
+                    Log.e("FcmService", "Unknown notification type: $notificationType")
+                }
             }
         }
+
+
+
     }
 
     private fun emitWallpaperUpdate(wallpaperHistoryResponse: WallpaperHistoryResponse) {
