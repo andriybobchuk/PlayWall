@@ -62,6 +62,11 @@ fun MessengerScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    LaunchedEffect(uiState.goBack) {
+        if (uiState.goBack) {
+            onBackClick()
+        }
+    }
     val requestPermissionAndPickImage = rememberRequestPermissionAndPickImage(
         onImagePicked = { uri ->
             viewModel.setPickedImage(uri)

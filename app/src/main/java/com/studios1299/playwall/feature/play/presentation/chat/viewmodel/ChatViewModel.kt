@@ -182,6 +182,16 @@ class ChatViewModel(
                 handleMessageUpdate(wallpaperHistoryResponse)
             }
         }
+        viewModelScope.launch {
+            WallpaperEventManager.friendUpdates.collect { friendEvent ->
+                Log.e(LOG_TAG, "Friendship event received: $friendEvent")
+                if (friendEvent.type == "friend_remove") {
+                    _uiState.update { it.copy(goBack = true) }
+                } else {
+                    loadRecipientData()
+                }
+            }
+        }
     }
 
     private val _isConnected = MutableStateFlow(false)
