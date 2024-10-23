@@ -47,7 +47,7 @@ class ExploreViewModel(
                 }
             }
         }
-        onAction(ExploreAction.LoadPhotos(forceRefresh = false))
+        onAction(ExploreAction.LoadPhotos(forceRefresh = true))
     }
 
     fun onAction(action: ExploreAction) {

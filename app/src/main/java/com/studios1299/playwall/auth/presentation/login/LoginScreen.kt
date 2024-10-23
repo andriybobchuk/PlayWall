@@ -100,6 +100,14 @@ fun LoginScreenRoot(
 
                 onLoginSuccess()
             }
+
+            LoginEvent.PasswordResetEmailSent -> {
+                Toast.makeText(
+                    context,
+                    "Password reset email was sent to your address",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
     LoginScreen(
@@ -178,6 +186,15 @@ private fun LoginScreen(
                     onAction(LoginAction.OnLoginClick)
                 },
             )
+            Buttons.Outlined(
+                modifier = Modifier.padding(bottom = 16.dp),
+                text = stringResource(id = R.string.register),
+                isLoading = false,
+                enabled = !state.isLoggingIn,
+                onClick = {
+                    onAction(LoginAction.OnRegisterClick)
+                },
+            )
 
             val annotatedString = buildAnnotatedString {
                 withStyle(
@@ -186,10 +203,10 @@ private fun LoginScreen(
                         color = Color.Gray
                     )
                 ) {
-                    append(stringResource(id = R.string.dont_have_an_account) + " ")
+                    append(stringResource(id = R.string.forgot_password) + " ")
                     pushStringAnnotation(
                         tag = "clickable_text",
-                        annotation = stringResource(id = R.string.sign_up)
+                        annotation = stringResource(id = R.string.reset_password)
                     )
                     withStyle(
                         style = SpanStyle(
@@ -198,7 +215,7 @@ private fun LoginScreen(
                             fontFamily = poppins
                         )
                     ) {
-                        append(stringResource(id = R.string.sign_up))
+                        append(stringResource(id = R.string.reset_password))
                     }
                 }
             }
@@ -210,7 +227,15 @@ private fun LoginScreen(
                         start = offset,
                         end = offset
                     ).firstOrNull()?.let {
-                        onAction(LoginAction.OnRegisterClick)
+                        if (state.email.text.toString().trim().isEmpty()) {
+                            Toast.makeText(
+                                context,
+                                "Enter a valid email",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else {
+                            onAction(LoginAction.OnPasswordResetClick)
+                        }
                     }
                 }
             )

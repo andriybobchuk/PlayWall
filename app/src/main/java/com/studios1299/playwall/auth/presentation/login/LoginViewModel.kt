@@ -59,6 +59,7 @@ class LoginViewModel(
                     isPasswordVisible = !state.isPasswordVisible
                 )
             }
+            LoginAction.OnPasswordResetClick -> sendPasswordResetEmail()
             else -> Unit
         }
     }
@@ -115,5 +116,20 @@ class LoginViewModel(
             }
         }
     }
+
+    fun sendPasswordResetEmail() {
+        viewModelScope.launch {
+            val result = authRepository.sendPasswordResetEmail(state.email.text.toString().trim())
+            when (result) {
+                is SmartResult.Success -> {
+                    eventChannel.send(LoginEvent.PasswordResetEmailSent)
+                }
+                is SmartResult.Error -> {
+                    eventChannel.send(LoginEvent.Error(result.error.asUiText()))
+                }
+            }
+        }
+    }
+
 }
 

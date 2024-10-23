@@ -30,7 +30,7 @@
     <string name="file_too_large">File is too large!</string>
     <string name="server_error">Server error</string>
     <string name="error_serialization">Error serialization</string>
-    <string name="unknown_error">Unknown error!</string>
+    <string name="unknown_error">An error occurred, try agan later</string>
     <string name="error_disk_full">Disk is full!</string>
     <string name="error_unauthorized">Unauthorized!</string>
     <string name="error_conflict">Conflict!</string>
@@ -96,4 +96,6 @@
     <string name="name">Name</string>
     <string name="enter_your_email">Enter your email</string>
     <string name="our_social_media">Our Social Media</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="reset_password">Reset password</string>
 </resources>

@@ -188,68 +188,6 @@ class FirebaseAuthRepositoryImpl(
         }
     }
 
-//    override suspend fun register(email: String, password: String, screenRatio: Float): EmptyResult<DataError.Network> {
-//        return try {
-//            val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
-//            val user = authResult.user ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
-//            val firebaseIdToken = user.getIdToken(false).await().token ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
-//            Preferences.setAuthToken(firebaseIdToken)
-//            val firebaseFcmToken = firebaseMessaging.token.await() // For PUSH notifications
-//
-//            val result = createUser(
-//                userId = user.uid,
-//                email = email,
-//                firebaseIdToken = firebaseIdToken,
-//                pushToken = firebaseFcmToken
-//            )
-//            if (result is SmartResult.Error) {
-//                firebaseAuth.signOut()
-//            }
-//            return result
-//        } catch (e: FirebaseAuthException) {
-//            when (e.errorCode) {
-//                "ERROR_EMAIL_ALREADY_IN_USE" -> SmartResult.Error(DataError.Network.CONFLICT)
-//                else -> SmartResult.Error(DataError.Network.UNKNOWN)
-//            }
-//        } catch (e: Exception) {
-//            SmartResult.Error(DataError.Network.UNKNOWN)
-//        }.asEmptyDataResult()
-//    }
-//
-//    suspend fun createUser(
-//        userId: String,
-//        email: String,
-//        firebaseIdToken: String,
-//        pushToken: String
-//    ): EmptyResult<DataError.Network> {
-//        return try {
-//            val authHeader = "Bearer $firebaseIdToken"
-//            Log.e("CreateUser", "Authorization header: $authHeader")
-//
-//            val requestBody = CreateUserRequest(
-//                email = email,
-//                firebaseId = userId,
-//                pushToken = pushToken
-//            )
-//
-//            return RetrofitClientExt.safeCall {
-//                RetrofitClient.userApi.createUser(authHeader, requestBody)
-//            }.also { result ->
-//                when (result) {
-//                    is SmartResult.Success -> {
-//                        Log.d("CreateUser", "User created successfully.")
-//                    }
-//                    is SmartResult.Error -> {
-//                        Log.e("CreateUser", "Failed to create user. Error: ${result.error}")
-//                    }
-//                }
-//            }
-//        } catch (e: Exception) {
-//            Log.e("CreateUser", "Exception occurred while creating user: ${e.message}", e)
-//            SmartResult.Error(DataError.Network.UNKNOWN)
-//        }
-//    }
-
     override suspend fun googleRegister(credential: AuthCredential, screenRatio: Float): SmartResult<User, DataError.Network> {
         return try {
             val authResult = firebaseAuth.signInWithCredential(credential).await()
@@ -312,6 +250,18 @@ class FirebaseAuthRepositoryImpl(
             SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }
+
+    override suspend fun sendPasswordResetEmail(email: String): SmartResult<Unit, DataError.Network> {
+        return try {
+            firebaseAuth.sendPasswordResetEmail(email).await()
+            SmartResult.Success(Unit)
+        } catch (e: FirebaseAuthException) {
+            SmartResult.Error(DataError.Network.UNKNOWN)
+        } catch (e: Exception) {
+            SmartResult.Error(DataError.Network.UNKNOWN)
+        }
+    }
+
 
     override fun logOut() {
         firebaseAuth.signOut()
