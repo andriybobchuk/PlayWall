@@ -7,6 +7,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.studios1299.playwall.core.data.FriendEvent
+import com.studios1299.playwall.core.data.WallpaperEventManager
 import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.networking.NetworkMonitor
 import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
@@ -28,6 +30,10 @@ class PlayViewModel(
     private val repository: CoreRepository
 ) : ViewModel() {
 
+    companion object {
+        private const val LOG_TAG = "PlayViewModel"
+    }
+
     var state by mutableStateOf(PlayState())
         private set
 
@@ -43,8 +49,19 @@ class PlayViewModel(
                 }
             }
         }
+        viewModelScope.launch {
+            WallpaperEventManager.friendUpdates.collect { friendEvent ->
+                handleFriendEvent(friendEvent)
+            }
+        }
         loadFriendsAndRequests()
     }
+
+    private fun handleFriendEvent(friendEvent: FriendEvent) {
+        Log.e(LOG_TAG, "FriendEvent received: $friendEvent")
+        loadFriendsAndRequests()
+    }
+
 
     fun onAction(action: PlayAction) {
         when(action) {
@@ -179,6 +196,7 @@ private fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
                     friends = friendsResult.data,
                     isLoading = false
                 )
+                Log.e(LOG_TAG, "Retrieved friends: ${friendsResult.data}")
             }
             is SmartResult.Error -> {
                 eventChannel.send(PlayEvent.ShowError(friendsResult.error.asUiText()))
@@ -231,14 +249,14 @@ private fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
 
             if (result is SmartResult.Success) {
                 // Update the list of friends and set the status to "blocked"
-                val updatedFriends = state.friends.map { friend ->
-                    if (friend.friendshipId == friendshipId) {
-                        friend.copy(status = FriendshipStatus.blocked) // Assuming muted as blocked, adjust if needed
-                    } else {
-                        friend
-                    }
-                }
-                state = state.copy(friends = updatedFriends, isLoading = false)
+//                val updatedFriends = state.friends.map { friend ->
+//                    if (friend.friendshipId == friendshipId) {
+//                        friend.copy(status = FriendshipStatus.blocked) // Assuming muted as blocked, adjust if needed
+//                    } else {
+//                        friend
+//                    }
+//                }
+//                state = state.copy(friends = updatedFriends, isLoading = false)
                 loadFriendsAndRequests()
             } else {
                 // Handle failure case, e.g., show error message
@@ -254,14 +272,15 @@ private fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
 
             if (result is SmartResult.Success) {
                 // Update the list of friends and set the status to "accepted"
-                val updatedFriends = state.friends.map { friend ->
-                    if (friend.friendshipId == friendshipId) {
-                        friend.copy(status = FriendshipStatus.accepted) // Assuming muted as blocked, adjust if needed
-                    } else {
-                        friend
-                    }
-                }
-                state = state.copy(friends = updatedFriends, isLoading = false)
+//                val updatedFriends = state.friends.map { friend ->
+//                    if (friend.friendshipId == friendshipId) {
+//                        friend.copy(status = FriendshipStatus.accepted) // Assuming muted as blocked, adjust if needed
+//                    } else {
+//                        friend
+//                    }
+//                }
+//                state = state.copy(friends = updatedFriends, isLoading = false)
+                loadFriendsAndRequests()
             } else {
                 // Handle failure case, e.g., show error message
                 state = state.copy(isLoading = false)

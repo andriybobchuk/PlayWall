@@ -42,14 +42,21 @@ import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.data.model.Reaction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
+data class FriendEvent(
+    val type: String,
+    val requesterId: Int,
+    val recipientId: Int,
+    val friendshipId: Int
+)
+
 object WallpaperEventManager {
     val wallpaperUpdates = MutableSharedFlow<WallpaperHistoryResponse>()
+    val friendUpdates = MutableSharedFlow<FriendEvent>()
 }
 
 class FcmService : FirebaseMessagingService() {
@@ -57,7 +64,7 @@ class FcmService : FirebaseMessagingService() {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        Log.e("FcmService", "onMessageReceived(): start: $remoteMessage")
+        Log.e("FcmService", "onMessageReceived(): start: ${remoteMessage.data}")
 
         val notificationType = remoteMessage.data["type"] // e.g., "wallpaper", "friend_request", "reaction"
         val wallpaperId = remoteMessage.data["wallpaperId"]
@@ -67,6 +74,7 @@ class FcmService : FirebaseMessagingService() {
         val comment = remoteMessage.data["comment"]
         val reaction = remoteMessage.data["reaction"]
         val timeSent = remoteMessage.data["timeSent"]
+        val friendshipId = remoteMessage.data["friendshipId"]?.toIntOrNull() ?: -1
 
 
         if (wallpaperId != null) {
@@ -105,15 +113,75 @@ class FcmService : FirebaseMessagingService() {
                     Log.e("FcmService", "Unknown notification type: $notificationType")
                 }
             }
+        } else {
+            when (notificationType) {
+                "friend_invite" -> {
+                    val friendEvent = FriendEvent(
+                        type = notificationType,
+                        requesterId = requesterId,
+                        recipientId = recipientId,
+                        friendshipId = friendshipId
+                    )
+                    Log.e("FcmService", "Friend invite received: " + friendEvent)
+                    emitFriendUpdate(friendEvent)
+                }
+                "friend_accept" -> {
+                    Log.e("FcmService", "Friend request accepted")
+                    val friendEvent = FriendEvent(
+                        type = notificationType,
+                        requesterId = requesterId,
+                        recipientId = recipientId,
+                        friendshipId = friendshipId
+                    )
+                    emitFriendUpdate(friendEvent)
+                }
+                "friend_remove" -> {
+                    Log.e("FcmService", "Friend removed")
+                    val friendEvent = FriendEvent(
+                        type = notificationType,
+                        requesterId = requesterId,
+                        recipientId = recipientId,
+                        friendshipId = friendshipId
+                    )
+                    emitFriendUpdate(friendEvent)
+                }
+                "friend_block" -> {
+                    Log.e("FcmService", "Friend blocked")
+                    val friendEvent = FriendEvent(
+                        type = notificationType,
+                        requesterId = requesterId,
+                        recipientId = recipientId,
+                        friendshipId = friendshipId
+                    )
+                    emitFriendUpdate(friendEvent)
+                }
+                "friend_unblock" -> {
+                    Log.e("FcmService", "Friend unblocked")
+                    val friendEvent = FriendEvent(
+                        type = notificationType,
+                        requesterId = requesterId,
+                        recipientId = recipientId,
+                        friendshipId = friendshipId
+                    )
+                    emitFriendUpdate(friendEvent)
+                }
+                else -> {
+                    Log.e("FcmService", "Unknown notification type: $notificationType")
+                }
+            }
         }
-
-
 
     }
 
     private fun emitWallpaperUpdate(wallpaperHistoryResponse: WallpaperHistoryResponse) {
         CoroutineScope(Dispatchers.Main).launch {
             WallpaperEventManager.wallpaperUpdates.emit(wallpaperHistoryResponse)
+        }
+    }
+
+    private fun emitFriendUpdate(friendEvent: FriendEvent) {
+        CoroutineScope(Dispatchers.Main).launch {
+            WallpaperEventManager.friendUpdates.emit(friendEvent)
         }
     }
 
