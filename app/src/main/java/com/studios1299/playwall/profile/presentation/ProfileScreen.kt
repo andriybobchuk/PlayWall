@@ -432,7 +432,7 @@ fun EditProfileDialog(
                         Buttons.Primary(
                             text = stringResource(R.string.delete_photo),
                             isLoading = false,
-                            onClick = { onAction(ProfileAction.OnSaveProfileClick(context, null, null)) },
+                            onClick = { onAction(ProfileAction.OnSaveProfileClick(context, null, Uri.EMPTY)) },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.error,
                         contentColor = MaterialTheme.colorScheme.onPrimary,

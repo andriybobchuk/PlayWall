@@ -117,16 +117,23 @@ class ProfileViewModel(
     fun updateProfile(context: Context, avatarUri: Uri?, nick: String?, oldPassword: String?, newPassword: String?) {
         viewModelScope.launch {
             var avatar: String? = null
+
             if (avatarUri != null) {
-                val avatarFile = uriToFile(context, avatarUri)
-                if (avatarFile == null || !avatarFile.exists()) {
-                    Log.e("updateProfile", "Failed to convert Uri to File or file does not exist.")
-                    return@launch
-                }
-                val avatarId = repository.uploadFile(avatarFile, S3Handler.Folder.AVATARS)
-                if (avatarId is SmartResult.Success) {
-                    avatar = avatarId.data
+                // delete uri from db
+                if (avatarUri == Uri.EMPTY) {
+                    avatar = ""
                     state = state.copy(userAvatar = avatarUri.toString())
+                } else {
+                    val avatarFile = uriToFile(context, avatarUri)
+                    if (avatarFile == null || !avatarFile.exists()) {
+                        Log.e("updateProfile", "Failed to convert Uri to File or file does not exist.")
+                        return@launch
+                    }
+                    val avatarId = repository.uploadFile(avatarFile, S3Handler.Folder.AVATARS)
+                    if (avatarId is SmartResult.Success) {
+                        avatar = avatarId.data
+                        state = state.copy(userAvatar = avatarUri.toString())
+                    }
                 }
             }
 
