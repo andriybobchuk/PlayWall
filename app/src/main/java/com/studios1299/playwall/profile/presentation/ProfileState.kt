@@ -8,7 +8,8 @@ import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
 
 data class ProfileState @OptIn(ExperimentalFoundationApi::class) constructor(
     val userName: TextFieldState = TextFieldState(),
-    val password: TextFieldState = TextFieldState(),
+    val oldPassword: TextFieldState = TextFieldState(),
+    val newPassword: TextFieldState = TextFieldState(),
     val email: TextFieldState = TextFieldState(),
     val userAvatar: String = "",
     val isSaveWallpapersEnabled: Boolean = false,

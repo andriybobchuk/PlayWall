@@ -74,6 +74,9 @@ import androidx.work.workDataOf
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.R
+import com.studios1299.playwall.auth.data.EmailPatternValidator
+import com.studios1299.playwall.auth.data.UserDataValidator
+import com.studios1299.playwall.auth.domain.PatternValidator
 import com.studios1299.playwall.core.data.ChangeWallpaperWorker
 import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.domain.model.WallpaperOption
@@ -131,7 +134,7 @@ fun ProfileScreenRoot(
                 onNavigateToPhotoDetail(event.initialPhotoIndex)
             }
             is ProfileEvent.ProfileUpdated -> {
-                Toast.makeText(context, "Profile updated", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(context, "Profile updated", Toast.LENGTH_SHORT).show()
                 showEditProfileDialog = false
             }
             is ProfileEvent.ProfileEditCancelled -> {
@@ -364,7 +367,8 @@ fun EditProfileDialog(
     onDismiss: () -> Unit
 ) {
     val name by remember { mutableStateOf(state.userName) }
-    val password by remember { mutableStateOf(state.password) }
+    val oldPassword by remember { mutableStateOf(state.oldPassword) }
+    val newPassword by remember { mutableStateOf(state.newPassword) }
     val context = LocalContext.current
 
     val requestImagePicker = rememberRequestPermissionAndPickImage { uri ->
@@ -373,7 +377,21 @@ fun EditProfileDialog(
     AlertDialog(
         onDismissRequest = { onDismiss() },
         confirmButton = {
-            TextButton(onClick = { onAction(ProfileAction.OnSaveProfileClick(context, name.text.toString(), null)) }) {
+            TextButton(onClick = {
+                if (oldPassword.text.toString().isNotEmpty() && newPassword.text.toString().isNotEmpty()) {
+                    if (!UserDataValidator(EmailPatternValidator).validatePassword(newPassword.text.toString()).isValidPassword) {
+                        Toast.makeText(context, "New password is too weak!", Toast.LENGTH_SHORT).show()
+                        return@TextButton
+                    }
+                }
+                onAction(ProfileAction.OnSaveProfileClick(
+                    context,
+                    name.text.toString(),
+                    null,
+                    oldPassword.text.toString(),
+                    newPassword.text.toString(),
+                ))
+                 }) {
                 Text(stringResource(R.string.save))
             }
         },
@@ -414,7 +432,7 @@ fun EditProfileDialog(
                         Buttons.Primary(
                             text = stringResource(R.string.delete_photo),
                             isLoading = false,
-                            onClick = { onAction(ProfileAction.OnSaveProfileClick(context, null, Uri.parse(""))) },
+                            onClick = { onAction(ProfileAction.OnSaveProfileClick(context, null, null)) },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.error,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -434,12 +452,18 @@ fun EditProfileDialog(
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(16.dp))
+                TextFields.Password(
+                    state = remember { oldPassword },
+                    hint = "Enter current password",
+                    title = "Change password",
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(modifier = Modifier.height(16.dp))
                 TextFields.Primary(
-                    state = remember { password },
+                    state = remember { newPassword },
                     startIcon = Icons.Default.Password,
                     endIcon = null,
                     hint = "Enter new password",
-                    title = "Change password",
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(16.dp))

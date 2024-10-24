@@ -73,12 +73,13 @@ class ProfileViewModel(
                     navigateToPhotoDetail(action.photoId)
                 }
             }
-            is ProfileAction.OnSaveProfileClick -> updateProfile(action.context, action.avatar, action.nick)
+            is ProfileAction.OnSaveProfileClick -> updateProfile(action.context, action.avatar, action.nick, action.oldPassword, action.newPassword)
             ProfileAction.OnCancelEditProfileClick -> cancelEditProfile()
             ProfileAction.OnDeletePhotoClick -> deletePhoto()
             is ProfileAction.OnPhotoSelected -> updatePhoto(action.uri)
             is ProfileAction.OnNameChanged -> state = state.copy(userName = TextFieldState(action.name))
-            is ProfileAction.OnEmailChanged -> state = state.copy(password = TextFieldState(action.email))
+//            is ProfileAction.OnEmailChanged -> state = state.copy(password = TextFieldState(action.email))
+//            is ProfileAction.OnEmailChanged -> state = state.copy(password = TextFieldState(action.email))
             ProfileAction.OnEditProfileClick -> openEditProfileDialog()
             ProfileAction.OnLogOut -> authRepository.logOut()
         }
@@ -113,7 +114,7 @@ class ProfileViewModel(
 
 
 
-    fun updateProfile(context: Context, avatarUri: Uri?, nick: String?) {
+    fun updateProfile(context: Context, avatarUri: Uri?, nick: String?, oldPassword: String?, newPassword: String?) {
         viewModelScope.launch {
             var avatar: String? = null
             if (avatarUri != null) {
@@ -129,6 +130,10 @@ class ProfileViewModel(
                 }
             }
 
+            if (!oldPassword.isNullOrEmpty() && !newPassword.isNullOrEmpty()) {
+                changePassword(oldPassword, newPassword)
+            }
+
             val result = repository.updateProfile(avatar, nick)
             //loadUserProfile()
 
@@ -142,11 +147,21 @@ class ProfileViewModel(
         }
     }
 
-
-
-
-
-
+    fun changePassword(currentPassword: String, newPassword: String) {
+        viewModelScope.launch {
+            Log.e("A", "password: $currentPassword")
+            val result = authRepository.updatePassword(currentPassword, newPassword)
+            when (result) {
+                is SmartResult.Success -> {
+                    // Notify the UI about success
+                    eventChannel.send(ProfileEvent.ShowError(UiText.DynamicString("Password changed!")))
+                }
+                is SmartResult.Error -> {
+                    eventChannel.send(ProfileEvent.ShowError(result.error.asUiText()))
+                }
+            }
+        }
+    }
 
     private fun cancelEditProfile() {
         viewModelScope.launch {

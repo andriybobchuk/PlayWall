@@ -2,6 +2,7 @@ package com.studios1299.playwall.auth.data
 
 import android.util.Log
 import com.google.firebase.auth.AuthCredential
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.messaging.FirebaseMessaging
@@ -261,6 +262,74 @@ class FirebaseAuthRepositoryImpl(
             SmartResult.Error(DataError.Network.UNKNOWN)
         }
     }
+//
+//    override suspend fun updatePassword(currentPassword: String, newPassword: String): SmartResult<Unit, DataError.Network> {
+//        val user = firebaseAuth.currentUser ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
+//
+//        // Get user's credential with current password
+//        val credential = EmailAuthProvider.getCredential(user.email!!, currentPassword)
+//
+//        return try {
+//            // Re-authenticate the user
+//            user.reauthenticate(credential).await()
+//
+//            // Update the password
+//            user.updatePassword(newPassword).await()
+//
+//            SmartResult.Success(Unit)
+//        } catch (e: FirebaseAuthException) {
+//            when (e.errorCode) {
+//                "ERROR_WRONG_PASSWORD" -> SmartResult.Error(DataError.Network.UNAUTHORIZED)
+//                else -> SmartResult.Error(DataError.Network.UNKNOWN)
+//            }
+//        } catch (e: Exception) {
+//            SmartResult.Error(DataError.Network.UNKNOWN)
+//        }
+//    }
+override suspend fun updatePassword(currentPassword: String, newPassword: String): SmartResult<Unit, DataError.Network> {
+    val user = firebaseAuth.currentUser ?: run {
+        Log.e("UpdatePassword", "No current user found, returning UNAUTHORIZED")
+        return SmartResult.Error(DataError.Network.UNAUTHORIZED)
+    }
+
+    // Log email being used for authentication
+    Log.e("UpdatePassword", "User email: ${user.email}")
+
+    // Get user's credential with current password
+    val credential = EmailAuthProvider.getCredential(user.email!!, currentPassword)
+    Log.e("UpdatePassword", "User credentials created for re-authentication")
+
+    return try {
+        // Re-authenticate the user
+        Log.e("UpdatePassword", "Re-authenticating user")
+        user.reauthenticate(credential).await()
+        Log.e("UpdatePassword", "Re-authentication successful")
+
+        // Update the password
+        Log.e("UpdatePassword", "Updating password")
+        user.updatePassword(newPassword).await()
+        Log.e("UpdatePassword", "Password updated successfully")
+
+        SmartResult.Success(Unit)
+    } catch (e: FirebaseAuthException) {
+        Log.e("UpdatePassword", "FirebaseAuthException occurred: ${e.errorCode} - ${e.message}")
+        return when (e.errorCode) {
+            "ERROR_INVALID_CREDENTIAL" -> {
+                Log.e("UpdatePassword", "Wrong password error")
+                SmartResult.Error(DataError.Network.UNAUTHORIZED)
+            }
+            else -> {
+                Log.e("UpdatePassword", "Unknown FirebaseAuth error")
+                SmartResult.Error(DataError.Network.UNKNOWN)
+            }
+        }
+    } catch (e: Exception) {
+        Log.e("UpdatePassword", "Exception occurred: ${e.message}")
+        return SmartResult.Error(DataError.Network.UNKNOWN)
+    }
+}
+
+
 
 
     override fun logOut() {

@@ -28,12 +28,12 @@ sealed interface ProfileAction {
 
     data object OnEditProfileClick : ProfileAction
     data object OnLogOut : ProfileAction
-    data class OnSaveProfileClick(val context: Context, val nick: String?, val avatar: Uri?) : ProfileAction
+    data class OnSaveProfileClick(val context: Context, val nick: String?, val avatar: Uri?, val oldPassword: String? = null, val newPassword: String? = null) : ProfileAction
     data object OnCancelEditProfileClick : ProfileAction
     data object OnDeletePhotoClick : ProfileAction
     data class OnPhotoSelected(val uri: Uri) : ProfileAction
     data class OnNameChanged(val name: String) : ProfileAction
-    data class OnEmailChanged(val email: String) : ProfileAction
+    //data class OnEmailChanged(val email: String) : ProfileAction
 }
 
 enum class ProfileDestination {

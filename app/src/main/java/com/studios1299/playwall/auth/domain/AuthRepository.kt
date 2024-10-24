@@ -11,6 +11,7 @@ interface AuthRepository {
     suspend fun googleLogin(credential: AuthCredential): SmartResult<User, DataError.Network>
     suspend fun googleRegister(credential: AuthCredential, screenRatio: Float): SmartResult<User, DataError.Network>
     suspend fun sendPasswordResetEmail(email: String): SmartResult<Unit, DataError.Network>
+    suspend fun updatePassword(currentPassword: String, newPassword: String): SmartResult<Unit, DataError.Network>
     fun logOut()
     suspend fun updatePushToken(): EmptyResult<DataError.Network>
 }

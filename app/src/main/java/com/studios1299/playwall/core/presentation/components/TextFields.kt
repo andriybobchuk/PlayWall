@@ -54,7 +54,7 @@ object TextFields {
         startIcon: ImageVector?,
         endIcon: ImageVector?,
         hint: String,
-        title: String?,
+        title: String? = null,
         modifier: Modifier = Modifier,
         error: String? = null,
         keyboardType: KeyboardType = KeyboardType.Text,
@@ -178,8 +178,9 @@ object TextFields {
     @Composable
     fun Password(
         state: TextFieldState,
-        isPasswordVisible: Boolean,
-        onTogglePasswordVisibility: () -> Unit,
+        isPasswordVisible: Boolean = false,
+        isShowPasswordButtonVisible: Boolean = false,
+        onTogglePasswordVisibility: () -> Unit = {},
         hint: String,
         title: String?,
         modifier: Modifier = Modifier,
@@ -267,17 +268,19 @@ object TextFields {
                             innerBox()
                         }
                         IconButton(onClick = onTogglePasswordVisibility) {
-                            Icon(
-                                imageVector = if (!isPasswordVisible) {
-                                    EyeClosedIcon
-                                } else EyeOpenedIcon,
-                                contentDescription = if(isPasswordVisible) {
-                                    stringResource(id = R.string.show_password)
-                                } else {
-                                    stringResource(id = R.string.hide_password)
-                                },
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            if (isShowPasswordButtonVisible) {
+                                Icon(
+                                    imageVector = if (!isPasswordVisible) {
+                                        EyeClosedIcon
+                                    } else EyeOpenedIcon,
+                                    contentDescription = if(isPasswordVisible) {
+                                        stringResource(id = R.string.show_password)
+                                    } else {
+                                        stringResource(id = R.string.hide_password)
+                                    },
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }

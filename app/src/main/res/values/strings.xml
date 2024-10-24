@@ -32,7 +32,7 @@
     <string name="error_serialization">Error serialization</string>
     <string name="unknown_error">An error occurred, try agan later</string>
     <string name="error_disk_full">Disk is full!</string>
-    <string name="error_unauthorized">Unauthorized!</string>
+    <string name="error_unauthorized">You entered wrong credentials!</string>
     <string name="error_conflict">Conflict!</string>
     <string name="login">Login</string>
     <string name="register">Register</string>
