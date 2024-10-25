@@ -12,7 +12,7 @@ data class WallpaperHistoryResponse(
     val comment: String?,
     val reaction: Reaction?,
     val timeSent: String,
-    val status: MessageStatus
+    val status: MessageStatus?
 )
 
 data class WallpaperHistoryApiResponse(

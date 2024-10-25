@@ -88,7 +88,7 @@ class FcmService : FirebaseMessagingService() {
                 comment = comment,
                 reaction = reaction?.let { Reaction.valueOf(it) },
                 timeSent = timeSent ?: "",
-                status = MessageStatus.unread
+                status = null
             )
 
             when (notificationType) {
@@ -108,6 +108,10 @@ class FcmService : FirebaseMessagingService() {
                 "comment" -> {
                     Log.e("FcmService", "New comment received: $comment")
                     emitWallpaperUpdate(wallpaperHistoryResponse)
+                }
+                "message_read" -> {
+                    Log.e("FcmService", "Message read receipt received")
+                    emitWallpaperUpdate(wallpaperHistoryResponse.copy(status = MessageStatus.read))
                 }
                 else -> {
                     Log.e("FcmService", "Unknown notification type: $notificationType")

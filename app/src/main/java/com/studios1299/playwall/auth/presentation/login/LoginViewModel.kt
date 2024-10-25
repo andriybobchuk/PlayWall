@@ -75,15 +75,11 @@ class LoginViewModel(
 
             when(result) {
                 is SmartResult.Error -> {
-                    if(result.error == DataError.Network.UNAUTHORIZED) {
-                        eventChannel.send(
-                            LoginEvent.Error(
-                                UiText.StringResource(R.string.error_email_password_incorrect)
-                            )
+                    eventChannel.send(
+                        LoginEvent.Error(
+                            UiText.DynamicString(result.errorBody?:"Error")
                         )
-                    } else {
-                        eventChannel.send(LoginEvent.Error(result.error.asUiText()))
-                    }
+                    )
                 }
                 is SmartResult.Success -> {
                     eventChannel.send(LoginEvent.LoginSuccess)
@@ -100,15 +96,11 @@ class LoginViewModel(
 
             when(result) {
                 is SmartResult.Error -> {
-                    if(result.error == DataError.Network.UNAUTHORIZED) {
-                        eventChannel.send(
-                            LoginEvent.Error(
-                                UiText.StringResource(R.string.error_email_password_incorrect)
-                            )
+                    eventChannel.send(
+                        LoginEvent.Error(
+                            UiText.DynamicString(result.errorBody?:"Error")
                         )
-                    } else {
-                        eventChannel.send(LoginEvent.Error(result.error.asUiText()))
-                    }
+                    )
                 }
                 is SmartResult.Success -> {
                     eventChannel.send(LoginEvent.LoginSuccess)
@@ -125,7 +117,11 @@ class LoginViewModel(
                     eventChannel.send(LoginEvent.PasswordResetEmailSent)
                 }
                 is SmartResult.Error -> {
-                    eventChannel.send(LoginEvent.Error(result.error.asUiText()))
+                    eventChannel.send(
+                        LoginEvent.Error(
+                            UiText.DynamicString(result.errorBody?:"Error")
+                        )
+                    )
                 }
             }
         }

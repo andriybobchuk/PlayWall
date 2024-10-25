@@ -32,7 +32,6 @@ import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
-import com.studios1299.playwall.core.domain.error_handling.logSmartResult
 import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.feature.play.presentation.play.Friend
 import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
@@ -65,19 +64,19 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-    private suspend fun refreshFirebaseToken(): SmartResult<String, DataError.Network> {
+    private suspend fun refreshFirebaseToken(): SmartResult<String> {
         return try {
-            val user = firebaseAuth.currentUser ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
+            val user = firebaseAuth.currentUser ?: return SmartResult.Error(604, null, "Current user could not be retrieved from firebaseAuth")
 
             val token = user.getIdToken(true).await().token
             if (token != null) {
                 Preferences.setAuthToken(token)
                 SmartResult.Success(token)
             } else {
-                SmartResult.Error(DataError.Network.UNAUTHORIZED)
+                SmartResult.Error(604, "Forbidden", "Users ID token not found")
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime Exception", "Originated from ${RetrofitClientExt.LOG_TAG}: \n${e.message}")
         }
     }
 
@@ -88,8 +87,8 @@ class FirebaseCoreRepositoryImpl(
      */
     private suspend inline fun <reified T> performAuthRequest(
         request: (authHeader: String) -> Response<T>
-    ): SmartResult<T, DataError.Network> {
-        val token = getFirebaseToken() ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
+    ): SmartResult<T> {
+        val token = getFirebaseToken() ?: return SmartResult.Error(601, "Unauthorized", "Originated from ${RetrofitClientExt.LOG_TAG}")
 
         return RetrofitClientExt.safeCall {
             val result = request("Bearer $token")
@@ -116,17 +115,17 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-    override suspend fun inviteFriend(email: String): SmartResult<Unit, DataError.Network> {
+    override suspend fun inviteFriend(email: String): SmartResult<Unit> {
         return performAuthRequest { token ->
             if (getCurrentUserEmail() == email) {
-                return SmartResult.Error(DataError.Network.BAD_REQUEST)
+                return SmartResult.Error(600, "Runtime Exception", "You cannot add yourself as friend!")
             }
             val inviteRequest = InviteRequest(email = email)
             RetrofitClient.friendsApi.inviteFriend(token, inviteRequest)
         }
     }
 
-    override suspend fun getFriends(forceUpdate: Boolean): SmartResult<List<Friend>, DataError.Network> {
+    override suspend fun getFriends(forceUpdate: Boolean): SmartResult<List<Friend>> {
         try {
             // Check cache first if not forced to update
             if (!forceUpdate) {
@@ -143,7 +142,7 @@ class FirebaseCoreRepositoryImpl(
             }
 
             if (result is SmartResult.Success) {
-                val friendsWithAvatars = result.data.map { friend ->
+                val friendsWithAvatars = result.data?.map { friend ->
                     if (friend.avatarId == null) {
                         friend.copy(avatarId = "")
                     } else {
@@ -158,18 +157,18 @@ class FirebaseCoreRepositoryImpl(
 
                 // Cache the result
                 friendsDao.deleteAllFriends() // Clear old cache
-                friendsDao.insertFriends(friendsWithAvatars.map { it.toEntity() }) // Insert new cache
+                friendsDao.insertFriends(friendsWithAvatars!!.map { it.toEntity() }) // Insert new cache
 
                 return SmartResult.Success(friendsWithAvatars.filter { it.status == FriendshipStatus.accepted })
             } else {
                 return result
             }
         } catch (e: Exception) {
-            return SmartResult.Error(DataError.Network.UNKNOWN)
+            return SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
 
-    override suspend fun getFriendRequests(forceUpdate: Boolean): SmartResult<List<Friend>, DataError.Network> {
+    override suspend fun getFriendRequests(forceUpdate: Boolean): SmartResult<List<Friend>> {
         try {
             // Check cache first if not forced to update
             if (!forceUpdate) {
@@ -185,7 +184,7 @@ class FirebaseCoreRepositoryImpl(
             }
 
             if (result is SmartResult.Success) {
-                val friendsWithAvatars = result.data.map { friend ->
+                val friendsWithAvatars = result.data!!.map { friend ->
                     if (friend.avatarId == null) {
                         friend.copy(avatarId = "")
                     } else {
@@ -205,26 +204,26 @@ class FirebaseCoreRepositoryImpl(
 
                 return SmartResult.Success(friendsWithAvatars.filter { it.status == FriendshipStatus.pending })
             } else {
-                return SmartResult.Error(DataError.Network.UNKNOWN)
+                return SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "Could not get friend requests")
             }
         } catch (e: Exception) {
-            return SmartResult.Error(DataError.Network.UNKNOWN)
+            return SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
 
-    override suspend fun acceptFriendRequest(acceptRequest: AcceptRequest): SmartResult<Unit, DataError.Network> {
+    override suspend fun acceptFriendRequest(acceptRequest: AcceptRequest): SmartResult<Unit> {
         return performAuthRequest { token ->
             RetrofitClient.friendsApi.acceptFriendRequest(token, acceptRequest)
         }
     }
 
-    override suspend fun declineFriendRequest(declineRequest: DeclineRequest): SmartResult<Unit, DataError.Network> {
+    override suspend fun declineFriendRequest(declineRequest: DeclineRequest): SmartResult<Unit> {
         return performAuthRequest { token ->
             RetrofitClient.friendsApi.declineFriendRequest(token, declineRequest)
         }
     }
 
-    override suspend fun removeUser(friendshipId: Int): SmartResult<Unit, DataError.Network> {
+    override suspend fun removeUser(friendshipId: Int): SmartResult<Unit> {
         return try {
             Log.d("removeUser", "Removing friend with ID: $friendshipId")
             performAuthRequest { token ->
@@ -233,11 +232,11 @@ class FirebaseCoreRepositoryImpl(
             }
         } catch (e: Exception) {
             Log.e("removeUser", "Exception in removeUser(): " + e.message)
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
 
-    override suspend fun blockUser(friendshipId: Int, userId: Int): SmartResult<Unit, DataError.Network> {
+    override suspend fun blockUser(friendshipId: Int, userId: Int): SmartResult<Unit> {
         return try {
             Log.e("repo", "Blocking user with friendship ID: $friendshipId by user $userId")
             performAuthRequest { token ->
@@ -246,11 +245,11 @@ class FirebaseCoreRepositoryImpl(
             }
         } catch (e: Exception) {
             Log.e("blockUser", "Exception in blockUser(): " + e.message)
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
 
-    override suspend fun unblockUser(friendshipId: Int, userId: Int): SmartResult<Unit, DataError.Network> {
+    override suspend fun unblockUser(friendshipId: Int, userId: Int): SmartResult<Unit> {
         return try {
             Log.d("unblockUser", "Unblocking user with friendship ID: $friendshipId by user $userId")
             performAuthRequest { token ->
@@ -259,13 +258,13 @@ class FirebaseCoreRepositoryImpl(
             }
         } catch (e: Exception) {
             Log.e("unblockUser", "Exception in unblockUser(): " + e.message)
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
 
 
 
-    override suspend fun getUserData(): SmartResult<UserDataResponse, DataError.Network> {
+    override suspend fun getUserData(): SmartResult<UserDataResponse> {
         return try {
             Log.e("getUserData", "Starting getUserData request")
 
@@ -276,6 +275,8 @@ class FirebaseCoreRepositoryImpl(
 
             if (result is SmartResult.Success) {
                 val userData = result.data
+                    ?: return SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "User data is null")
+
                 Log.e("getUserData", "UserData retrieved successfully: $userData")
 
                 val avatarUrlResult = pathToLink(userData.avatarId)
@@ -288,33 +289,33 @@ class FirebaseCoreRepositoryImpl(
                     ""
                 }
 
-                val userDataResponse = UserDataResponse(
-                    id = userData.id,
-                    name = userData.name,
-                    email = userData.email,
-                    avatarId = avatarUrl,
-                    since = userData.since,
-                    status = userData.status,
-                    requesterId = userData.requesterId,
-                    friendshipId = userData.friendshipId,
-                    screenRatio = userData.screenRatio
-                )
+                val userDataResponse = userData?.let {
+                    UserDataResponse(
+                        id = it.id,
+                        name = userData.name,
+                        email = userData.email,
+                        avatarId = avatarUrl?:"",
+                        since = userData.since,
+                        status = userData.status,
+                        requesterId = userData.requesterId,
+                        friendshipId = userData.friendshipId,
+                        screenRatio = userData.screenRatio
+                    )
+                }
 
                 Log.e("getUserData", "Returning UserDataResponse: $userDataResponse")
                 SmartResult.Success(userDataResponse)
             } else {
                 Log.e("getUserData", "Failed to retrieve user data: $result")
-                SmartResult.Error(DataError.Network.UNKNOWN)
+                SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "Could not get user data")
             }
         } catch (e: Exception) {
             Log.e("getUserData", "Exception in getUserData: ${e.message}", e)
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
 
-
-
-    override suspend fun updateProfile(avatarId: String?, nick: String?): SmartResult<Unit, DataError.Network> {
+    override suspend fun updateProfile(avatarId: String?, nick: String?): SmartResult<Unit> {
         return try {
             performAuthRequest { token ->
                 val updateProfileRequest = UpdateProfileRequest(
@@ -325,67 +326,62 @@ class FirebaseCoreRepositoryImpl(
                 RetrofitClient.userApi.updateProfile(token, updateProfileRequest)
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
 
-
     // S3:
-    override suspend fun uploadFile(file: File, folder: S3Handler.Folder): SmartResult<String, DataError.Network> {
+    override suspend fun uploadFile(file: File, folder: S3Handler.Folder): SmartResult<String> {
         return try {
             val avatarId = S3Handler.uploadToS3(file, folder)
             if (avatarId != null) {
                 SmartResult.Success(avatarId)
             } else {
-                SmartResult.Error(DataError.Network.SERVER_ERROR)
+                SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "Couldnt upload to s3")
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
 
-    override suspend fun pathToLink(path: String): SmartResult<String, DataError.Network> {
+    override suspend fun pathToLink(path: String): SmartResult<String> {
         return try {
             val avatarUrl = S3Handler.pathToDownloadableLink(path)
             if (avatarUrl != null) {
                 SmartResult.Success(avatarUrl)
             } else {
-                SmartResult.Error(DataError.Network.NOT_FOUND)
+                SmartResult.Error(604, null, "Could not convert path to downloadable link")
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, null, "${LOG_TAG} in ${e.message}")
         }
     }
 
-
     // Wallpapers
-    override suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<ChangeWallpaperResponse?, DataError.Network> {
+    override suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<ChangeWallpaperResponse?> {
         return try {
-            Log.e("changeWallpaper", "changewallpaper start with $request")
             val response = performAuthRequest { token ->
                 RetrofitClient.wallpaperApi.changeWallpaper(token, request)
             }
             if (response is SmartResult.Success) {
-                Log.e("changeWallpaper", "resposnse" + response.data.data)
-                SmartResult.Success(response.data.data)
+                SmartResult.Success(response.data?.data)
             } else {
-                Log.e("changeWallpaper", "Error in response: ${logSmartResult(response)}")
-                SmartResult.Error(DataError.Network.UNKNOWN)
+                SmartResult.Error(600, "Runtime exception in $LOG_TAG.changeWallpaper():", "wallpaperApi could not change wallpaper")
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG.changeWallpaper():", "wallpaperApi could not change wallpaper")
         }
     }
 
-    override suspend fun getUserDataById(recipientId: String): SmartResult<UserDataResponse, DataError.Network> {
+    override suspend fun getUserDataById(recipientId: String): SmartResult<UserDataResponse> {
         return try {
-            Log.e(LOG_TAG, "Friend ID: " + recipientId)
             val result = performAuthRequest { token ->
-                Log.e(LOG_TAG, "Friend ID: " + recipientId.toInt())
                 RetrofitClient.wallpaperApi.getRecipientData(token, recipientId.toInt())
             }
-            Log.e(LOG_TAG, "ImagePicker: raw ${result}")
             if (result is SmartResult.Success) {
+                if (result.data == null) {
+                    return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null")
+                }
                 val userData = result.data
                 val avatarUrlResult = pathToLink(userData.avatarId)
                 val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
@@ -393,13 +389,12 @@ class FirebaseCoreRepositoryImpl(
                 } else {
                     ""
                 }
-                Log.e(LOG_TAG, "ImagePicker: rat ${userData.screenRatio}")
                 SmartResult.Success(
                     UserDataResponse(
                         id = userData.id,
                         name = userData.name,
                         email = userData.email,
-                        avatarId = avatarUrl,
+                        avatarId = avatarUrl?: "",
                         since = userData.since,
                         status = userData.status,
                         requesterId = userData.requesterId,
@@ -409,11 +404,11 @@ class FirebaseCoreRepositoryImpl(
                 )
             } else {
                 Log.e(LOG_TAG, "Error in getRecipientData(): " + result)
-                SmartResult.Error(DataError.Network.UNKNOWN)
+                return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null")
             }
         } catch (e: Exception) {
             Log.e(LOG_TAG, "Exception in getRecipientData(): " + e.message)
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null: ${e.message}")
         }
     }
 
@@ -421,7 +416,7 @@ class FirebaseCoreRepositoryImpl(
         userId: String,
         page: Int,
         pageSize: Int
-    ): SmartResult<List<WallpaperHistoryResponse>, DataError.Network> {
+    ): SmartResult<List<WallpaperHistoryResponse>> {
         return try {
             val result = performAuthRequest { token ->
                 RetrofitClient.wallpaperApi.getWallpaperHistory(token, userId.toInt(), page, pageSize)
@@ -430,7 +425,7 @@ class FirebaseCoreRepositoryImpl(
             Log.e(LOG_TAG, "getWallpaperHistory: $result")
 
             if (result is SmartResult.Success) {
-                SmartResult.Success(result.data.data.map { wallpaper ->
+                SmartResult.Success(result.data?.data?.map { wallpaper ->
 
                     if (wallpaper.fileName == null) {
                         wallpaper.copy(fileName = "")
@@ -441,19 +436,19 @@ class FirebaseCoreRepositoryImpl(
                         } else {
                             ""
                         }
-                        wallpaper.copy(fileName = wallpaperUrl)
+                        wallpaper.copy(fileName = wallpaperUrl?:"")
                     }
                 })
             } else {
-                SmartResult.Error(DataError.Network.UNKNOWN)
+                return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getWallpaperHistory():", "Data is null")
             }
         } catch (e: Exception) {
             Log.e(LOG_TAG, "Exception in getWallpaperHistory(): ${e.message}")
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getWallpaperHistory():", "Data is null")
         }
     }
 
-    override suspend fun react(wallpaperId: Int, reaction: String?): SmartResult<Unit, DataError.Network> {
+    override suspend fun react(wallpaperId: Int, reaction: String?): SmartResult<Unit> {
         return try {
             Log.e("react", "Reacting...")
             val result = performAuthRequest { token ->
@@ -472,11 +467,11 @@ class FirebaseCoreRepositoryImpl(
             }
         } catch (e: Exception) {
             Log.e(LOG_TAG, "Exception in react(): " + e.message)
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG.react():", "Could not react: ${e.message}")
         }
     }
 
-    override suspend fun comment(wallpaperId: Int, comment: String?): SmartResult<Unit, DataError.Network> {
+    override suspend fun comment(wallpaperId: Int, comment: String?): SmartResult<Unit> {
         return try {
             performAuthRequest { token ->
                 if (comment.isNullOrEmpty()) {
@@ -487,11 +482,11 @@ class FirebaseCoreRepositoryImpl(
             }
         } catch (e: Exception) {
             Log.e(LOG_TAG, "Exception in comment(): " + e.message)
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "Could not comment: ${e.message}")
         }
     }
 
-    override suspend fun markMessagesAsRead(friendshipId: Int, lastMessageId: Int): SmartResult<Unit, DataError.Network> {
+    override suspend fun markMessagesAsRead(friendshipId: Int, lastMessageId: Int): SmartResult<Unit> {
         Log.e("ChatRepository", "Attempting to mark messages as read for friendshipId: $friendshipId, lastMessageId: $lastMessageId")
         return try {
             val result = performAuthRequest { token ->
@@ -505,7 +500,7 @@ class FirebaseCoreRepositoryImpl(
             if (result is SmartResult.Success) {
                 Log.e("ChatRepository", "Successfully marked messages as read for friendshipId: $friendshipId")
             } else if (result is SmartResult.Error) {
-                Log.e("ChatRepository", "Failed to mark messages as read. Error: ${result.error}")
+                Log.e("ChatRepository", "Failed to mark messages as read. Error: ${result.errorBody}")
             } else {
                 Log.e("ChatRepository", "Unexpected result: $result")
             }
@@ -513,7 +508,7 @@ class FirebaseCoreRepositoryImpl(
             result
         } catch (e: Exception) {
             Log.e("ChatRepository", "Exception while marking messages as read: ${e.localizedMessage}")
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "Could not mar as read: ${e.message}")
         }
     }
 
@@ -521,7 +516,7 @@ class FirebaseCoreRepositoryImpl(
         page: Int,
         pageSize: Int,
         forceRefresh: Boolean
-    ): SmartResult<List<ExploreWallpaperResponse>, DataError.Network> = withContext(Dispatchers.IO) {
+    ): SmartResult<List<ExploreWallpaperResponse>> = withContext(Dispatchers.IO) {
         Log.e("Repository", "Starting loadExploreWallpapers with page: $page, pageSize: $pageSize")
 
         // Try to load from Room first
@@ -557,15 +552,15 @@ class FirebaseCoreRepositoryImpl(
             }
 
             if (result is SmartResult.Success) {
-                Log.e("Repository", "Successfully fetched wallpapers from API: ${result.data.size}")
+                Log.e("Repository", "Successfully fetched wallpapers from API: ${result.data?.size}")
 
                 // Cache the fetched data, preserving the order by assigning a sequential "order" field
-                val entitiesToInsert = result.data.mapIndexed { index, wallpaper ->
+                val entitiesToInsert = result.data?.mapIndexed { index, wallpaper ->
                     val avatarUrlResult = pathToLink(wallpaper.fileName)
                     ExploreWallpaperEntity(
                         id = wallpaper.id,
                         fileName = if (avatarUrlResult is SmartResult.Success) {
-                            avatarUrlResult.data
+                            avatarUrlResult.data?:""
                         } else {
                             ""
                         },
@@ -579,16 +574,20 @@ class FirebaseCoreRepositoryImpl(
                 }
 
                 // Log the data being inserted
-                Log.e("Repository", "Inserting ${entitiesToInsert.size} wallpapers into Room")
-                exploreDao.insertWallpapers(entitiesToInsert)
+                if (entitiesToInsert != null) {
+                    Log.e("Repository", "Inserting ${entitiesToInsert.size} wallpapers into Room")
+                }
+                if (entitiesToInsert != null) {
+                    exploreDao.insertWallpapers(entitiesToInsert)
+                }
 
                 // Also, return the modified list from the API result in the original order
-                val modifiedApiWallpapers = result.data.map { wallpaper ->
+                val modifiedApiWallpapers = result.data?.map { wallpaper ->
                     val avatarUrlResult = pathToLink(wallpaper.fileName)
                     ExploreWallpaperResponse(
                         id = wallpaper.id,
                         fileName = if (avatarUrlResult is SmartResult.Success) {
-                            avatarUrlResult.data
+                            avatarUrlResult.data?:""
                         } else {
                             ""
                         },
@@ -599,48 +598,45 @@ class FirebaseCoreRepositoryImpl(
                         dateCreated = wallpaper.dateCreated
                     )
                 }
-
                 return@withContext SmartResult.Success(modifiedApiWallpapers) // Return modified API data
             } else {
                 Log.e("Repository", "API request failed: ${result}")
             }
-
             result // Return the result (Success/Error)
         } catch (e: Exception) {
             Log.e("Repository", "Exception occurred: ${e.message}", e)
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
 
-
-    override suspend fun saveWallpaper(wallpaperId: Int): SmartResult<Unit, DataError.Network> {
+    override suspend fun saveWallpaper(wallpaperId: Int): SmartResult<Unit> {
         return try {
             performAuthRequest { token ->
                 RetrofitClient.wallpaperApi.saveWallpaper(token, SaveWallpaperRequest(wallpaperId))
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
 
-    override suspend fun removeSavedWallpaper(wallpaperId: Int): SmartResult<Unit, DataError.Network> {
+    override suspend fun removeSavedWallpaper(wallpaperId: Int): SmartResult<Unit> {
         return try {
             performAuthRequest { token ->
                 RetrofitClient.wallpaperApi.removeSavedWallpaper(token, RemoveSavedWallpaperRequest(wallpaperId))
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
 
-    override suspend fun loadSavedWallpapers(page: Int, pageSize: Int): SmartResult<List<ExploreWallpaperResponse>, DataError.Network> {
+    override suspend fun loadSavedWallpapers(page: Int, pageSize: Int): SmartResult<List<ExploreWallpaperResponse>> {
         return try {
             val result = performAuthRequest { token ->
                 RetrofitClient.wallpaperApi.loadSavedWallpapers(token, page, pageSize)
             }
             Log.e("loadSavedWallpapers in repo", "result: $result")
             if (result is SmartResult.Success) {
-                val withLoadedImages = result.data.map {
+                val withLoadedImages = result.data?.map {
                     if (it.fileName == null) {
                         it.copy(fileName = "")
                     } else {
@@ -650,21 +646,19 @@ class FirebaseCoreRepositoryImpl(
                         } else {
                             ""
                         }
-                        it.copy(fileName = avatarUrl)
+                        it.copy(fileName = avatarUrl?:"")
                     }
                 }
                 SmartResult.Success(withLoadedImages)
             } else {
-                SmartResult.Error(DataError.Network.UNKNOWN)
+                SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "Could not load saved wallpapers")
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
 
-
-
-    override suspend fun reportWallpaper(wallpaperId: Int): SmartResult<Unit, DataError.Network> {
+    override suspend fun reportWallpaper(wallpaperId: Int): SmartResult<Unit> {
         return try {
             val result = performAuthRequest { token ->
                 RetrofitClient.wallpaperApi.reportWallpaper(token, ReportRequest(wallpaperId))
@@ -672,41 +666,28 @@ class FirebaseCoreRepositoryImpl(
             if (result is SmartResult.Success) {
                 SmartResult.Success(Unit)
             } else {
-                SmartResult.Error(DataError.Network.UNKNOWN)
+                SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "Could not report")
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
 
-    override suspend fun getFriendScreenRatio(friendId: Int): SmartResult<Float, DataError.Network> {
+    override suspend fun getFriendScreenRatio(friendId: Int): SmartResult<Float> {
         return try {
             val result =  performAuthRequest { token ->
                 RetrofitClient.userApi.getFriendScreenRatio(token, friendId)
             }
             if (result is SmartResult.Success) {
-                val screenRatio = result.data.screenRatio
+                val screenRatio = result.data?.screenRatio
                 SmartResult.Success(screenRatio)
             } else {
-                SmartResult.Error(DataError.Network.NOT_FOUND)
+                SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "friends screen ratio not found")
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
-
-
-
-
-
-    // WALLPAPER MANAGEMENT
-//    override fun isLiked(wallpaperId: String): Boolean {
-//        return Preferences.isWallpaperLiked(wallpaperId)
-//    }
-//
-//    override fun setLiked(wallpaperId: String, isLiked: Boolean) {
-//        Preferences.setWallpaperLiked(wallpaperId, isLiked)
-//    }
 
     override fun getWallpaperDestination(): WallpaperOption {
         return Preferences.getWallpaperDestination()

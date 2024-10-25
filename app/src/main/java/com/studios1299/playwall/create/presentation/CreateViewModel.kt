@@ -95,7 +95,7 @@ class CreateViewModel(
             val result = repository.getFriends(true)
             if (result is SmartResult.Success) {
                 _state.update { currentState ->
-                    currentState.copy(friends = result.data)
+                    currentState.copy(friends = result.data!!)
                 }
             }
         }

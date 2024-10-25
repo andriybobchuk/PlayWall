@@ -45,12 +45,12 @@ fun DataError.asUiText(): UiText {
             R.string.error_conflict
         )
 
-        DataError.Network.NOT_FOUND -> TODO()
+        DataError.Network.NOT_FOUND -> UiText.DynamicString("Not found")
         DataError.Network.INTERNAL_SERVER_ERROR -> UiText.DynamicString("Internal server error")
-        DataError.Network.NOT_IMPLEMENTED -> TODO()
-        DataError.Network.BAD_GATEWAY -> TODO()
-        DataError.Network.SERVICE_UNAVAILABLE -> TODO()
-        DataError.Network.GATEWAY_TIMEOUT -> TODO()
+        DataError.Network.NOT_IMPLEMENTED -> UiText.DynamicString("Not implemented")
+        DataError.Network.BAD_GATEWAY -> UiText.DynamicString("Bad gateway")
+        DataError.Network.SERVICE_UNAVAILABLE -> UiText.DynamicString("Service unavailable")
+        DataError.Network.GATEWAY_TIMEOUT -> UiText.DynamicString("Gateway timeout")
         DataError.Network.FORBIDDEN -> UiText.DynamicString("Forbidden")
         DataError.Network.BAD_REQUEST -> UiText.DynamicString("Bad request")
     }

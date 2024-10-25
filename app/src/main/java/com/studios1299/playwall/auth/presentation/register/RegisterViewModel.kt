@@ -18,6 +18,7 @@ import com.studios1299.playwall.core.presentation.asUiText
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.data.UserDataValidator
 import com.studios1299.playwall.auth.presentation.getScreenRatio
+import com.studios1299.playwall.auth.presentation.login.LoginEvent
 import com.studios1299.playwall.core.data.networking.NetworkMonitor
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import kotlinx.coroutines.channels.Channel
@@ -104,15 +105,12 @@ class RegisterViewModel(
 
             when(result) {
                 is SmartResult.Error -> {
-                    if(result.error == DataError.Network.CONFLICT) {
-                        eventChannel.send(
-                            RegisterEvent.Error(
-                                UiText.StringResource(R.string.error_email_exists)
-                            )
+                    Log.e("RegisterViewModel", "$result")
+                    eventChannel.send(
+                        RegisterEvent.Error(
+                            UiText.DynamicString(result.errorBody?:result.message?:"Error")
                         )
-                    } else {
-                        eventChannel.send(RegisterEvent.Error(result.error.asUiText()))
-                    }
+                    )
                 }
                 is SmartResult.Success -> {
                     loginAfterRegister()
@@ -132,15 +130,11 @@ class RegisterViewModel(
 
             when(result) {
                 is SmartResult.Error -> {
-                    if(result.error == DataError.Network.UNAUTHORIZED) {
-                        eventChannel.send(
-                            RegisterEvent.Error(
-                                UiText.StringResource(R.string.error_email_password_incorrect)
-                            )
+                    eventChannel.send(
+                        RegisterEvent.Error(
+                            UiText.DynamicString(result.errorBody?:"Error")
                         )
-                    } else {
-                        eventChannel.send(RegisterEvent.Error(result.error.asUiText()))
-                    }
+                    )
                 }
                 is SmartResult.Success -> {
                     eventChannel.send(RegisterEvent.RegistrationSuccess)
@@ -157,15 +151,11 @@ class RegisterViewModel(
 
             when(result) {
                 is SmartResult.Error -> {
-                    if(result.error == DataError.Network.UNAUTHORIZED) {
-                        eventChannel.send(
-                            RegisterEvent.Error(
-                                UiText.StringResource(R.string.error_email_password_incorrect)
-                            )
+                    eventChannel.send(
+                        RegisterEvent.Error(
+                            UiText.DynamicString(result.errorBody?:"Error")
                         )
-                    } else {
-                        eventChannel.send(RegisterEvent.Error(result.error.asUiText()))
-                    }
+                    )
                 }
                 is SmartResult.Success -> {
                     eventChannel.send(RegisterEvent.RegistrationSuccess)

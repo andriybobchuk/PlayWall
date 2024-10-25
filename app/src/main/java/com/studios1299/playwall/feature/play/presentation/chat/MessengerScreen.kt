@@ -1,6 +1,7 @@
 package com.studios1299.playwall.feature.play.presentation.chat
 
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
@@ -36,6 +37,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.components.Images
+import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
 import com.studios1299.playwall.feature.play.data.model.User
 import com.studios1299.playwall.feature.play.presentation.chat.util.BuildCounterDisplay
@@ -48,6 +50,8 @@ import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
 import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.launch
 import java.io.File
+
+private const val LOG_TAG = "MessengerScreen"
 
 /**
  * Main screen for the messenger feature, displaying the header, messages list,
@@ -86,30 +90,41 @@ fun MessengerScreen(
         viewModel.setConnectivityStatus(isConnected)
     }
 
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val lifecycleObserver = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_STOP) {
-                if (uiState.messages.isEmpty()) return@LifecycleEventObserver
-                viewModel.markMessagesAsRead(uiState.recipient?.friendshipId ?: -1, uiState.messages[0].id)
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
-
-        // Cleanup when the effect leaves the Composition
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
-        }
-    }
+//    val lifecycleOwner = LocalLifecycleOwner.current
+//    DisposableEffect(lifecycleOwner) {
+//        val lifecycleObserver = LifecycleEventObserver { _, event ->
+//            if (event == Lifecycle.Event.ON_STOP) {
+//                if (uiState.messages.isEmpty()) return@LifecycleEventObserver
+//                viewModel.markMessagesAsRead(uiState.recipient?.friendshipId ?: -1, uiState.messages[0].id)
+//            }
+//        }
+//        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+//
+//        // Cleanup when the effect leaves the Composition
+//        onDispose {
+//            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
+//        }
+//    }
 
     FullscreenOverlays(uiState, viewModel)
 
     Scaffold {
-        Column(modifier = modifier
-            .fillMaxSize()
-            .padding(it)) {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(it)
+        ) {
             MessengerScreenHeader(
-                recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1, screenRatio = 2f),
+                recipient = uiState.recipient ?: User(
+                    -1,
+                    "",
+                    "",
+                    since = "",
+                    status = FriendshipStatus.accepted,
+                    requesterId = -1,
+                    friendshipId = -1,
+                    screenRatio = 2f
+                ),
                 viewModel = viewModel,
                 onBackClick = onBackClick,
             )
@@ -119,7 +134,16 @@ fun MessengerScreen(
                     .fillMaxSize()
             ) {
                 MessagesList(
-                    recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1, screenRatio = 2f),
+                    recipient = uiState.recipient ?: User(
+                        -1,
+                        "",
+                        "",
+                        since = "",
+                        status = FriendshipStatus.accepted,
+                        requesterId = -1,
+                        friendshipId = -1,
+                        screenRatio = 2f
+                    ),
                     viewModel = viewModel,
                     uiState = uiState,
                     scrollState = scrollState
@@ -131,7 +155,16 @@ fun MessengerScreen(
                 ) {
                     SendImageButton(
                         onClick = { requestPermissionAndPickImage() },
-                        recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1, screenRatio = 2f),
+                        recipient = uiState.recipient ?: User(
+                            -1,
+                            "",
+                            "",
+                            since = "",
+                            status = FriendshipStatus.accepted,
+                            requesterId = -1,
+                            friendshipId = -1,
+                            screenRatio = 2f
+                        ),
                         modifier = Modifier
                             .padding(end = 8.dp)
                     )
@@ -149,6 +182,7 @@ fun MessengerScreen(
         }
     }
 }
+
 @Composable
 private fun FullscreenOverlays(
     uiState: MessengerUiState,
@@ -177,7 +211,8 @@ private fun FullscreenOverlays(
 
     // Launch UCrop directly
     fun launchUCrop(sourceUri: Uri, screenRatio: Float?) {
-        val destinationUri = Uri.fromFile(File(context.cacheDir, "cropped_image_${System.currentTimeMillis()}.jpg"))
+        val destinationUri =
+            Uri.fromFile(File(context.cacheDir, "cropped_image_${System.currentTimeMillis()}.jpg"))
 
         val uCrop = UCrop.of(sourceUri, destinationUri)
             .withAspectRatio(screenRatio ?: 1f, 1f) // Set the aspect ratio based on screen ratio
@@ -201,7 +236,7 @@ private fun FullscreenOverlays(
     } else if (pickedImageUri != null) {
         launchUCrop(
             sourceUri = pickedImageUri,
-            screenRatio = 1/(uiState.recipient?.screenRatio?:2f)
+            screenRatio = 1 / (uiState.recipient?.screenRatio ?: 2f)
         )
     }
 }
@@ -239,12 +274,35 @@ fun MessagesList(
             }
             val isLastMessage = message.id == messages[0].id
 
+            Log.v(
+                LOG_TAG,
+                "Message sender=${uiState.currentUser?.id}, recipient.id=${message.recipientId}, message.id=${message.id}, meagestatus=${message.status}"
+            )
+
+            if (uiState.currentUser?.id == message.recipientId
+                && message.id != -1
+                && message.status == MessageStatus.unread
+            ) {
+                // Mark the last message as read if it's the recipient's message
+                Log.v(LOG_TAG, "Marking message as read because it should be marked as read")
+                viewModel.markMessagesAsRead(uiState.recipient?.friendshipId ?: -1, message.id)
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
                 MessageItem(
-                    recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1, screenRatio = 2f),
+                    recipient = uiState.recipient ?: User(
+                        -1,
+                        "",
+                        "",
+                        since = "",
+                        status = FriendshipStatus.accepted,
+                        requesterId = -1,
+                        friendshipId = -1,
+                        screenRatio = 2f
+                    ),
                     viewModel = viewModel,
                     message = message,
                     uiState = uiState,
@@ -374,7 +432,12 @@ fun MessengerScreenHeader(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "Became friends ${timestampAsDate(recipient.since, LocalContext.current)}",
+                            text = "Became friends ${
+                                timestampAsDate(
+                                    recipient.since,
+                                    LocalContext.current
+                                )
+                            }",
                             color = MaterialTheme.colorScheme.secondary,
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
@@ -403,7 +466,7 @@ fun MessengerScreenHeader(
                     onDismissRequest = { isMenuExpanded = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text(text = if(recipient.status == FriendshipStatus.accepted) "Mute friend" else "Unmute friend") },
+                        text = { Text(text = if (recipient.status == FriendshipStatus.accepted) "Mute friend" else "Unmute friend") },
                         onClick = {
                             if (recipient.status == FriendshipStatus.accepted) {
                                 viewModel.blockFriend(recipient.friendshipId, recipient.id)

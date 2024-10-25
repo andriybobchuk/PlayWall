@@ -1,6 +1,8 @@
 package com.studios1299.playwall.core.data.networking
 
 import android.util.Log
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import retrofit2.Response
@@ -12,46 +14,39 @@ object RetrofitClientExt {
 
     inline fun <reified T> safeCall(
         call: () -> Response<T>
-    ): SmartResult<T, DataError.Network> {
+    ): SmartResult<T> {
         return try {
             val response = call()
             responseToSmartResult(response)
         } catch (e: Exception) {
-            Log.e("RetrofitClientExt.safeCall()", "safeCall just saved you from exception: ${e.message}")
-            Log.e("RetrofitClientExt.safeCall()", "safeCall exception stacktrace: ${e.printStackTrace()}")
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            Firebase.crashlytics.recordException(e)
+            Log.e(LOG_TAG, "This should virtually never happen: responseToSmartResult couldn't convert response to SmartResult")
+            SmartResult.Error(600, "Runtime Exception", "Originated from $LOG_TAG: \n${e.message}")
         }
     }
 
-    inline fun <reified T> responseToSmartResult(response: Response<T>): SmartResult<T, DataError.Network> {
-        Log.e(LOG_TAG, "responseToSmartResult(): ${response.code()}")
-        Log.e(LOG_TAG, "responseToSmartResult(): ${response.message()}")
-        Log.e(LOG_TAG, "responseToSmartResult(): ${response.errorBody()}")
-        Log.e(LOG_TAG, "responseToSmartResult(): ${response.body()}")
-        return when {
-            response.isSuccessful -> {
-                val body = response.body()
-                if (body != null) {
-                    SmartResult.Success(body)
-                } else {
-                    SmartResult.Error(DataError.Network.UNKNOWN)
-                }
-            }
-            response.code() == 400 -> SmartResult.Error(DataError.Network.BAD_REQUEST)
-            response.code() == 401 -> SmartResult.Error(DataError.Network.UNAUTHORIZED)
-            response.code() == 403 -> SmartResult.Error(DataError.Network.FORBIDDEN)
-            response.code() == 404 -> SmartResult.Error(DataError.Network.NOT_FOUND)
-            response.code() == 408 -> SmartResult.Error(DataError.Network.REQUEST_TIMEOUT)
-            response.code() == 409 -> SmartResult.Error(DataError.Network.CONFLICT)
-            response.code() == 413 -> SmartResult.Error(DataError.Network.PAYLOAD_TOO_LARGE)
-            response.code() == 429 -> SmartResult.Error(DataError.Network.TOO_MANY_REQUESTS)
-            response.code() == 500 -> SmartResult.Error(DataError.Network.INTERNAL_SERVER_ERROR)
-            response.code() == 501 -> SmartResult.Error(DataError.Network.NOT_IMPLEMENTED)
-            response.code() == 502 -> SmartResult.Error(DataError.Network.BAD_GATEWAY)
-            response.code() == 503 -> SmartResult.Error(DataError.Network.SERVICE_UNAVAILABLE)
-            response.code() == 504 -> SmartResult.Error(DataError.Network.GATEWAY_TIMEOUT)
-            response.code() in 505..599 -> SmartResult.Error(DataError.Network.SERVER_ERROR)
-            else -> SmartResult.Error(DataError.Network.UNKNOWN)
+    inline fun <reified T> responseToSmartResult(response: Response<T>): SmartResult<T> {
+        return if (response.isSuccessful) {
+            SmartResult.Success(response.body())
+        } else {
+            // Extract detailed information from the response for logging
+            val code = response.code()
+            val message = response.message()
+            val errorBody = response.errorBody()?.string()
+            val headers = response.headers().toMultimap().toString()
+
+            // Log the error with as much detail as possible
+            Log.e(LOG_TAG, "API call failed with response code: $code")
+            Log.e(LOG_TAG, "Response message: $message")
+            Log.e(LOG_TAG, "Response headers: $headers")
+            Log.e(LOG_TAG, "Response error body: $errorBody")
+
+            // Details for Crashlytics
+            val apiException = Exception("API call failed with code: $code, message: $message, error body: $errorBody, headers: $headers")
+            // Send a detailed non-fatal report to Crashlytics
+            Firebase.crashlytics.recordException(apiException)
+
+            SmartResult.Error(code, message, errorBody?.takeUnless { it.startsWith("<") } ?: message)
         }
     }
 }

@@ -91,7 +91,7 @@ class ProfileViewModel(
             when (val profileResult = repository.getUserData()) {
                 is SmartResult.Success -> {
                     state = state.copy(
-                        userName = TextFieldState(profileResult.data.name),
+                        userName = TextFieldState(profileResult.data!!.name),
                         email = TextFieldState(profileResult.data.email),
                         userAvatar = profileResult.data.avatarId,
                         selectedWallpaperOption = repository.getWallpaperDestination(),
@@ -103,7 +103,7 @@ class ProfileViewModel(
                 }
                 is SmartResult.Error -> {
                     if (state.isOnline) {
-                        eventChannel.send(ProfileEvent.ShowError(profileResult.error.asUiText()))
+                        eventChannel.send(ProfileEvent.ShowError(UiText.DynamicString(profileResult.errorBody?:"")))
                     } else {
                         eventChannel.send(ProfileEvent.ShowError(DataError.Network.NO_INTERNET.asUiText()))
                     }
@@ -164,7 +164,7 @@ class ProfileViewModel(
                     eventChannel.send(ProfileEvent.ShowError(UiText.DynamicString("Password changed!")))
                 }
                 is SmartResult.Error -> {
-                    eventChannel.send(ProfileEvent.ShowError(result.error.asUiText()))
+                    eventChannel.send(ProfileEvent.ShowError(DataError.Network.NO_INTERNET.asUiText()))
                 }
             }
         }
@@ -202,7 +202,7 @@ class ProfileViewModel(
             val result = repository.loadSavedWallpapers(page, pageSize)
 
             if (result is SmartResult.Success) {
-                val savedWallpapers = result.data.map {
+                val savedWallpapers = result.data!!.map {
                     ExploreWallpaper(
                         id = it.id,
                         fileName = it.fileName,

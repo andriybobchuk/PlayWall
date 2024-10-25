@@ -18,41 +18,41 @@ import java.io.File
 interface CoreRepository {
     // CORE
     suspend fun getCurrentUserId(): String?
-    suspend fun getUserData(): SmartResult<UserDataResponse, DataError.Network>
-    suspend fun updateProfile(avatarId: String?, nick: String?): SmartResult<Unit, DataError.Network>
+    suspend fun getUserData(): SmartResult<UserDataResponse>
+    suspend fun updateProfile(avatarId: String?, nick: String?): SmartResult<Unit>
 
     // S3
-    suspend fun uploadFile(file: File, folder: S3Handler.Folder): SmartResult<String, DataError.Network>
-    suspend fun pathToLink(path: String): SmartResult<String, DataError.Network>
+    suspend fun uploadFile(file: File, folder: S3Handler.Folder): SmartResult<String>
+    suspend fun pathToLink(path: String): SmartResult<String>
 
     // FRIENDS
-    suspend fun inviteFriend(email: String): SmartResult<Unit, DataError.Network>
-    suspend fun getFriends(forceUpdate: Boolean): SmartResult<List<Friend>, DataError.Network>
-    suspend fun getFriendRequests(forceUpdate: Boolean): SmartResult<List<Friend>, DataError.Network>
-    suspend fun acceptFriendRequest(acceptRequest: AcceptRequest): SmartResult<Unit, DataError.Network>
-    suspend fun declineFriendRequest(declineRequest: DeclineRequest): SmartResult<Unit, DataError.Network>
-    suspend fun removeUser(friendshipId: Int): SmartResult<Unit, DataError.Network>
-    suspend fun blockUser(friendshipId: Int, userId: Int): SmartResult<Unit, DataError.Network>
-    suspend fun unblockUser(friendshipId: Int, userId: Int): SmartResult<Unit, DataError.Network>
+    suspend fun inviteFriend(email: String): SmartResult<Unit>
+    suspend fun getFriends(forceUpdate: Boolean): SmartResult<List<Friend>>
+    suspend fun getFriendRequests(forceUpdate: Boolean): SmartResult<List<Friend>>
+    suspend fun acceptFriendRequest(acceptRequest: AcceptRequest): SmartResult<Unit>
+    suspend fun declineFriendRequest(declineRequest: DeclineRequest): SmartResult<Unit>
+    suspend fun removeUser(friendshipId: Int): SmartResult<Unit>
+    suspend fun blockUser(friendshipId: Int, userId: Int): SmartResult<Unit>
+    suspend fun unblockUser(friendshipId: Int, userId: Int): SmartResult<Unit>
 
     // WALLPAPER MANAGEMENT
-    suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<ChangeWallpaperResponse?, DataError.Network>
-    suspend fun getUserDataById(recipientId: String): SmartResult<UserDataResponse, DataError.Network>
-    suspend fun getWallpaperHistory(userId: String, page: Int, pageSize: Int): SmartResult<List<WallpaperHistoryResponse>, DataError.Network>
-    suspend fun react(wallpaperId: Int, reaction: String?): SmartResult<Unit, DataError.Network>
-    suspend fun comment(wallpaperId: Int, comment: String?): SmartResult<Unit, DataError.Network>
-    suspend fun markMessagesAsRead(friendshipId: Int, lastMessageId: Int): SmartResult<Unit, DataError.Network>
+    suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<ChangeWallpaperResponse?>
+    suspend fun getUserDataById(recipientId: String): SmartResult<UserDataResponse>
+    suspend fun getWallpaperHistory(userId: String, page: Int, pageSize: Int): SmartResult<List<WallpaperHistoryResponse>>
+    suspend fun react(wallpaperId: Int, reaction: String?): SmartResult<Unit>
+    suspend fun comment(wallpaperId: Int, comment: String?): SmartResult<Unit>
+    suspend fun markMessagesAsRead(friendshipId: Int, lastMessageId: Int): SmartResult<Unit>
 
     // EXPLORE WALLPAPER MANAGEMENT
-    suspend fun loadExploreWallpapers(page: Int, pageSize: Int, forceRefresh: Boolean): SmartResult<List<ExploreWallpaperResponse>, DataError.Network>
-    suspend fun saveWallpaper(wallpaperId: Int): SmartResult<Unit, DataError.Network>
-    suspend fun removeSavedWallpaper(wallpaperId: Int): SmartResult<Unit, DataError.Network>
-    suspend fun loadSavedWallpapers(page: Int, pageSize: Int): SmartResult<List<ExploreWallpaperResponse>, DataError.Network>
+    suspend fun loadExploreWallpapers(page: Int, pageSize: Int, forceRefresh: Boolean): SmartResult<List<ExploreWallpaperResponse>>
+    suspend fun saveWallpaper(wallpaperId: Int): SmartResult<Unit>
+    suspend fun removeSavedWallpaper(wallpaperId: Int): SmartResult<Unit>
+    suspend fun loadSavedWallpapers(page: Int, pageSize: Int): SmartResult<List<ExploreWallpaperResponse>>
 
 
-    suspend fun reportWallpaper(wallpaperId: Int): SmartResult<Unit, DataError.Network>
+    suspend fun reportWallpaper(wallpaperId: Int): SmartResult<Unit>
 
-    suspend fun getFriendScreenRatio(friendId: Int): SmartResult<Float, DataError.Network>
+    suspend fun getFriendScreenRatio(friendId: Int): SmartResult<Float>
 
     // PREFERENCE MANAGEMENT (DEPRECATED)
     fun getWallpaperDestination(): WallpaperOption

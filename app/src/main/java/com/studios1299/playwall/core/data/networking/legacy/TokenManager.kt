@@ -14,19 +14,18 @@ object TokenManager {
         }
     }
 
-    suspend fun refreshFirebaseToken(): SmartResult<String, DataError.Network> {
+    suspend fun refreshFirebaseToken(): SmartResult<String> {
         return try {
-            val user = MyApp.appModule.firebaseAuth.currentUser ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
-
+            val user = MyApp.appModule.firebaseAuth.currentUser ?: return SmartResult.Error(401, null,"Not authorized")
             val token = user.getIdToken(true).await().token
             if (token != null) {
                 Preferences.setAuthToken(token)
                 SmartResult.Success(token)
             } else {
-                SmartResult.Error(DataError.Network.UNAUTHORIZED)
+                SmartResult.Error(401, null,"Not authorized")
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, null,e.message)
         }
     }
 }

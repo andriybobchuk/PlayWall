@@ -74,7 +74,7 @@ class ExploreViewModel(
             // Update UI state on the main thread
             if (photos is SmartResult.Success) {
                 updateExploreState(state.copy(
-                    wallpapers = photos.data.map {
+                    wallpapers = photos.data!!.map {
                         ExploreWallpaper(
                             id = it.id,
                             fileName = it.fileName,
@@ -111,12 +111,12 @@ class ExploreViewModel(
                         if (isLikedNow) {
                             val result = repository.saveWallpaper(wallpaperId)
                             if (result is SmartResult.Error) {
-                                Log.e("likeWallpaper", "Error saving wallpaper: ${result.error}")
+                                Log.e("likeWallpaper", "Error saving wallpaper: ${result.errorBody}")
                             }
                         } else {
                             val result = repository.removeSavedWallpaper(wallpaperId)
                             if (result is SmartResult.Error) {
-                                Log.e("likeWallpaper", "Error removing saved wallpaper: ${result.error}")
+                                Log.e("likeWallpaper", "Error removing saved wallpaper: ${result.errorBody}")
                             }
                         }
                     }

@@ -8,7 +8,7 @@ import com.studios1299.playwall.feature.play.domain.Paginator
 class DefaultPaginator<Key, Item>(
     private val initialKey: Key,
     private inline val onLoadUpdated: (Boolean) -> Unit,
-    private inline val onRequest: suspend (nextKey: Key) -> SmartResult<List<Item>, CustomError>,
+    private inline val onRequest: suspend (nextKey: Key) -> SmartResult<List<Item>>,
     private inline val getNextKey: suspend (List<Item>) -> Key,
     private inline val onError: suspend (Throwable?) -> Unit,
     private inline val onSuccess: suspend (items: List<Item>, newKey: Key) -> Unit
@@ -35,12 +35,12 @@ class DefaultPaginator<Key, Item>(
                 result.data
             }
             is SmartResult.Error -> {
-                Log.e(LOG_TAG, "Error in loadNextItems(): ${result.error}")
+                Log.e(LOG_TAG, "Error in loadNextItems(): ${result.errorBody}")
                 emptyList()
             }
         }
 
-        currentKey = getNextKey(items)
+        currentKey = getNextKey(items!!)
         onSuccess(items, currentKey)
         onLoadUpdated(false)
     }

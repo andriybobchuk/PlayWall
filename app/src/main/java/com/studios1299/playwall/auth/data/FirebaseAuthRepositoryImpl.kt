@@ -8,6 +8,8 @@ import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.messaging.FirebaseMessaging
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.domain.User
+import com.studios1299.playwall.core.data.FirebaseCoreRepositoryImpl
+import com.studios1299.playwall.core.data.FirebaseCoreRepositoryImpl.Companion
 import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.networking.request.user.CreateUserRequest
 import com.studios1299.playwall.core.data.networking.RetrofitClientExt
@@ -28,7 +30,7 @@ class FirebaseAuthRepositoryImpl(
         private const val LOG_TAG = "FirebaseAuthRepositoryImpl"
     }
 
-    override suspend fun login(email: String, password: String): SmartResult<User, DataError.Network> {
+    override suspend fun login(email: String, password: String): SmartResult<User> {
         return try {
             val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
             val firebaseUser = authResult.user
@@ -42,25 +44,47 @@ class FirebaseAuthRepositoryImpl(
 
                 SmartResult.Success(User(firebaseUser.uid, firebaseUser.email ?: ""))
             } else {
-                SmartResult.Error(DataError.Network.UNAUTHORIZED)
+                SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", "firebaseUser == null")
             }
         } catch (e: FirebaseAuthException) {
             when (e.errorCode) {
-                "ERROR_INVALID_CREDENTIAL" -> SmartResult.Error(DataError.Network.UNAUTHORIZED)
-                "ERROR_USER_NOT_FOUND" -> SmartResult.Error(DataError.Network.NOT_FOUND)
-                else -> SmartResult.Error(DataError.Network.UNKNOWN)
+                "ERROR_INVALID_CREDENTIAL" -> SmartResult.Error(
+                    600,
+                    "Runtime exception in ${LOG_TAG}:",
+                    "Invalid email or password!"
+                )
+
+                "ERROR_USER_NOT_FOUND" -> SmartResult.Error(
+                    600,
+                    "Runtime exception in ${LOG_TAG}:",
+                    "User not found"
+                )
+
+                else -> SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", e.message)
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", e.message)
         }
     }
 
-    override suspend fun register(email: String, password: String, screenRatio: Float): EmptyResult<DataError.Network> {
+    override suspend fun register(
+        email: String,
+        password: String,
+        screenRatio: Float
+    ): EmptyResult {
         return try {
             // Create user in Firebase
             val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
-            val user = authResult.user ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
-            val firebaseIdToken = user.getIdToken(false).await().token ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
+            val user = authResult.user ?: return SmartResult.Error(
+                600,
+                "Runtime exception in ${LOG_TAG}:",
+                "You are not authorized"
+            )
+            val firebaseIdToken = user.getIdToken(false).await().token ?: return SmartResult.Error(
+                600,
+                "Runtime exception in ${LOG_TAG}:",
+                "Not authorized"
+            )
             Preferences.setAuthToken(firebaseIdToken)
 
             // Create user in DB
@@ -85,11 +109,16 @@ class FirebaseAuthRepositoryImpl(
 
         } catch (e: FirebaseAuthException) {
             when (e.errorCode) {
-                "ERROR_EMAIL_ALREADY_IN_USE" -> SmartResult.Error(DataError.Network.CONFLICT)
-                else -> SmartResult.Error(DataError.Network.UNKNOWN)
+                "ERROR_EMAIL_ALREADY_IN_USE" -> SmartResult.Error(
+                    600,
+                    "Runtime exception in ${LOG_TAG}:",
+                    "Email already in use"
+                )
+
+                else -> SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", e.message)
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", e.message)
         }.asEmptyDataResult()
     }
 
@@ -98,7 +127,7 @@ class FirebaseAuthRepositoryImpl(
         email: String,
         firebaseIdToken: String,
         screenRatio: Float
-    ): EmptyResult<DataError.Network> {
+    ): EmptyResult {
         return try {
             val authHeader = "Bearer $firebaseIdToken"
 
@@ -112,11 +141,11 @@ class FirebaseAuthRepositoryImpl(
                 RetrofitClient.userApi.createUser(authHeader, requestBody)
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", e.message)
         }
     }
 
-    override suspend fun updatePushToken(): EmptyResult<DataError.Network> {
+    override suspend fun updatePushToken(): EmptyResult {
         return try {
             performAuthRequest { token ->
                 Log.e("updatePushToken", "Start updating FCM token in the repo")
@@ -124,11 +153,11 @@ class FirebaseAuthRepositoryImpl(
                 Preferences.setFcmToken(firebaseFcmToken)
                 val requestBody = mapOf("pushToken" to firebaseFcmToken)
 
-                Log.e("updatePushToken", "Finished updating FCM token in the repo")
+                Log.e("updatePushToken", "Calling userApi.updatePushToken()...")
                 RetrofitClient.userApi.updatePushToken(token, requestBody)
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", e.message)
         }
     }
 
@@ -138,19 +167,23 @@ class FirebaseAuthRepositoryImpl(
         }
     }
 
-    private suspend fun refreshFirebaseToken(): SmartResult<String, DataError.Network> {
+    private suspend fun refreshFirebaseToken(): SmartResult<String> {
         return try {
-            val user = firebaseAuth.currentUser ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
+            val user = firebaseAuth.currentUser ?: return SmartResult.Error(
+                600,
+                "Runtime exception in ${LOG_TAG}:",
+                "CurrentUser is null"
+            )
 
             val token = user.getIdToken(true).await().token
             if (token != null) {
                 Preferences.setAuthToken(token)
                 SmartResult.Success(token)
             } else {
-                SmartResult.Error(DataError.Network.UNAUTHORIZED)
+                SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", "Token == null")
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", e.message)
         }
     }
 
@@ -161,8 +194,12 @@ class FirebaseAuthRepositoryImpl(
      */
     private suspend inline fun <reified T> performAuthRequest(
         request: (authHeader: String) -> Response<T>
-    ): SmartResult<T, DataError.Network> {
-        val token = getFirebaseToken() ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
+    ): SmartResult<T> {
+        val token = getFirebaseToken() ?: return SmartResult.Error(
+            600,
+            "Runtime exception in ${LOG_TAG}:",
+            "No token"
+        )
 
         return RetrofitClientExt.safeCall {
             val result = request("Bearer $token")
@@ -189,11 +226,22 @@ class FirebaseAuthRepositoryImpl(
         }
     }
 
-    override suspend fun googleRegister(credential: AuthCredential, screenRatio: Float): SmartResult<User, DataError.Network> {
+    override suspend fun googleRegister(
+        credential: AuthCredential,
+        screenRatio: Float
+    ): SmartResult<User> {
         return try {
             val authResult = firebaseAuth.signInWithCredential(credential).await()
-            val user = authResult.user ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
-            val firebaseIdToken = user.getIdToken(false).await().token ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
+            val user = authResult.user ?: return SmartResult.Error(
+                600,
+                "Runtime exception in ${LOG_TAG}:",
+                "No user"
+            )
+            val firebaseIdToken = user.getIdToken(false).await().token ?: return SmartResult.Error(
+                600,
+                "Runtime exception in ${LOG_TAG}:",
+                "No ID token"
+            )
             Preferences.setAuthToken(firebaseIdToken)
             //val firebaseFcmToken = firebaseMessaging.token.await() // For PUSH notifications
 
@@ -217,141 +265,128 @@ class FirebaseAuthRepositoryImpl(
             return SmartResult.Success(User(user.uid, user.email ?: ""))
         } catch (e: FirebaseAuthException) {
             when (e.errorCode) {
-                "ERROR_INVALID_CREDENTIAL" -> SmartResult.Error(DataError.Network.UNAUTHORIZED)
-                "ERROR_USER_NOT_FOUND" -> SmartResult.Error(DataError.Network.UNAUTHORIZED)
-                else -> SmartResult.Error(DataError.Network.UNKNOWN)
+                "ERROR_INVALID_CREDENTIAL" -> SmartResult.Error(
+                    600,
+                    "Runtime exception in ${LOG_TAG}:",
+                    "Invalid credential"
+                )
+
+                "ERROR_USER_NOT_FOUND" -> SmartResult.Error(
+                    600,
+                    "Runtime exception in ${LOG_TAG}:",
+                    "User not found"
+                )
+
+                else -> SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", e.message)
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", e.message)
         }
     }
 
-    override suspend fun googleLogin(credential: AuthCredential): SmartResult<User, DataError.Network> {
+    override suspend fun googleLogin(credential: AuthCredential): SmartResult<User> {
         return try {
             val authResult = firebaseAuth.signInWithCredential(credential).await()
-            val user = authResult.user ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
-            val firebaseIdToken = user.getIdToken(false).await().token ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
+            val user = authResult.user ?: return SmartResult.Error(
+                600,
+                "Runtime exception in ${LOG_TAG}:",
+                "not authorized"
+            )
+            val firebaseIdToken = user.getIdToken(false).await().token ?: return SmartResult.Error(
+                600,
+                "Runtime exception in ${LOG_TAG}:",
+                "No id token"
+            )
             Preferences.setAuthToken(firebaseIdToken)
 
             // Update the push token after successfully login
             val updateTokenResult = updatePushToken()
             if (updateTokenResult is SmartResult.Error) {
-                Log.e("Google login", updateTokenResult.error.toString())
+                Log.e("Google login", updateTokenResult.errorBody.toString())
                 //return updateTokenResult
             }
 
             return SmartResult.Success(User(user.uid, user.email ?: ""))
         } catch (e: FirebaseAuthException) {
             when (e.errorCode) {
-                "ERROR_INVALID_CREDENTIAL" -> SmartResult.Error(DataError.Network.UNAUTHORIZED)
-                "ERROR_USER_NOT_FOUND" -> SmartResult.Error(DataError.Network.UNAUTHORIZED)
-                else -> SmartResult.Error(DataError.Network.UNKNOWN)
+                "ERROR_INVALID_CREDENTIAL" -> SmartResult.Error(
+                    600,
+                    "Runtime exception in ${LOG_TAG}:",
+                    "invalid credential"
+                )
+
+                "ERROR_USER_NOT_FOUND" -> SmartResult.Error(
+                    600,
+                    "Runtime exception in ${LOG_TAG}:",
+                    "User not found"
+                )
+
+                else -> SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", e.message)
             }
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", e.message)
         }
     }
 
-    override suspend fun sendPasswordResetEmail(email: String): SmartResult<Unit, DataError.Network> {
+    override suspend fun sendPasswordResetEmail(email: String): SmartResult<Unit> {
         return try {
             firebaseAuth.sendPasswordResetEmail(email).await()
             SmartResult.Success(Unit)
         } catch (e: FirebaseAuthException) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", e.message)
         } catch (e: Exception) {
-            SmartResult.Error(DataError.Network.UNKNOWN)
+            SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", e.message)
         }
     }
-//
-//    override suspend fun updatePassword(currentPassword: String, newPassword: String): SmartResult<Unit, DataError.Network> {
-//        val user = firebaseAuth.currentUser ?: return SmartResult.Error(DataError.Network.UNAUTHORIZED)
-//
-//        // Get user's credential with current password
-//        val credential = EmailAuthProvider.getCredential(user.email!!, currentPassword)
-//
-//        return try {
-//            // Re-authenticate the user
-//            user.reauthenticate(credential).await()
-//
-//            // Update the password
-//            user.updatePassword(newPassword).await()
-//
-//            SmartResult.Success(Unit)
-//        } catch (e: FirebaseAuthException) {
-//            when (e.errorCode) {
-//                "ERROR_WRONG_PASSWORD" -> SmartResult.Error(DataError.Network.UNAUTHORIZED)
-//                else -> SmartResult.Error(DataError.Network.UNKNOWN)
-//            }
-//        } catch (e: Exception) {
-//            SmartResult.Error(DataError.Network.UNKNOWN)
-//        }
-//    }
-override suspend fun updatePassword(currentPassword: String, newPassword: String): SmartResult<Unit, DataError.Network> {
-    val user = firebaseAuth.currentUser ?: run {
-        Log.e("UpdatePassword", "No current user found, returning UNAUTHORIZED")
-        return SmartResult.Error(DataError.Network.UNAUTHORIZED)
-    }
 
-    // Log email being used for authentication
-    Log.e("UpdatePassword", "User email: ${user.email}")
-
-    // Get user's credential with current password
-    val credential = EmailAuthProvider.getCredential(user.email!!, currentPassword)
-    Log.e("UpdatePassword", "User credentials created for re-authentication")
-
-    return try {
-        // Re-authenticate the user
-        Log.e("UpdatePassword", "Re-authenticating user")
-        user.reauthenticate(credential).await()
-        Log.e("UpdatePassword", "Re-authentication successful")
-
-        // Update the password
-        Log.e("UpdatePassword", "Updating password")
-        user.updatePassword(newPassword).await()
-        Log.e("UpdatePassword", "Password updated successfully")
-
-        SmartResult.Success(Unit)
-    } catch (e: FirebaseAuthException) {
-        Log.e("UpdatePassword", "FirebaseAuthException occurred: ${e.errorCode} - ${e.message}")
-        return when (e.errorCode) {
-            "ERROR_INVALID_CREDENTIAL" -> {
-                Log.e("UpdatePassword", "Wrong password error")
-                SmartResult.Error(DataError.Network.UNAUTHORIZED)
-            }
-            else -> {
-                Log.e("UpdatePassword", "Unknown FirebaseAuth error")
-                SmartResult.Error(DataError.Network.UNKNOWN)
-            }
+    override suspend fun updatePassword(
+        currentPassword: String,
+        newPassword: String
+    ): SmartResult<Unit> {
+        val user = firebaseAuth.currentUser ?: run {
+            Log.e("UpdatePassword", "No current user found, returning UNAUTHORIZED")
+            return SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", "Not authorized")
         }
-    } catch (e: Exception) {
-        Log.e("UpdatePassword", "Exception occurred: ${e.message}")
-        return SmartResult.Error(DataError.Network.UNKNOWN)
+        // Log email being used for authentication
+        Log.e("UpdatePassword", "User email: ${user.email}")
+
+        // Get user's credential with current password
+        val credential = EmailAuthProvider.getCredential(user.email!!, currentPassword)
+        Log.e("UpdatePassword", "User credentials created for re-authentication")
+
+        return try {
+            // Re-authenticate the user
+            Log.e("UpdatePassword", "Re-authenticating user")
+            user.reauthenticate(credential).await()
+            Log.e("UpdatePassword", "Re-authentication successful")
+
+            // Update the password
+            Log.e("UpdatePassword", "Updating password")
+            user.updatePassword(newPassword).await()
+            Log.e("UpdatePassword", "Password updated successfully")
+
+            SmartResult.Success(Unit)
+        } catch (e: FirebaseAuthException) {
+            Log.e("UpdatePassword", "FirebaseAuthException occurred: ${e.errorCode} - ${e.message}")
+            return when (e.errorCode) {
+                "ERROR_INVALID_CREDENTIAL" -> {
+                    Log.e("UpdatePassword", "Wrong password error")
+                    SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", "Invalid credential")
+                }
+
+                else -> {
+                    Log.e("UpdatePassword", "Unknown FirebaseAuth error")
+                    SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", e.message)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("UpdatePassword", "Exception occurred: ${e.message}")
+            SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", e.message)
+        }
     }
-}
-
-
-
 
     override fun logOut() {
         firebaseAuth.signOut()
     }
-
-//    override suspend fun updatePushToken(pushToken: String): SmartResult<Unit, DataError.Network> {
-//        return try {
-//            val response = performAuthRequest { token ->
-//
-//            }
-//            if (response is SmartResult.Success) {
-//                Log.e("FcmService", "New token was updated")
-//                SmartResult.Success(Unit)
-//            } else {
-//                Log.e("FcmService", "New token was NOT updated")
-//                SmartResult.Error(DataError.Network.UNKNOWN)
-//            }
-//        } catch (e: Exception) {
-//            Log.e("FcmService", "New token was excepted" + e.message)
-//            SmartResult.Error(DataError.Network.UNKNOWN)
-//        }
-//    }
 
 }

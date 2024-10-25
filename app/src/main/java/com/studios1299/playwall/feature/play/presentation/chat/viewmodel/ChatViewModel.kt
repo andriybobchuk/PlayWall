@@ -15,7 +15,6 @@ import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.data.s3.uriToFile
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
-import com.studios1299.playwall.core.domain.error_handling.logSmartResult
 import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.data.model.User
 import com.studios1299.playwall.feature.play.data.DefaultPaginator
@@ -69,7 +68,10 @@ class ChatViewModel(
             paginationState = paginationState.copy(error = error?.localizedMessage)
         },
         onSuccess = { messagesResponse, newKey ->
-            Log.e("Paginator", "Success - Loaded ${messagesResponse.size} messages for page $newKey")
+            Log.e(
+                "Paginator",
+                "Success - Loaded ${messagesResponse.size} messages for page $newKey"
+            )
 
             val messages = messagesResponse.map {
                 Message(
@@ -79,7 +81,7 @@ class ChatViewModel(
                     timestamp = it.timeSent,
                     reaction = it.reaction,
                     senderId = it.requesterId,
-                    status = it.status,
+                    status = it.status ?: MessageStatus.unread,
                     recipientId = it.recipientId
                 )
             }
@@ -110,25 +112,35 @@ class ChatViewModel(
 
         _uiState.update { currentState ->
             val currentMessages = currentState.messages.toMutableList()
-            val existingMessageIndex = currentMessages.indexOfFirst { it.id == wallpaperHistoryResponse.id }
+            val existingMessageIndex =
+                currentMessages.indexOfFirst { it.id == wallpaperHistoryResponse.id }
 
             if (existingMessageIndex != -1) {
                 Log.e(LOG_TAG, "Updating existing message with id: ${wallpaperHistoryResponse.id}")
                 // Update the message if it already exists
                 if (wallpaperHistoryResponse.comment != null) {
-                    currentMessages[existingMessageIndex] = currentMessages[existingMessageIndex].copy(
-                        caption =  wallpaperHistoryResponse.comment,
-                    )
+                    currentMessages[existingMessageIndex] =
+                        currentMessages[existingMessageIndex].copy(
+                            caption = wallpaperHistoryResponse.comment,
+                        )
                 } else if (wallpaperHistoryResponse.reaction != null) {
                     if (wallpaperHistoryResponse.reaction == Reaction.none) {
-                        currentMessages[existingMessageIndex] = currentMessages[existingMessageIndex].copy(
-                            reaction = null,
-                        )
+                        currentMessages[existingMessageIndex] =
+                            currentMessages[existingMessageIndex].copy(
+                                reaction = null,
+                            )
                     } else {
-                        currentMessages[existingMessageIndex] = currentMessages[existingMessageIndex].copy(
-                            reaction = wallpaperHistoryResponse.reaction,
-                        )
+                        currentMessages[existingMessageIndex] =
+                            currentMessages[existingMessageIndex].copy(
+                                reaction = wallpaperHistoryResponse.reaction,
+                            )
                     }
+                } else if (wallpaperHistoryResponse.status != null) {
+                    Log.e(LOG_TAG, "Status changed to: ${wallpaperHistoryResponse.status}")
+                    currentMessages[existingMessageIndex] =
+                        currentMessages[existingMessageIndex].copy(
+                            status = wallpaperHistoryResponse.status,
+                        )
                 }
             } else {
                 Log.e(LOG_TAG, "Adding new message with id: ${wallpaperHistoryResponse.id}")
@@ -140,7 +152,7 @@ class ChatViewModel(
                     timestamp = wallpaperHistoryResponse.timeSent,
                     reaction = wallpaperHistoryResponse.reaction,
                     senderId = wallpaperHistoryResponse.requesterId,
-                    status =  wallpaperHistoryResponse.status,
+                    status = wallpaperHistoryResponse.status ?: MessageStatus.unread,
                     recipientId = wallpaperHistoryResponse.recipientId
                 )
                 currentMessages.add(newMessage)
@@ -157,8 +169,6 @@ class ChatViewModel(
 
         Log.e(LOG_TAG, "Final state after update: ${_uiState.value.messages}")
     }
-
-
 
 
     fun loadMessages() {
@@ -215,29 +225,31 @@ class ChatViewModel(
         viewModelScope.launch {
             when (val result = chatRepository.getUserDataById(friendId)) {
                 is SmartResult.Success -> {
-                    Log.e(LOG_TAG, "ImagePicker: rat in VW ${result.data.screenRatio}")
+                    Log.e(LOG_TAG, "ImagePicker: rat in VW ${result.data?.screenRatio}")
                     _uiState.update { currentState ->
                         currentState.copy(
-                            recipient = User(
-                            id = result.data.id,
-                            name = result.data.name,
-                            profilePictureUrl = result.data.avatarId,
-                            email = result.data.email,
-                                since = result.data.since?:"",
-                                status = result.data.status?:FriendshipStatus.accepted,
-                                requesterId = result.data.requesterId,
-                                friendshipId = result.data.friendshipId,
-                                screenRatio = result.data.screenRatio
-                        ))
+                            recipient = result.data?.let {
+                                User(
+                                    id = it.id,
+                                    name = result.data.name,
+                                    profilePictureUrl = result.data.avatarId,
+                                    email = result.data.email,
+                                    since = result.data.since ?: "",
+                                    status = result.data.status ?: FriendshipStatus.accepted,
+                                    requesterId = result.data.requesterId,
+                                    friendshipId = result.data.friendshipId,
+                                    screenRatio = result.data.screenRatio
+                                )
+                            })
                     }
                 }
+
                 is SmartResult.Error -> {
-                    Log.e(LOG_TAG, "Error fetching recipient data: ${result.error}")
+                    Log.e(LOG_TAG, "Error fetching recipient data: ${result.errorBody}")
                 }
             }
         }
     }
-
 
 
     fun setSelectedMessage(message: Message?) {
@@ -259,20 +271,23 @@ class ChatViewModel(
                 is SmartResult.Error -> {
                     Log.e(LOG_TAG, "Error: setCurrentUser()")
                 }
+
                 is SmartResult.Success -> {
                     _uiState.update { currentState ->
                         currentState.copy(currentUser =
-                        User(
-                            id = result.data.id,
-                            name = result.data.name,
-                            email = result.data.email,
-                            profilePictureUrl = result.data.avatarId,
-                            since = result.data.since?:"",
-                            status = result.data.status?:FriendshipStatus.accepted,
-                            requesterId = result.data.requesterId,
-                            friendshipId = result.data.friendshipId,
-                            screenRatio = result.data.screenRatio
-                        ))
+                        result.data?.let {
+                            User(
+                                id = it.id,
+                                name = result.data.name,
+                                email = result.data.email,
+                                profilePictureUrl = result.data.avatarId,
+                                since = result.data.since ?: "",
+                                status = result.data.status ?: FriendshipStatus.accepted,
+                                requesterId = result.data.requesterId,
+                                friendshipId = result.data.friendshipId,
+                                screenRatio = result.data.screenRatio
+                            )
+                        })
                     }
                 }
             }
@@ -280,7 +295,10 @@ class ChatViewModel(
     }
 
     fun sendWallpaper(context: Context, uri: Uri?, comment: String?, reaction: String?) {
-        Log.e("sendWallpaper", "Function called with uri: $uri, comment: $comment, reaction: $reaction")
+        Log.e(
+            "sendWallpaper",
+            "Function called with uri: $uri, comment: $comment, reaction: $reaction"
+        )
 
         viewModelScope.launch {
             var s3Filename: String? = null
@@ -298,7 +316,6 @@ class ChatViewModel(
                     s3Filename = filename.data
                     Log.e("sendWallpaper", "File uploaded successfully. S3 Filename: $s3Filename")
                 } else {
-                    Log.e("sendWallpaper", "Failed to upload file to S3: ${logSmartResult(filename)}")
                     return@launch
                 }
             } else {
@@ -322,9 +339,10 @@ class ChatViewModel(
             Log.e("sendWallpaper", "ChangeWallpaperRequest prepared: $changeWallpaperRequest")
 
             // Optimistically update the UI state with the new message
-            val currentTimestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
-                timeZone = TimeZone.getTimeZone("UTC") // Set timezone to UTC
-            }.format(Date())
+            val currentTimestamp =
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
+                    timeZone = TimeZone.getTimeZone("UTC") // Set timezone to UTC
+                }.format(Date())
 
             val optimisticMessage = Message(
                 id = -1, // Temporary ID, replace with actual once received
@@ -332,7 +350,7 @@ class ChatViewModel(
                 caption = comment,
                 timestamp = currentTimestamp,
                 status = MessageStatus.unread,
-               // reaction = reaction,
+                // reaction = reaction,
                 reaction = Reaction.none,
                 senderId = uiState.value.currentUser!!.id,
                 recipientId = friendId.toInt()
@@ -347,12 +365,18 @@ class ChatViewModel(
                 val sortedMessages = messages.sortedByDescending {
                     it.timestamp.takeIf { it.isNotEmpty() }?.let { timestamp ->
                         // Parse the timestamp string to a Date object and convert it to Long for sorting
-                        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
+                        SimpleDateFormat(
+                            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                            Locale.getDefault()
+                        ).apply {
                             timeZone = TimeZone.getTimeZone("UTC") // Set timezone to UTC
                         }.parse(timestamp)?.time
                     } ?: Long.MAX_VALUE // If timestamp is empty, place it at the end
                 }
-                Log.e("sendWallpaper", "UI state updated with new message. Current message count: ${messages.size}")
+                Log.e(
+                    "sendWallpaper",
+                    "UI state updated with new message. Current message count: ${messages.size}"
+                )
                 currentState.copy(messages = sortedMessages)
             }
 
@@ -366,7 +390,10 @@ class ChatViewModel(
                 _uiState.update { currentState ->
                     val updatedMessages = currentState.messages.map { message ->
                         if (message.id == -1 && response.data != null) { // Find the optimistic message
-                            Log.e("sendWallpaper", "Updating optimistic message with server response data.")
+                            Log.e(
+                                "sendWallpaper",
+                                "Updating optimistic message with server response data."
+                            )
                             message.copy(
                                 id = response.data.id, // Update with the actual ID
                                 timestamp = response.data.timestamp ?: "",
@@ -377,16 +404,22 @@ class ChatViewModel(
                             message
                         }
                     }
-                    Log.e("sendWallpaper", "UI state updated with final message data. Current message count: ${updatedMessages.size}")
+                    Log.e(
+                        "sendWallpaper",
+                        "UI state updated with final message data. Current message count: ${updatedMessages.size}"
+                    )
 
                     currentState.copy(messages = updatedMessages)
                 }
             } else {
-                Log.e("sendWallpaper", "Error sending wallpaper: ${logSmartResult(response)}")
                 // Remove the optimistic message if the request fails
                 _uiState.update { currentState ->
-                    val filteredMessages = currentState.messages.filter { it.id != -1 } // Remove optimistic message
-                    Log.e("sendWallpaper", "Optimistic message removed. Current message count: ${filteredMessages.size}")
+                    val filteredMessages =
+                        currentState.messages.filter { it.id != -1 } // Remove optimistic message
+                    Log.e(
+                        "sendWallpaper",
+                        "Optimistic message removed. Current message count: ${filteredMessages.size}"
+                    )
                     currentState.copy(messages = filteredMessages)
                 }
             }
@@ -466,37 +499,22 @@ class ChatViewModel(
     }
 
     fun markMessagesAsRead(friendshipId: Int, lastMessageId: Int) {
-        Log.e("ChatViewModel", "Marking messages as read for friendshipId: $friendshipId, lastMessageId: $lastMessageId")
+        Log.e(
+            "ChatViewModel",
+            "Marking messages as read for friendshipId: $friendshipId, lastMessageId: $lastMessageId"
+        )
         viewModelScope.launch {
             val result = chatRepository.markMessagesAsRead(friendshipId, lastMessageId)
             if (result is SmartResult.Success) {
-                Log.e("ChatViewModel", "Messages marked as read successfully for friendshipId: $friendshipId")
+                Log.e(
+                    "ChatViewModel",
+                    "Messages marked as read successfully for friendshipId: $friendshipId"
+                )
             } else if (result is SmartResult.Error) {
-                Log.e("ChatViewModel", "Failed to mark messages as read: ${result.error}")
+                Log.e("ChatViewModel", "Failed to mark messages as read: ${result.errorBody}")
             } else {
                 Log.e("ChatViewModel", "Unexpected result when marking messages as read: $result")
             }
         }
     }
-
-
-
-    fun getUserNameById(userId: String): String {
-        return ""
-       // return chatRepository.getUserNameById(userId)
-    }
-
-//    fun updateMessageCaption(message: Message, newCaption: String) {
-//        val updatedMessage = message.copy(caption = newCaption)
-//        chatRepository.updateMessage(updatedMessage)
-//
-//        Log.d(LOG_TAG, "updateMessageCaption with newCaption: ${newCaption}")
-//
-//        _uiState.update { currentState ->
-//            val updatedMessages = currentState.messages.map {
-//                if (it.id == message.id) updatedMessage else it
-//            }
-//            currentState.copy(messages = updatedMessages)
-//        }
-//    }
 }

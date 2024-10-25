@@ -82,7 +82,7 @@ class PostDetailViewModel(
 
                 if (photos is SmartResult.Success) {
                     updateExploreState(state.copy(wallpapers =
-                    photos.data.map {
+                    photos.data!!.map {
                         ExploreWallpaper(
                             id = it.id,
                             fileName = it.fileName,
@@ -122,7 +122,7 @@ class PostDetailViewModel(
             val result = repository.loadSavedWallpapers(0, 18)
 
             if (result is SmartResult.Success) {
-                updateExploreState(state.copy(wallpapers = result.data.map {
+                updateExploreState(state.copy(wallpapers = result.data!!.map {
                     ExploreWallpaper(
                         id = it.id,
                         fileName = it.fileName,
@@ -153,7 +153,7 @@ class PostDetailViewModel(
         viewModelScope.launch {
             val result = repository.getFriends(true)
             if (result is SmartResult.Success) {
-                updateExploreState(state.copy(friends = result.data))
+                updateExploreState(state.copy(friends = result.data!!))
             }
         }
     }
@@ -185,12 +185,12 @@ class PostDetailViewModel(
                         if (isLikedNow) {
                             val result = repository.saveWallpaper(wallpaperId)
                             if (result is SmartResult.Error) {
-                                Log.e("likeWallpaper", "Error saving wallpaper: ${result.error}")
+                                Log.e("likeWallpaper", "Error saving wallpaper: ${result.errorBody}")
                             }
                         } else {
                             val result = repository.removeSavedWallpaper(wallpaperId)
                             if (result is SmartResult.Error) {
-                                Log.e("likeWallpaper", "Error removing saved wallpaper: ${result.error}")
+                                Log.e("likeWallpaper", "Error removing saved wallpaper: ${result.errorBody}")
                             }
                         }
                     }

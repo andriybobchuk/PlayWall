@@ -140,51 +140,19 @@ class PlayViewModel(
                 // say error
                 val errorMessage = when (inviteFriend) {
                     is SmartResult.Error -> {
-                        when (inviteFriend.error) {
-                            DataError.Network.NOT_FOUND -> "User not found, is the email correct?"
-                            else -> "An unknown error occurred. Please try again."
-                        }
+                        inviteFriend.errorBody
                     }
                     else -> "An unexpected error occurred. Please try again."
                 }
-                eventChannel.send(PlayEvent.ShowError(UiText.DynamicString(errorMessage)))
+                eventChannel.send(PlayEvent.ShowError(UiText.DynamicString(errorMessage?:"Error")))
             }
             state = state.copy(
                 isLoading = false
             )
         }
     }
-//
-//    @OptIn(ExperimentalFoundationApi::class)
-//    private fun loadFriendsAndRequests() {
-//        viewModelScope.launch {
-//            state = state.copy(isLoading = true)
-//
-//            when (val friendsResult = repository.getFriends()) {
-//                is SmartResult.Success -> {
-//                    state = state.copy(
-//                        friends = friendsResult.data,
-//                        isLoading = false
-//                    )
-//                }
-//                is SmartResult.Error -> {
-//                    eventChannel.send(PlayEvent.ShowError(friendsResult.error.asUiText()))
-//                }
-//            }
-//
-//            when (val friendRequestsResult = repository.getFriendRequests()) {
-//                is SmartResult.Success -> {
-//                    state = state.copy(
-//                        friendRequests = friendRequestsResult.data,
-//                        isLoading = false
-//                    )
-//                }
-//                is SmartResult.Error -> {
-//                   // eventChannel.send(PlayEvent.ShowError(friendRequestsResult.error.asUiText()))
-//                }
-//            }
-//        }
-//    }
+
+
 @OptIn(ExperimentalFoundationApi::class)
 private fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
     viewModelScope.launch {
@@ -193,20 +161,20 @@ private fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
         when (val friendsResult = repository.getFriends(forceUpdate)) {
             is SmartResult.Success -> {
                 state = state.copy(
-                    friends = friendsResult.data,
+                    friends = friendsResult.data!!,
                     isLoading = false
                 )
                 Log.e(LOG_TAG, "Retrieved friends: ${friendsResult.data}")
             }
             is SmartResult.Error -> {
-                eventChannel.send(PlayEvent.ShowError(friendsResult.error.asUiText()))
+                eventChannel.send(PlayEvent.ShowError(UiText.DynamicString(friendsResult.errorBody?:"")))
             }
         }
 
         when (val friendRequestsResult = repository.getFriendRequests(forceUpdate)) {
             is SmartResult.Success -> {
                 state = state.copy(
-                    friendRequests = friendRequestsResult.data,
+                    friendRequests = friendRequestsResult.data!!,
                     isLoading = false
                 )
             }
@@ -310,7 +278,7 @@ private fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
         viewModelScope.launch {
             val result = repository.getFriends(true)
             if (result is SmartResult.Success) {
-                state = state.copy(friends = result.data)
+                state = state.copy(friends = result.data!!)
                 Log.e("PlayViewModel", "Friends list refreshed successfully")
             } else {
                 Log.e("PlayViewModel", "Failed to refresh friends list")
@@ -367,7 +335,7 @@ private fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
             val result = repository.loadSavedWallpapers(0, 18)
 
             if (result is SmartResult.Success) {
-                state = state.copy(exploreWallpapers = result.data.map {
+                state = state.copy(exploreWallpapers = result.data!!.map {
                     ExploreWallpaper(
                         id = it.id,
                         fileName = it.fileName,
