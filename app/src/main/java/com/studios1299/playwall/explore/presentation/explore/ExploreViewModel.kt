@@ -47,7 +47,7 @@ class ExploreViewModel(
                 }
             }
         }
-        onAction(ExploreAction.LoadPhotos(forceRefresh = true))
+        onAction(ExploreAction.LoadPhotos(forceRefresh = false))
     }
 
     fun onAction(action: ExploreAction) {
@@ -103,7 +103,7 @@ class ExploreViewModel(
                 val countIncrement = if (isLikedNow) 1 else -1
                 wallpaper.copy(
                     isLiked = isLikedNow,
-                    savedCount = wallpaper.savedCount + countIncrement
+                    savedCount = if (wallpaper.savedCount + countIncrement <= 0) 0 else wallpaper.savedCount + countIncrement
                 ).also {
                     Preferences.setWallpaperLiked(wallpaperId, isLikedNow)
 
@@ -129,15 +129,12 @@ class ExploreViewModel(
     }
 
     private fun navigateToPhotoDetail(photoId: Int) {
-
         if (photoId != -1) {
             viewModelScope.launch {
-                Log.e("Rerouting", "photoid != null -> navigate in VM...")
                 eventChannel.send(ExploreEvent.NavigateToPhotoDetail(photoId))
             }
         } else {
             viewModelScope.launch {
-                Log.e("Rerouting", "rereouting NULL")
                 eventChannel.send(ExploreEvent.ShowError(UiText.StringResource(R.string.error_photo_not_found)))
             }
         }

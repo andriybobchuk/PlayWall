@@ -38,7 +38,6 @@ fun ExploreScreenRoot(
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is ExploreEvent.NavigateToPhotoDetail -> {
-                Log.e("Rerouting", "rereouting... in root")
                 onNavigateToPhotoDetail(event.initialPhotoIndex)
             }
             is ExploreEvent.ShowError -> {
