@@ -33,6 +33,7 @@ fun Friend.toEntity(): FriendEntity {
         lastMessageDate = this.lastMessageDate,
         lastMessageStatus = this.lastMessageStatus,
         lastMessageSender = this.lastMessageSender,
-        screenRatio = this.screenRatio
+        screenRatio = this.screenRatio,
+        orderIndex = 0
     )
 }

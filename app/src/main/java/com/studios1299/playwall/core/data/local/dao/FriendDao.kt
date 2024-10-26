@@ -8,7 +8,10 @@ import com.studios1299.playwall.core.data.local.entity.FriendEntity
 
 @Dao
 interface FriendDao {
-    // Get all accepted friends
+    @Query("SELECT * FROM friends WHERE status = 'accepted' ORDER BY orderIndex ASC")
+    suspend fun getAllFriendsSortedByOrder(): List<FriendEntity>
+
+    @Deprecated("No more used")
     @Query("SELECT * FROM friends WHERE status = 'accepted'")
     suspend fun getAllFriends(): List<FriendEntity>
 

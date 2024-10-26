@@ -127,39 +127,52 @@ class FirebaseCoreRepositoryImpl(
 
     override suspend fun getFriends(forceUpdate: Boolean): SmartResult<List<Friend>> {
         try {
+            Log.v(LOG_TAG, "Starting repository's getFriends")
+            Log.d(LOG_TAG, "Force refresh (loading from remote first) = $forceUpdate")
+
             // Check cache first if not forced to update
             if (!forceUpdate) {
-                val cachedFriends = friendsDao.getAllFriends() // Load friends with status = accepted
+                Log.d(LOG_TAG, "Trying to load friends from Room first..")
+                val cachedFriends = friendsDao.getAllFriendsSortedByOrder()
+                Log.d(LOG_TAG, "Cached friends were obtained from local: ${cachedFriends.size}")
                 if (cachedFriends.isNotEmpty()) {
                     val result: List<Friend> = cachedFriends.map { it.toDomain() }
-                    return SmartResult.Success(result) // Convert entities to domain
+                    return SmartResult.Success(result)
+                } else {
+                    Log.i(LOG_TAG, "No cached data found, fetching from API")
                 }
             }
 
             // Fetch from remote if forced or no cache
             val result = performAuthRequest { token ->
+                Log.d(LOG_TAG, "Making API request to get friends")
                 RetrofitClient.friendsApi.getFriends(token)
             }
 
             if (result is SmartResult.Success) {
-                val friendsWithAvatars = result.data?.map { friend ->
-                    if (friend.avatarId == null) {
-                        friend.copy(avatarId = "")
-                    } else {
-                        val avatarUrlResult = pathToLink(friend.avatarId)
-                        if (avatarUrlResult is SmartResult.Success) {
-                            friend.copy(avatarId = avatarUrlResult.data)
-                        } else {
-                            friend.copy(avatarId = "")
-                        }
-                    }
+                Log.d(LOG_TAG, "Successfully fetched friends from API: ${result.data?.size}")
+                val friendsWithAvatars = result.data?.mapIndexed { index, friend ->
+                    val avatarUrl = friend.avatarId?.let {
+                        val avatarUrlResult = pathToLink(it)
+                        if (avatarUrlResult is SmartResult.Success) avatarUrlResult.data else ""
+                    } ?: ""
+                    friend.copy(
+                        avatarId = avatarUrl,
+                        lastMessageDate = friend.lastMessageDate ?: index.toString() // Preserve order if no date
+                    )
                 }
 
-                // Cache the result
-                friendsDao.deleteAllFriends() // Clear old cache
-                friendsDao.insertFriends(friendsWithAvatars!!.map { it.toEntity() }) // Insert new cache
+                val friendsWithOrderIndex = friendsWithAvatars?.mapIndexed { index, friend ->
+                    friend.toEntity().copy(orderIndex = index)
+                }
 
-                return SmartResult.Success(friendsWithAvatars.filter { it.status == FriendshipStatus.accepted })
+                if (!friendsWithOrderIndex.isNullOrEmpty()) {
+                    Log.d(LOG_TAG, "Inserting ${friendsWithOrderIndex.size} friends into Room")
+                    friendsDao.deleteAllFriends()
+                    friendsDao.insertFriends(friendsWithOrderIndex)
+                }
+
+                return SmartResult.Success(friendsWithAvatars?.filter { it.status == FriendshipStatus.accepted })
             } else {
                 return result
             }
@@ -168,22 +181,85 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
+
+
+//    override suspend fun getFriends(forceUpdate: Boolean): SmartResult<List<Friend>> {
+//        try {
+//            Log.v(LOG_TAG, "Starting repository's getFriends")
+//            Log.d(LOG_TAG, "Force refresh (loading from remote first) = $forceUpdate")
+//            // Check cache first if not forced to update
+//            if (!forceUpdate) {
+//                Log.d(LOG_TAG, "Trying to load friends from Room first..")
+//                val cachedFriends = friendsDao.getAllFriends() // Load friends with status = accepted
+//                Log.d(LOG_TAG, "Cached friends were obtained from local: ${cachedFriends.size}")
+//                if (cachedFriends.isNotEmpty()) {
+//                    val result: List<Friend> = cachedFriends.map { it.toDomain() }
+//                    return SmartResult.Success(result) // Convert entities to domain
+//                } else {
+//                    Log.i(LOG_TAG, "No cached data found, fetching from API")
+//                }
+//            }
+//
+//            // Fetch from remote if forced or no cache
+//            val result = performAuthRequest { token ->
+//                Log.d(LOG_TAG, "Making API request to get friends")
+//                RetrofitClient.friendsApi.getFriends(token)
+//            }
+//            if (result is SmartResult.Success) {
+//                Log.d(LOG_TAG, "Successfully fetched friends from API: ${result.data?.size}")
+//                val friendsWithAvatars = result.data?.map { friend ->
+//                    if (friend.avatarId == null) {
+//                        friend.copy(avatarId = "")
+//                    } else {
+//                        val avatarUrlResult = pathToLink(friend.avatarId)
+//                        if (avatarUrlResult is SmartResult.Success) {
+//                            friend.copy(avatarId = avatarUrlResult.data)
+//                        } else {
+//                            friend.copy(avatarId = "")
+//                        }
+//                    }
+//                }
+//
+//                // Cache the result
+//                if (!friendsWithAvatars.isNullOrEmpty()) {
+//                    Log.d(LOG_TAG, "Inserting ${friendsWithAvatars.size} friends into Room")
+//                    friendsDao.deleteAllFriends() // Clear old cache
+//                    friendsDao.insertFriends(friendsWithAvatars.map { it.toEntity() }) // Insert new cache
+//                }
+//
+//                return SmartResult.Success(friendsWithAvatars?.filter { it.status == FriendshipStatus.accepted })
+//            } else {
+//                return result
+//            }
+//        } catch (e: Exception) {
+//            return SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
+//        }
+//    }
+
     override suspend fun getFriendRequests(forceUpdate: Boolean): SmartResult<List<Friend>> {
         try {
+            Log.v(LOG_TAG, "Starting repository's getFriendRequests")
+            Log.d(LOG_TAG, "Force refresh (loading from remote first) = $forceUpdate")
             // Check cache first if not forced to update
             if (!forceUpdate) {
+                Log.d(LOG_TAG, "Trying to load requests from Room first..")
                 val cachedFriendRequests = friendsDao.getAllFriendRequests() // Load requests with status = pending
+                Log.d(LOG_TAG, "Cached requests were obtained from local: ${cachedFriendRequests.size}")
                 if (cachedFriendRequests.isNotEmpty()) {
                     return SmartResult.Success(cachedFriendRequests.map { it.toDomain() })
+                } else {
+                    Log.i(LOG_TAG, "No cached data found, fetching from API")
                 }
             }
 
             // Fetch from remote if forced or no cache
             val result = performAuthRequest { token ->
+                Log.d(LOG_TAG, "Making API request to get requests")
                 RetrofitClient.friendsApi.getFriendRequests(token)
             }
 
             if (result is SmartResult.Success) {
+                Log.d(LOG_TAG, "Successfully fetched requests from API: ${result.data?.size}")
                 val friendsWithAvatars = result.data!!.map { friend ->
                     if (friend.avatarId == null) {
                         friend.copy(avatarId = "")
@@ -198,9 +274,14 @@ class FirebaseCoreRepositoryImpl(
                     }
                 }
 
-                // Cache the result
-                friendsDao.deleteAllFriends() // Clear old cache
-                friendsDao.insertFriends(friendsWithAvatars.map { it.toEntity() })
+                if (friendsWithAvatars.isNotEmpty()) {
+                    Log.d(LOG_TAG, "Inserting ${friendsWithAvatars.size} requests into Room")
+                    friendsDao.deleteAllFriends() // Clear old cache
+                    friendsDao.insertFriends(friendsWithAvatars.map { it.toEntity() })
+                } else {
+                    Log.d(LOG_TAG, "No friend requests to insert into Room")
+                }
+
 
                 return SmartResult.Success(friendsWithAvatars.filter { it.status == FriendshipStatus.pending })
             } else {
@@ -518,12 +599,12 @@ class FirebaseCoreRepositoryImpl(
         forceRefresh: Boolean
     ): SmartResult<List<ExploreWallpaperResponse>> {
         Log.v("Repository", "Starting repo loadExploreWallpapers with page: $page, pageSize: $pageSize")
-        Log.e(LOG_TAG, "Force refresh (loading from remote first) = $forceRefresh")
+        Log.d(LOG_TAG, "Force refresh (loading from remote first) = $forceRefresh")
 
         if (!forceRefresh) {
-            Log.e(LOG_TAG, "Trying to load explore wallpapers from Room first..")
+            Log.d(LOG_TAG, "Trying to load explore wallpapers from Room first..")
             val cachedWallpapers = exploreDao.getAllWallpapersSortedByOrder()
-            Log.e("Repository", "Cached wallpapers were obtained from local: ${cachedWallpapers.size}")
+            Log.d(LOG_TAG, "Cached wallpapers were obtained from local: ${cachedWallpapers.size}")
             if (cachedWallpapers.isNotEmpty()) {
                 val modifiedCachedWallpapers = cachedWallpapers.map {
                     ExploreWallpaperResponse(
@@ -538,19 +619,19 @@ class FirebaseCoreRepositoryImpl(
                 }
                 return SmartResult.Success(modifiedCachedWallpapers) // Return the modified list
             } else {
-                Log.e("Repository", "No cached data found, fetching from API")
+                Log.i(LOG_TAG, "No cached data found, fetching from API")
             }
         }
 
         // If no cached data, fetch from the API
         return try {
             val result = performAuthRequest { token ->
-                Log.e("Repository", "Making API request with token: $token")
+                Log.d(LOG_TAG, "Making API request")
                 RetrofitClient.wallpaperApi.loadExploreWallpapers(token, page, pageSize)
             }
 
             if (result is SmartResult.Success) {
-                Log.e("Repository", "Successfully fetched wallpapers from API: ${result.data?.size}")
+                Log.d(LOG_TAG, "Successfully fetched wallpapers from API: ${result.data?.size}")
 
                 // Cache the fetched data, preserving the order by assigning a sequential "order" field
                 val entitiesToInsert = result.data?.mapIndexed { index, wallpaper ->
@@ -573,7 +654,7 @@ class FirebaseCoreRepositoryImpl(
 
                 // Log the data being inserted
                 if (entitiesToInsert != null) {
-                    Log.e("Repository", "Inserting ${entitiesToInsert.size} wallpapers into Room")
+                    Log.d(LOG_TAG, "Inserting ${entitiesToInsert.size} wallpapers into Room")
                 }
                 if (entitiesToInsert != null) {
                     exploreDao.insertWallpapers(entitiesToInsert)
@@ -598,11 +679,11 @@ class FirebaseCoreRepositoryImpl(
                 }
                 return SmartResult.Success(modifiedApiWallpapers) // Return modified API data
             } else {
-                Log.e("Repository", "API request failed: ${result}")
+                Log.e(LOG_TAG, "API request failed: ${result}")
             }
             result // Return the result (Success/Error)
         } catch (e: Exception) {
-            Log.e("Repository", "Exception occurred: ${e.message}", e)
+            Log.e(LOG_TAG, "Exception occurred: ${e.message}", e)
             SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }

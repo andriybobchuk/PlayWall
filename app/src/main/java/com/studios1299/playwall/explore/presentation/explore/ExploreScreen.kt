@@ -82,7 +82,7 @@ fun ExploreScreen(
             var refreshing by remember { mutableStateOf(false) }
             LaunchedEffect(refreshing) {
                 if (refreshing) {
-                    delay(1600)
+                    delay(1200)
                     refreshing = false
                 }
             }

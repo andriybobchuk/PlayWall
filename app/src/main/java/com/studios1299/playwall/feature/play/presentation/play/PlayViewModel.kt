@@ -40,13 +40,15 @@ class PlayViewModel(
     private val eventChannel = Channel<PlayEvent>()
     val events = eventChannel.receiveAsFlow()
 
+    private var isInitialLoad = true
     init {
         viewModelScope.launch {
             NetworkMonitor.isOnline.collect { online ->
                 state = state.copy(isOnline = online)
-                if (online) {
-                    loadFriendsAndRequests(true)
+                if (online && !isInitialLoad) {
+                    loadFriendsAndRequests(forceUpdate = true)
                 }
+                isInitialLoad = false
             }
         }
         viewModelScope.launch {
@@ -54,12 +56,12 @@ class PlayViewModel(
                 handleFriendEvent(friendEvent)
             }
         }
-        loadFriendsAndRequests()
+        loadFriendsAndRequests(forceUpdate = false)
     }
 
     private fun handleFriendEvent(friendEvent: FriendEvent) {
         Log.e(LOG_TAG, "FriendEvent received: $friendEvent")
-        loadFriendsAndRequests()
+        loadFriendsAndRequests(forceUpdate = true)
     }
 
 
@@ -116,18 +118,6 @@ class PlayViewModel(
         }
     }
 
-//    private fun send(uri: Uri) {
-//        viewModelScope.launch {
-//            eventChannel.send(PlayEvent.WallpaperSent)
-//        }
-//    }
-
-    private fun send(wallpaper: String) {
-        viewModelScope.launch {
-            eventChannel.send(PlayEvent.WallpaperSent)
-        }
-    }
-
     private fun inviteFriend(email: String) {
         viewModelScope.launch {
 
@@ -154,7 +144,7 @@ class PlayViewModel(
 
 
 @OptIn(ExperimentalFoundationApi::class)
-private fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
+fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
     viewModelScope.launch {
         state = state.copy(isLoading = true)
 
@@ -164,13 +154,11 @@ private fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
                     friends = friendsResult.data!!,
                     isLoading = false
                 )
-                Log.e(LOG_TAG, "Retrieved friends: ${friendsResult.data}")
             }
             is SmartResult.Error -> {
                 eventChannel.send(PlayEvent.ShowError(UiText.DynamicString(friendsResult.errorBody?:"")))
             }
         }
-
         when (val friendRequestsResult = repository.getFriendRequests(forceUpdate)) {
             is SmartResult.Success -> {
                 state = state.copy(
@@ -179,19 +167,17 @@ private fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
                 )
             }
             is SmartResult.Error -> {
-                // eventChannel.send(PlayEvent.ShowError(friendRequestsResult.error.asUiText()))
             }
         }
     }
 }
-
 
     private fun acceptFriendRequest(requestId: Int) {
         viewModelScope.launch {
             val result = repository.acceptFriendRequest(AcceptRequest(requestId))
             if (result is SmartResult.Success) {
                 eventChannel.send(PlayEvent.FriendRequestAccepted)
-                loadFriendsAndRequests()
+                loadFriendsAndRequests(forceUpdate = true)
             } else {
                 eventChannel.send(PlayEvent.ShowError(UiText.DynamicString("Error accepting request")))
             }
@@ -203,7 +189,7 @@ private fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
             val result = repository.declineFriendRequest(DeclineRequest(requestId.toInt()))
             if (result is SmartResult.Success) {
                 eventChannel.send(PlayEvent.FriendRequestRejected)
-                loadFriendsAndRequests()
+                loadFriendsAndRequests(forceUpdate = true)
             } else {
                 eventChannel.send(PlayEvent.ShowError(UiText.DynamicString("Error declining request")))
             }
@@ -214,20 +200,9 @@ private fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
         viewModelScope.launch {
             state = state.copy(isLoading = true)
             val result = repository.blockUser(friendshipId, userId)
-
             if (result is SmartResult.Success) {
-                // Update the list of friends and set the status to "blocked"
-//                val updatedFriends = state.friends.map { friend ->
-//                    if (friend.friendshipId == friendshipId) {
-//                        friend.copy(status = FriendshipStatus.blocked) // Assuming muted as blocked, adjust if needed
-//                    } else {
-//                        friend
-//                    }
-//                }
-//                state = state.copy(friends = updatedFriends, isLoading = false)
-                loadFriendsAndRequests()
+                loadFriendsAndRequests(forceUpdate = true)
             } else {
-                // Handle failure case, e.g., show error message
                 state = state.copy(isLoading = false)
             }
         }
@@ -237,51 +212,22 @@ private fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
         viewModelScope.launch {
             state = state.copy(isLoading = true)
             val result = repository.unblockUser(friendshipId, userId)
-
             if (result is SmartResult.Success) {
-                // Update the list of friends and set the status to "accepted"
-//                val updatedFriends = state.friends.map { friend ->
-//                    if (friend.friendshipId == friendshipId) {
-//                        friend.copy(status = FriendshipStatus.accepted) // Assuming muted as blocked, adjust if needed
-//                    } else {
-//                        friend
-//                    }
-//                }
-//                state = state.copy(friends = updatedFriends, isLoading = false)
-                loadFriendsAndRequests()
+                loadFriendsAndRequests(forceUpdate = true)
             } else {
-                // Handle failure case, e.g., show error message
                 state = state.copy(isLoading = false)
             }
         }
     }
-
 
     fun removeFriend(friendshipId: Int) {
         viewModelScope.launch {
             state = state.copy(isLoading = true)
             val result = repository.removeUser(friendshipId)
-
             if (result is SmartResult.Success) {
-                // Remove the friend from the friends list
-                val updatedFriends = state.friends.filter { friend -> friend.friendshipId != friendshipId }
-                state = state.copy(friends = updatedFriends, isLoading = false)
+                loadFriendsAndRequests(forceUpdate = true)
             } else {
-                // Handle failure case
                 state = state.copy(isLoading = false)
-            }
-        }
-    }
-
-    fun refreshFriends() {
-        Log.e("PlayViewModel", "Refreshing friends list")
-        viewModelScope.launch {
-            val result = repository.getFriends(true)
-            if (result is SmartResult.Success) {
-                state = state.copy(friends = result.data!!)
-                Log.e("PlayViewModel", "Friends list refreshed successfully")
-            } else {
-                Log.e("PlayViewModel", "Failed to refresh friends list")
             }
         }
     }
@@ -324,6 +270,7 @@ private fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
             }
             eventChannel.send(PlayEvent.WallpaperSent)
             Log.e("sendWallpaperToFriends", "Finished sending wallpapers to all friends.")
+            loadFriendsAndRequests(forceUpdate = true)
         }
     }
 

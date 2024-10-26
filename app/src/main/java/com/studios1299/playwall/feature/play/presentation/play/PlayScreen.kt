@@ -49,6 +49,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,6 +69,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.data.s3.uriToFile
@@ -78,12 +81,15 @@ import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.core.presentation.components.ShimmerLoadingForFriendsList
 import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.Toolbars
+import com.studios1299.playwall.core.presentation.components.image_grid.ImageGrid
+import com.studios1299.playwall.explore.presentation.explore.ExploreAction
 import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
 import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
 import com.studios1299.playwall.feature.play.presentation.chat.util.requestNotificationPermissionWithDexter
 import com.studios1299.playwall.feature.play.presentation.chat.util.timestampAsDateTime
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
@@ -118,29 +124,43 @@ fun PlayScreenRoot(
         }
     }
 
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val lifecycleObserver = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                // This triggers when the PlayScreen regains focus
-                viewModel.refreshFriends()
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+//    val lifecycleOwner = LocalLifecycleOwner.current
+//    DisposableEffect(lifecycleOwner) {
+//        val lifecycleObserver = LifecycleEventObserver { _, event ->
+//            if (event == Lifecycle.Event.ON_RESUME) {
+//                // This triggers when the PlayScreen regains focus
+//                viewModel.refreshFriends()
+//            }
+//        }
+//        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+//
+//        // Cleanup when the effect leaves the Composition
+//        onDispose {
+//            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
+//        }
+//    }
 
-        // Cleanup when the effect leaves the Composition
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
+    var refreshing by remember { mutableStateOf(false) }
+    LaunchedEffect(refreshing) {
+        if (refreshing) {
+            delay(1200)
+            refreshing = false
         }
     }
-
-    PlayScreen(
-        state = state,
-        onAction = { action ->
-            viewModel.onAction(action)
-        },
-        bottomNavbar = bottomNavbar
-    )
+    SwipeRefresh(
+        state = rememberSwipeRefreshState(isRefreshing = refreshing),
+        onRefresh = {
+            refreshing = true
+            viewModel.loadFriendsAndRequests(forceUpdate = true)        },
+    ) {
+        PlayScreen(
+            state = state,
+            onAction = { action ->
+                viewModel.onAction(action)
+            },
+            bottomNavbar = bottomNavbar
+        )
+    }
 }
 
 
@@ -339,122 +359,122 @@ fun PlayScreen(
                 item {
                     ShimmerLoadingForFriendsList(Modifier)
                 }
-            }
-            if (!state.isSelectMode) {
-                items(state.friendRequests) { request ->
-                    FriendRequestItem(
-                        friendRequest = request,
-                        onAccept = { onAction(PlayAction.OnAcceptFriendRequest(request.id)) },
-                        onReject = { onAction(PlayAction.OnRejectFriendRequest(request.id)) }
-                    )
+            } else {
+                if (!state.isSelectMode) {
+                    items(state.friendRequests) { request ->
+                        FriendRequestItem(
+                            friendRequest = request,
+                            onAccept = { onAction(PlayAction.OnAcceptFriendRequest(request.id)) },
+                            onReject = { onAction(PlayAction.OnRejectFriendRequest(request.id)) }
+                        )
+                    }
                 }
-            }
-            items(state.friends) { friend ->
-                if (friend.status != FriendshipStatus.blocked) {
-                    // Swipe actions (mute and unfriend) will only be available when online
-                    val mute = SwipeAction(
-                        icon = {
-                            Icon(
-                                modifier = Modifier.padding(end = 16.dp),
-                                imageVector = Icons.Default.VolumeOff,
-                                contentDescription = "Mute",
-                                tint = Color.White
-                            )
-                        },
-                        background = MaterialTheme.colorScheme.primary,
-                        onSwipe = {
-                            Log.e("setting", "Blocking user with friendship ID: ${friend.friendshipId} by user ${friend.id}")
-                            selectedFriendshipId = friend.friendshipId
-                            selectedFriendId = friend.id
-                            showMuteDialog = true
-                        }
-                    )
-                    val unfriend = SwipeAction(
-                        icon = {
-                            Text(
-                                modifier = Modifier.padding(start = 16.dp),
-                                text = "Unfriend",
-                                color = Color.White
-                            )
-                        },
-                        background = Color.Red,
-                        isUndo = true,
-                        onSwipe = {
-                            selectedFriendshipId = friend.friendshipId
-                            selectedFriendId = friend.id
-                            showUnfriendDialog = true
-                        }
-                    )
-
-                    SwipeableActionsBox(
-                        modifier = Modifier.padding(vertical = 5.dp),
-                        startActions = if (state.isOnline) listOf(mute) else emptyList(), // Disable swipe if offline
-                        endActions = if (state.isOnline) listOf(unfriend) else emptyList(), // Disable swipe if offline
-                        swipeThreshold = 120.dp,
-                    ) {
-                        FriendItem(
-                            friend = friend,
-                            onClick = {
-                                onAction(PlayAction.OnFriendClick(friend.id))
+                items(state.friends) { friend ->
+                    if (friend.status != FriendshipStatus.blocked) {
+                        // Swipe actions (mute and unfriend) will only be available when online
+                        val mute = SwipeAction(
+                            icon = {
+                                Icon(
+                                    modifier = Modifier.padding(end = 16.dp),
+                                    imageVector = Icons.Default.VolumeOff,
+                                    contentDescription = "Mute",
+                                    tint = Color.White
+                                )
                             },
-                            isSelectable = state.isSelectMode,
-                            isSelected = state.selectedFriends.contains(friend.id)
+                            background = MaterialTheme.colorScheme.primary,
+                            onSwipe = {
+                                Log.e("setting", "Blocking user with friendship ID: ${friend.friendshipId} by user ${friend.id}")
+                                selectedFriendshipId = friend.friendshipId
+                                selectedFriendId = friend.id
+                                showMuteDialog = true
+                            }
                         )
-                    }
-                }
-            }
-
-            items(state.friends) { friend ->
-                if(!state.isSelectMode
-                    && friend.status == FriendshipStatus.blocked) {
-                    val unmute = SwipeAction(
-                    icon = {
-                        Icon(
-                            modifier = Modifier.padding(end = 16.dp),
-                            imageVector = Icons.Default.VolumeUp,
-                            contentDescription = "Unmute",
-                            tint = Color.White
+                        val unfriend = SwipeAction(
+                            icon = {
+                                Text(
+                                    modifier = Modifier.padding(start = 16.dp),
+                                    text = "Unfriend",
+                                    color = Color.White
+                                )
+                            },
+                            background = Color.Red,
+                            isUndo = true,
+                            onSwipe = {
+                                selectedFriendshipId = friend.friendshipId
+                                selectedFriendId = friend.id
+                                showUnfriendDialog = true
+                            }
                         )
-                    },
-                    background = MaterialTheme.colorScheme.primary,
-                    onSwipe = {
-                        Log.e("setting", "UN-blocking user with friendship ID: ${friend.friendshipId} by user ${friend.id}")
-                        onAction(PlayAction.OnFriendUnMute(friend.friendshipId, friend.id))
-                    })
 
-                    val unfriend = SwipeAction(
-                        icon = {
-                            Text(
-                                modifier = Modifier.padding(start = 16.dp),
-                                text = "Unfriend",
-                                color = Color.White
+                        SwipeableActionsBox(
+                            modifier = Modifier.padding(vertical = 5.dp),
+                            startActions = if (state.isOnline) listOf(mute) else emptyList(), // Disable swipe if offline
+                            endActions = if (state.isOnline) listOf(unfriend) else emptyList(), // Disable swipe if offline
+                            swipeThreshold = 120.dp,
+                        ) {
+                            FriendItem(
+                                friend = friend,
+                                onClick = {
+                                    onAction(PlayAction.OnFriendClick(friend.id))
+                                },
+                                isSelectable = state.isSelectMode,
+                                isSelected = state.selectedFriends.contains(friend.id)
                             )
-                        },
-                        background = Color.Red,
-                        isUndo = true,
-                        onSwipe = {
-                            selectedFriendshipId = friend.friendshipId
-                            selectedFriendId = friend.id
-                            showUnfriendDialog = true
-                        },
-                    )
-                    SwipeableActionsBox(
-                        modifier = Modifier
-                            .padding(vertical = 5.dp),
-                        startActions = listOf(unmute),
-                        endActions = listOf(unfriend),
-                        swipeThreshold = 120.dp,
-                    ) {
-                        FriendItem(
-                            friend = friend,
-                            onClick = { onAction(PlayAction.OnFriendClick(friend.id)) },
-                            isSelectable = false,
-                            isSelected = false
+                        }
+                    }
+                }
+
+                items(state.friends) { friend ->
+                    if(!state.isSelectMode
+                        && friend.status == FriendshipStatus.blocked) {
+                        val unmute = SwipeAction(
+                            icon = {
+                                Icon(
+                                    modifier = Modifier.padding(end = 16.dp),
+                                    imageVector = Icons.Default.VolumeUp,
+                                    contentDescription = "Unmute",
+                                    tint = Color.White
+                                )
+                            },
+                            background = MaterialTheme.colorScheme.primary,
+                            onSwipe = {
+                                Log.e("setting", "UN-blocking user with friendship ID: ${friend.friendshipId} by user ${friend.id}")
+                                onAction(PlayAction.OnFriendUnMute(friend.friendshipId, friend.id))
+                            })
+
+                        val unfriend = SwipeAction(
+                            icon = {
+                                Text(
+                                    modifier = Modifier.padding(start = 16.dp),
+                                    text = "Unfriend",
+                                    color = Color.White
+                                )
+                            },
+                            background = Color.Red,
+                            isUndo = true,
+                            onSwipe = {
+                                selectedFriendshipId = friend.friendshipId
+                                selectedFriendId = friend.id
+                                showUnfriendDialog = true
+                            },
                         )
+                        SwipeableActionsBox(
+                            modifier = Modifier
+                                .padding(vertical = 5.dp),
+                            startActions = listOf(unmute),
+                            endActions = listOf(unfriend),
+                            swipeThreshold = 120.dp,
+                        ) {
+                            FriendItem(
+                                friend = friend,
+                                onClick = { onAction(PlayAction.OnFriendClick(friend.id)) },
+                                isSelectable = false,
+                                isSelected = false
+                            )
+                        }
                     }
                 }
             }
-
         }
     }
 }
@@ -701,10 +721,6 @@ fun SavedWallpaperSheet(
                 Box(Modifier.fillMaxWidth()) {
                     if (state.isLoading) {
                         ShimmerLoadingForFriendsList(modifier = Modifier.fillMaxSize())
-                        Log.e("Shimmering", "Loading...")
-//                        CircularProgressIndicator(
-//                            modifier = Modifier.align(Alignment.Center)
-//                        )
                     } else if (state.exploreWallpapers.isEmpty()) {
                         Text(
                             text = stringResource(R.string.no_photos_available),
