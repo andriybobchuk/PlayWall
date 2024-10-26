@@ -38,13 +38,15 @@ class ExploreViewModel(
     private val eventChannel = Channel<ExploreEvent>()
     val events = eventChannel.receiveAsFlow()
 
+    private var isInitialLoad = true
     init {
         viewModelScope.launch {
             NetworkMonitor.isOnline.collect { online ->
                 updateExploreState(state.copy(isOnline = online))
-                if (online) {
+                if (online && !isInitialLoad) {
                     onAction(ExploreAction.LoadPhotos(forceRefresh = true))
                 }
+                isInitialLoad = false
             }
         }
         onAction(ExploreAction.LoadPhotos(forceRefresh = false))

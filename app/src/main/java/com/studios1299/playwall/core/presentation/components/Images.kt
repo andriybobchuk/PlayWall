@@ -92,7 +92,7 @@ object Images {
                             target: Target<Drawable>,
                             isFirstResource: Boolean
                         ): Boolean {
-                            Log.e(LOG_TAG, "Image load failed: ${model}")
+                            Log.e(LOG_TAG, "Image load failed: ${model} because of: \n ${e?.message}")
                             imageLoadFailed = true
                             return false
                         }
@@ -104,7 +104,6 @@ object Images {
                             dataSource: DataSource,
                             isFirstResource: Boolean
                         ): Boolean {
-                            Log.d(LOG_TAG, "Image loaded successfully: ${model}")
                             imageLoadFailed = false
                             return false
                         }
@@ -164,7 +163,7 @@ object Images {
                             target: Target<Drawable>,
                             isFirstResource: Boolean
                         ): Boolean {
-                            Log.e(LOG_TAG, "Image load failed: ${model}")
+                            Log.e(LOG_TAG, "Image load failed: ${model} because of: \n ${e?.message}")
                             imageLoadFailed = true
                             return false
                         }
@@ -176,7 +175,6 @@ object Images {
                             dataSource: DataSource,
                             isFirstResource: Boolean
                         ): Boolean {
-                            Log.d(LOG_TAG, "Image loaded successfully: ${model}")
                             imageLoadFailed = false
                             return false
                         }

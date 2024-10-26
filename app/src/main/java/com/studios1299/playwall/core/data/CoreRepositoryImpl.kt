@@ -516,17 +516,15 @@ class FirebaseCoreRepositoryImpl(
         page: Int,
         pageSize: Int,
         forceRefresh: Boolean
-    ): SmartResult<List<ExploreWallpaperResponse>> = withContext(Dispatchers.IO) {
-        Log.e("Repository", "Starting loadExploreWallpapers with page: $page, pageSize: $pageSize")
+    ): SmartResult<List<ExploreWallpaperResponse>> {
+        Log.v("Repository", "Starting repo loadExploreWallpapers with page: $page, pageSize: $pageSize")
+        Log.e(LOG_TAG, "Force refresh (loading from remote first) = $forceRefresh")
 
-        // Try to load from Room first
         if (!forceRefresh) {
-            val cachedWallpapers = exploreDao.getAllWallpapersSortedByOrder() // Fetch in correct order
-            Log.e("Repository", "Cached wallpapers count: ${cachedWallpapers.size}")
-
+            Log.e(LOG_TAG, "Trying to load explore wallpapers from Room first..")
+            val cachedWallpapers = exploreDao.getAllWallpapersSortedByOrder()
+            Log.e("Repository", "Cached wallpapers were obtained from local: ${cachedWallpapers.size}")
             if (cachedWallpapers.isNotEmpty()) {
-                // Return modified cached data
-                Log.e("Repository", "Returning cached data")
                 val modifiedCachedWallpapers = cachedWallpapers.map {
                     ExploreWallpaperResponse(
                         id = it.id,
@@ -538,14 +536,14 @@ class FirebaseCoreRepositoryImpl(
                         dateCreated = it.dateCreated
                     )
                 }
-                return@withContext SmartResult.Success(modifiedCachedWallpapers) // Return the modified list
+                return SmartResult.Success(modifiedCachedWallpapers) // Return the modified list
             } else {
                 Log.e("Repository", "No cached data found, fetching from API")
             }
         }
 
         // If no cached data, fetch from the API
-        return@withContext try {
+        return try {
             val result = performAuthRequest { token ->
                 Log.e("Repository", "Making API request with token: $token")
                 RetrofitClient.wallpaperApi.loadExploreWallpapers(token, page, pageSize)
@@ -598,7 +596,7 @@ class FirebaseCoreRepositoryImpl(
                         dateCreated = wallpaper.dateCreated
                     )
                 }
-                return@withContext SmartResult.Success(modifiedApiWallpapers) // Return modified API data
+                return SmartResult.Success(modifiedApiWallpapers) // Return modified API data
             } else {
                 Log.e("Repository", "API request failed: ${result}")
             }
