@@ -3,10 +3,13 @@ package com.studios1299.playwall.core.presentation.components.image_grid
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -29,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.R
@@ -38,11 +42,13 @@ import com.studios1299.playwall.explore.presentation.detail.LikeButton
 import com.studios1299.playwall.explore.presentation.detail.PostDetailAction
 import com.studios1299.playwall.explore.presentation.explore.ExploreAction
 import com.studios1299.playwall.explore.presentation.explore.ExploreState
+import com.studios1299.playwall.explore.presentation.explore.ExploreViewModel
 
 @Composable
 @OptIn(ExperimentalGlideComposeApi::class)
 fun ImageGrid(
    // innerPadding: PaddingValues,
+    viewModel: ExploreViewModel,
     state: ImageGridState,
     onAction: (ExploreAction) -> Unit,
     exploreState: ExploreState,
@@ -66,6 +72,11 @@ fun ImageGrid(
             ) {
                 items(state.wallpapers.size) { index ->
                     val photo = state.wallpapers[index]
+
+                    if (index >= state.wallpapers.size - 1 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
+                        viewModel.loadPhotos()
+                    }
+
                     Box {
                         Images.Square(
                             modifier = Modifier
@@ -90,6 +101,18 @@ fun ImageGrid(
                                     counterVisible = false
                                 )
                             }
+                        }
+                    }
+                }
+                item {
+                    if (viewModel.paginationState.isLoading) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator()
                         }
                     }
                 }

@@ -30,3 +30,10 @@ data class ExploreWallpaper(
     val isLiked: Boolean,
     val dateCreated: String,
 )
+
+data class ExplorePaginationState(
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val endReached: Boolean = false,
+    val page: Int = 0
+)

@@ -46,6 +46,7 @@ fun ExploreScreenRoot(
         }
     }
     ExploreScreen(
+        viewModel = viewModel,
         state = state,
         onAction = { action ->
             viewModel.onAction(action)
@@ -58,6 +59,7 @@ fun ExploreScreenRoot(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExploreScreen(
+    viewModel: ExploreViewModel,
     state: ExploreState,
     onAction: (ExploreAction) -> Unit,
     bottomNavbar: @Composable () -> Unit
@@ -91,10 +93,12 @@ fun ExploreScreen(
                 state = rememberSwipeRefreshState(isRefreshing = refreshing),
                 onRefresh = {
                     refreshing = true
+                    viewModel.paginationState = viewModel.paginationState.copy(page = 0)
+                    Log.e("ExploreScreen", "Screen refresh initiated. Reloading page to: ${viewModel.paginationState.page}")
                     onAction(ExploreAction.LoadPhotos(true))
                 },
             ) {
-                ImageGrid(state, onAction, state)
+                ImageGrid(viewModel, state, onAction, state)
             }
         }
     }

@@ -182,7 +182,6 @@ class ChatViewModel(
 
 
     fun loadMessages() {
-        Log.d(LOG_TAG, "laoding shit")
         viewModelScope.launch {
             if (!paginationState.endReached && !paginationState.isLoading) {
                 paginator.loadNextItems()
