@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.studios1299.playwall.core.data.WallpaperEventManager
+import com.studios1299.playwall.core.data.networking.NetworkMonitor
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
 import com.studios1299.playwall.core.data.networking.response.wallpapers.WallpaperHistoryResponse
 import com.studios1299.playwall.core.data.s3.S3Handler
@@ -189,12 +190,26 @@ class ChatViewModel(
         }
     }
 
+    private var isInitialLoad = true
     init {
         Log.d(LOG_TAG, "ViewModel initialized")
         loadRecipientData()
         loadMessages()
         setCurrentUser()
 
+        viewModelScope.launch {
+            NetworkMonitor.isOnline.collect { online ->
+                _uiState.update {
+                    it.copy(isOnline = online)
+                }
+                if (online && !isInitialLoad) {
+                    loadRecipientData()
+                    loadMessages()
+                    setCurrentUser()
+                }
+                isInitialLoad = false
+            }
+        }
         viewModelScope.launch {
             WallpaperEventManager.wallpaperUpdates.collect { wallpaperHistoryResponse ->
                 Log.e(LOG_TAG, "Wallpaper event received: $wallpaperHistoryResponse")

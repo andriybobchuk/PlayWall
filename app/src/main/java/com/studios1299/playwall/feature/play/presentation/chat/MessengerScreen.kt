@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.studios1299.playwall.R
+import com.studios1299.playwall.core.presentation.components.Banners
 import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
@@ -120,6 +121,9 @@ fun MessengerScreen(
                 viewModel = viewModel,
                 onBackClick = onBackClick,
             )
+            if (!uiState.isOnline) {
+                Banners.OfflineStatus()
+            }
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -157,10 +161,11 @@ fun MessengerScreen(
                             friendshipId = -1,
                             screenRatio = 2f
                         ),
+                        uiState = uiState,
                         modifier = Modifier
                             .padding(end = 8.dp)
                     )
-                    if (!isAtBottom) {
+                    if (!isAtBottom && !uiState.messages.isEmpty()) {
                         ScrollToBottomButton(
                             onClick = {
                                 coroutineScope.launch {
@@ -380,6 +385,7 @@ fun MessengerScreenHeader(
     onBackClick: () -> Unit,
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -444,7 +450,8 @@ fun MessengerScreenHeader(
                 modifier = Modifier.align(Alignment.CenterEnd)
             ) {
                 IconButton(
-                    onClick = { isMenuExpanded = true }
+                    onClick = { isMenuExpanded = true },
+                    enabled = uiState.isOnline
                 ) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
@@ -480,7 +487,7 @@ fun MessengerScreenHeader(
  * Button to initiate the image picking process.
  */
 @Composable
-fun SendImageButton(onClick: () -> Unit, recipient: User, modifier: Modifier) {
+fun SendImageButton(onClick: () -> Unit, recipient: User, uiState: MessengerUiState, modifier: Modifier) {
     Button(
         onClick = onClick,
         modifier = modifier
@@ -488,7 +495,7 @@ fun SendImageButton(onClick: () -> Unit, recipient: User, modifier: Modifier) {
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary
         ),
-        enabled = recipient.status == FriendshipStatus.accepted
+        enabled = recipient.status == FriendshipStatus.accepted && uiState.isOnline
     ) {
         Text(
             text = stringResource(R.string.pick_image),
