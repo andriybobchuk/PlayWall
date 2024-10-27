@@ -34,8 +34,6 @@ class PostDetailViewModel(
     fromProfile: Boolean = false
 ) : ViewModel() {
 
-//    var state by mutableStateOf(ExploreState())
-//        private set
     val state: ExploreState
     get() = ExploreStateSingleton.state
 
@@ -43,8 +41,6 @@ class PostDetailViewModel(
     fun updateExploreState(newState: ExploreState) {
         ExploreStateSingleton.updateState(newState)
     }
-
-
 
     private val eventChannel = Channel<PostDetailEvent>()
     val events = eventChannel.receiveAsFlow()
@@ -54,13 +50,13 @@ class PostDetailViewModel(
         if (fromProfile) {
             loadSavedWallpapers()
         } else {
-            loadAllWallpapers(false)
+            //loadAllWallpapers(true)
         }
-        viewModelScope.launch {
-            NetworkMonitor.isOnline.collect { online ->
-                updateExploreState(state.copy(isOnline = online))
-            }
-        }
+//        viewModelScope.launch {
+//            NetworkMonitor.isOnline.collect { online ->
+//                updateExploreState(state.copy(isOnline = online))
+//            }
+//        }
         loadFriends()
     }
 
@@ -72,49 +68,49 @@ class PostDetailViewModel(
         }
     }
 
-    private fun loadAllWallpapers(forceRefresh: Boolean) {
-        viewModelScope.launch {
-            Log.e("PostDetailViewModel", "Loading photos...")
-            updateExploreState(state.copy(isLoading = true))
-
-            try {
-                val photos = repository.loadExploreWallpapers(0, 18, forceRefresh) // Fetches all photos
-
-                if (photos is SmartResult.Success) {
-                    updateExploreState(state.copy(wallpapers =
-                    photos.data!!.map {
-                        ExploreWallpaper(
-                            id = it.id,
-                            fileName = it.fileName,
-                            type = it.type,
-                            sentCount = it.sentCount,
-                            savedCount = it.savedCount,
-                            isLiked = Preferences.isWallpaperLiked(it.id),
-                            dateCreated = it.dateCreated,
-                        )
-                    }, isLoading = false))
-                }
-
-                Log.e("PostDetailViewModel", "Fetched ${state.wallpapers.size} photos")
-
-                val initialPhotoIndex = state.wallpapers.indexOfFirst { it.id == photoId }
-                Log.e("PostDetailViewModel", "Initial photo index for photoId $photoId: $initialPhotoIndex")
-
-                if (initialPhotoIndex != -1) {
-                    updateExploreState(state.copy(wallpapers = state.wallpapers, currentPhotoIndex = initialPhotoIndex, isLoading = false))
-                    Log.e("PostDetailViewModel", "Photos loaded successfully. Current photo index: $initialPhotoIndex")
-                } else {
-                    Log.e("PostDetailViewModel", "Photo not found for photoId: $photoId")
-                    eventChannel.send(PostDetailEvent.ShowError(UiText.StringResource(R.string.error_photo_not_found)))
-                }
-            } catch (e: Exception) {
-                Log.e("PostDetailViewModel", "Error loading photos: ${e.message}")
-                eventChannel.send(PostDetailEvent.ShowError(UiText.StringResource(R.string.error_photo_not_found)))
-            } finally {
-                updateExploreState(state.copy(isLoading = false))
-            }
-        }
-    }
+//    private fun loadAllWallpapers(forceRefresh: Boolean) {
+//        viewModelScope.launch {
+//            Log.e("PostDetailViewModel", "Loading photos...")
+//            updateExploreState(state.copy(isLoading = true))
+//
+//            try {
+//                val photos = repository.loadExploreWallpapers(0, 18, forceRefresh) // Fetches all photos
+//
+//                if (photos is SmartResult.Success) {
+//                    updateExploreState(state.copy(wallpapers =
+//                    photos.data!!.map {
+//                        ExploreWallpaper(
+//                            id = it.id,
+//                            fileName = it.fileName,
+//                            type = it.type,
+//                            sentCount = it.sentCount,
+//                            savedCount = it.savedCount,
+//                            isLiked = Preferences.isWallpaperLiked(it.id),
+//                            dateCreated = it.dateCreated,
+//                        )
+//                    }, isLoading = false))
+//                }
+//
+//                Log.e("PostDetailViewModel", "Fetched ${state.wallpapers.size} photos")
+//
+//                val initialPhotoIndex = state.wallpapers.indexOfFirst { it.id == photoId }
+//                Log.e("PostDetailViewModel", "Initial photo index for photoId $photoId: $initialPhotoIndex")
+//
+//                if (initialPhotoIndex != -1) {
+//                    updateExploreState(state.copy(wallpapers = state.wallpapers, currentPhotoIndex = initialPhotoIndex, isLoading = false))
+//                    Log.e("PostDetailViewModel", "Photos loaded successfully. Current photo index: $initialPhotoIndex")
+//                } else {
+//                    Log.e("PostDetailViewModel", "Photo not found for photoId: $photoId")
+//                    eventChannel.send(PostDetailEvent.ShowError(UiText.StringResource(R.string.error_photo_not_found)))
+//                }
+//            } catch (e: Exception) {
+//                Log.e("PostDetailViewModel", "Error loading photos: ${e.message}")
+//                eventChannel.send(PostDetailEvent.ShowError(UiText.StringResource(R.string.error_photo_not_found)))
+//            } finally {
+//                updateExploreState(state.copy(isLoading = false))
+//            }
+//        }
+//    }
 
     fun loadSavedWallpapers() {
         viewModelScope.launch {
@@ -159,6 +155,7 @@ class PostDetailViewModel(
     }
 
     private fun updateCurrentPhotoIndex(newIndex: Int) {
+        Log.e("PostDetailViewModel", "updating current photo index to $newIndex")
         if (newIndex in state.wallpapers.indices) {
             updateExploreState(state.copy(currentPhotoIndex = newIndex))
         }

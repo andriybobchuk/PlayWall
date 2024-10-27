@@ -1,5 +1,6 @@
 package com.studios1299.playwall.explore.presentation.detail
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -105,6 +106,7 @@ fun PostDetailScreen(
     onExit: () -> Unit
 ) {
     val context = LocalContext.current
+    Log.e("PostDetailScreen", "state.currentPhotoIndex: ${state.currentPhotoIndex}, wallpapers size: ${state.wallpapers.size}")
     val pagerState = rememberPagerState(initialPage = state.currentPhotoIndex, pageCount = { state.wallpapers.size })
 
     val isFriendsSheetOpen = remember { mutableStateOf(false) }

@@ -92,6 +92,7 @@ fun ImageGrid(
                         )
                         if (exploreState.isOnline) {
                             Box(modifier = Modifier.align(Alignment.BottomEnd)) {
+                                //Text(text = photo.id.toString())
                                 LikeButton(
                                     likeCount = photo.savedCount,
                                     isLiked = photo.isLiked,

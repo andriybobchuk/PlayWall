@@ -177,6 +177,13 @@ class ExploreViewModel(
     }
 
     private fun navigateToPhotoDetail(photoId: Int) {
+        val photoIndex = state.wallpapers.indexOfFirst { it.id == photoId }
+        if (photoIndex in state.wallpapers.indices) {
+            updateExploreState(state.copy(currentPhotoIndex = photoIndex))
+        }
+        Log.e(LOG_TAG, "Photo clicked with id $photoId and index $photoIndex, currentPhotoIndex was updated")
+
+        // Now passing photoId here is redundant because we will not use it anyways but let it be.
         if (photoId != -1) {
             viewModelScope.launch {
                 eventChannel.send(ExploreEvent.NavigateToPhotoDetail(photoId))
