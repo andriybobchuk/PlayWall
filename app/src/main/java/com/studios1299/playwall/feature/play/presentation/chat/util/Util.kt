@@ -48,7 +48,9 @@ import java.util.TimeZone
 //}
 
 fun timestampAsDate(timestamp: String, context: Context): String {
-    return try {
+    return if (timestamp == "") {
+        timestamp
+    } else try {
         // Define the input date format
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
         dateFormat.timeZone = TimeZone.getTimeZone("UTC")
@@ -67,16 +69,22 @@ fun timestampAsDate(timestamp: String, context: Context): String {
         when {
             calendar[Calendar.YEAR] == now[Calendar.YEAR] -> {
                 when {
-                    calendar[Calendar.DAY_OF_YEAR] == today[Calendar.DAY_OF_YEAR] -> context.getString(R.string.today)
-                    calendar[Calendar.DAY_OF_YEAR] == yesterday[Calendar.DAY_OF_YEAR] -> context.getString(R.string.yesterday)
+                    calendar[Calendar.DAY_OF_YEAR] == today[Calendar.DAY_OF_YEAR] -> context.getString(
+                        R.string.today
+                    )
+
+                    calendar[Calendar.DAY_OF_YEAR] == yesterday[Calendar.DAY_OF_YEAR] -> context.getString(
+                        R.string.yesterday
+                    )
+
                     else -> dateFormatCurrentYear.format(calendar.time)
                 }
             }
+
             else -> dateFormatOtherYear.format(calendar.time)
         }
     } catch (e: Exception) {
-        // Log the exception or handle it as necessary
-        e.printStackTrace()
+        Log.w("Util", "Unparsable timestamp: $timestamp")
         timestamp
     }
 }
@@ -88,53 +96,65 @@ fun timestampAsDate(timestamp: String, context: Context): String {
 //    return timeFormat.format(date)
 //}
 fun timestampAsTime(timestamp: String): String {
-    return try {
-    val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-    inputFormat.timeZone = TimeZone.getTimeZone("UTC")
-    val outputFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-    val date: Date = inputFormat.parse(timestamp) ?: return ""
-    return outputFormat.format(date)
-} catch (e: Exception) {
-    // Log the exception or handle it as necessary
-    e.printStackTrace()
-    timestamp
-}
+    return if (timestamp == "") {
+        timestamp
+    } else try {
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        inputFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val outputFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val date: Date = inputFormat.parse(timestamp) ?: return ""
+        return outputFormat.format(date)
+    } catch (e: Exception) {
+        Log.w("Util", "Unparsable timestamp: $timestamp")
+        timestamp
+    }
 }
 
 fun timestampAsDateTime(timestamp: String, context: Context): String {
-    return try {
-    // Define the input date format
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-    dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+    return if (timestamp == "") {
+        timestamp
+    } else try {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val date: Date = dateFormat.parse(timestamp) ?: return ""
+        val now = Calendar.getInstance()
+        val calendar = Calendar.getInstance().apply { time = date }
+        val today = now.clone() as Calendar
+        val yesterday = (now.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -1) }
+        val dateFormatCurrentYear = SimpleDateFormat(
+            "MMMM d, HH:mm",
+            Locale.getDefault()
+        ) // Date and Time for the current year
+        val dateFormatOtherYear = SimpleDateFormat(
+            "MMM d yyyy, HH:mm",
+            Locale.getDefault()
+        ) // Date and Time for other years
 
-    // Parse the timestamp into a Date object
-    val date: Date = dateFormat.parse(timestamp) ?: return ""
+        return when {
+            calendar[Calendar.YEAR] == now[Calendar.YEAR] -> {
+                when {
+                    calendar[Calendar.DAY_OF_YEAR] == today[Calendar.DAY_OF_YEAR] -> {
+                        context.getString(R.string.today) + ", " + SimpleDateFormat(
+                            "HH:mm",
+                            Locale.getDefault()
+                        ).format(calendar.time)
+                    }
 
-    // Create Calendar instances
-    val now = Calendar.getInstance()
-    val calendar = Calendar.getInstance().apply { time = date }
-    val today = now.clone() as Calendar
-    val yesterday = (now.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -1) }
-    val dateFormatCurrentYear = SimpleDateFormat("MMMM d, HH:mm", Locale.getDefault()) // Date and Time for the current year
-    val dateFormatOtherYear = SimpleDateFormat("MMM d yyyy, HH:mm", Locale.getDefault()) // Date and Time for other years
+                    calendar[Calendar.DAY_OF_YEAR] == yesterday[Calendar.DAY_OF_YEAR] -> {
+                        context.getString(R.string.yesterday) + ", " + SimpleDateFormat(
+                            "HH:mm",
+                            Locale.getDefault()
+                        ).format(calendar.time)
+                    }
 
-    return when {
-        calendar[Calendar.YEAR] == now[Calendar.YEAR] -> {
-            when {
-                calendar[Calendar.DAY_OF_YEAR] == today[Calendar.DAY_OF_YEAR] -> {
-                    context.getString(R.string.today) + ", " + SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendar.time)
+                    else -> dateFormatCurrentYear.format(calendar.time)
                 }
-                calendar[Calendar.DAY_OF_YEAR] == yesterday[Calendar.DAY_OF_YEAR] -> {
-                    context.getString(R.string.yesterday) + ", " + SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendar.time)
-                }
-                else -> dateFormatCurrentYear.format(calendar.time)
             }
+
+            else -> dateFormatOtherYear.format(calendar.time)
         }
-        else -> dateFormatOtherYear.format(calendar.time)
-    }
     } catch (e: Exception) {
-        // Log the exception or handle it as necessary
-        e.printStackTrace()
+        Log.w("Util", "Unparsable timestamp: $timestamp")
         timestamp
     }
 }

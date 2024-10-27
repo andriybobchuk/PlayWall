@@ -66,6 +66,8 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import com.facebook.shimmer.Shimmer
+import com.facebook.shimmer.ShimmerDrawable
 import com.studios1299.playwall.R
 import com.studios1299.playwall.feature.play.data.model.User
 import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
@@ -381,6 +383,11 @@ fun ImageBox(
                 onLongClick = onReactionClick
             )
     ) {
+        val shimmerDrawable = ShimmerDrawable().apply {
+            setShimmer(
+                Shimmer.AlphaHighlightBuilder().setDuration(1000).setBaseAlpha(0.2f).setHighlightAlpha(0.1f).setDirection(
+                    Shimmer.Direction.LEFT_TO_RIGHT).build())
+        }
         GlideImage(
             model = message.imageUrl,
             contentDescription = stringResource(R.string.message_image),
@@ -390,7 +397,9 @@ fun ImageBox(
                 .background(MaterialTheme.colorScheme.outline),
             contentScale = ContentScale.Crop,
             requestBuilderTransform = { requestBuilder ->
-                requestBuilder.addListener(object : RequestListener<Drawable> {
+                requestBuilder
+                    .placeholder(shimmerDrawable)
+                    .addListener(object : RequestListener<Drawable> {
                     override fun onLoadFailed(
                         e: GlideException?,
                         model: Any?,
@@ -404,7 +413,6 @@ fun ImageBox(
                         }
                         return false
                     }
-
                     override fun onResourceReady(
                         resource: Drawable,
                         model: Any,
@@ -412,7 +420,6 @@ fun ImageBox(
                         dataSource: DataSource,
                         isFirstResource: Boolean
                     ): Boolean {
-                        Log.i(LOG_TAG, "Image loaded successfully")
                         return false
                     }
                 })
