@@ -95,6 +95,7 @@ class FirebaseCoreRepositoryImpl(
             Log.e(LOG_TAG, "Token: $token")
 
             if (result.code() == 401 || result.code() == 403) {
+                Log.e(LOG_TAG, "Retrying auth request with a refreshed token..")
                 // If the result is unauthorized or forbidden, attempt to refresh the token
                 val refreshedToken = refreshFirebaseToken()
                 if (refreshedToken is SmartResult.Success) {
@@ -110,6 +111,7 @@ class FirebaseCoreRepositoryImpl(
                 }
             } else {
                 // If no 401/403 occurred, return the result as-is
+                //Log.e(LOG_TAG, RetrofitClientExt.responseToSmartResult(result).toString())
                 return RetrofitClientExt.responseToSmartResult(result)
             }
         }
@@ -180,61 +182,6 @@ class FirebaseCoreRepositoryImpl(
             return SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
-
-
-
-//    override suspend fun getFriends(forceUpdate: Boolean): SmartResult<List<Friend>> {
-//        try {
-//            Log.v(LOG_TAG, "Starting repository's getFriends")
-//            Log.d(LOG_TAG, "Force refresh (loading from remote first) = $forceUpdate")
-//            // Check cache first if not forced to update
-//            if (!forceUpdate) {
-//                Log.d(LOG_TAG, "Trying to load friends from Room first..")
-//                val cachedFriends = friendsDao.getAllFriends() // Load friends with status = accepted
-//                Log.d(LOG_TAG, "Cached friends were obtained from local: ${cachedFriends.size}")
-//                if (cachedFriends.isNotEmpty()) {
-//                    val result: List<Friend> = cachedFriends.map { it.toDomain() }
-//                    return SmartResult.Success(result) // Convert entities to domain
-//                } else {
-//                    Log.i(LOG_TAG, "No cached data found, fetching from API")
-//                }
-//            }
-//
-//            // Fetch from remote if forced or no cache
-//            val result = performAuthRequest { token ->
-//                Log.d(LOG_TAG, "Making API request to get friends")
-//                RetrofitClient.friendsApi.getFriends(token)
-//            }
-//            if (result is SmartResult.Success) {
-//                Log.d(LOG_TAG, "Successfully fetched friends from API: ${result.data?.size}")
-//                val friendsWithAvatars = result.data?.map { friend ->
-//                    if (friend.avatarId == null) {
-//                        friend.copy(avatarId = "")
-//                    } else {
-//                        val avatarUrlResult = pathToLink(friend.avatarId)
-//                        if (avatarUrlResult is SmartResult.Success) {
-//                            friend.copy(avatarId = avatarUrlResult.data)
-//                        } else {
-//                            friend.copy(avatarId = "")
-//                        }
-//                    }
-//                }
-//
-//                // Cache the result
-//                if (!friendsWithAvatars.isNullOrEmpty()) {
-//                    Log.d(LOG_TAG, "Inserting ${friendsWithAvatars.size} friends into Room")
-//                    friendsDao.deleteAllFriends() // Clear old cache
-//                    friendsDao.insertFriends(friendsWithAvatars.map { it.toEntity() }) // Insert new cache
-//                }
-//
-//                return SmartResult.Success(friendsWithAvatars?.filter { it.status == FriendshipStatus.accepted })
-//            } else {
-//                return result
-//            }
-//        } catch (e: Exception) {
-//            return SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
-//        }
-//    }
 
     override suspend fun getFriendRequests(forceUpdate: Boolean): SmartResult<List<Friend>> {
         try {
@@ -441,11 +388,15 @@ class FirebaseCoreRepositoryImpl(
     // Wallpapers
     override suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<ChangeWallpaperResponse?> {
         return try {
+            Log.v(LOG_TAG, "changeWallpaper, start")
             val response = performAuthRequest { token ->
                 RetrofitClient.wallpaperApi.changeWallpaper(token, request)
             }
             if (response is SmartResult.Success) {
                 SmartResult.Success(response.data?.data)
+            } else if (response is SmartResult.Error) {
+                Log.e(LOG_TAG, "changeWallpaper result: $response")
+                response
             } else {
                 SmartResult.Error(600, "Runtime exception in $LOG_TAG.changeWallpaper():", "wallpaperApi could not change wallpaper")
             }

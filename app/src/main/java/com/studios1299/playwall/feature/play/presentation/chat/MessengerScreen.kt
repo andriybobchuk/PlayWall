@@ -2,6 +2,7 @@ package com.studios1299.playwall.feature.play.presentation.chat
 
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
@@ -65,6 +66,7 @@ fun MessengerScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     LaunchedEffect(uiState.goBack) {
         if (uiState.goBack) {
@@ -90,21 +92,11 @@ fun MessengerScreen(
         viewModel.setConnectivityStatus(isConnected)
     }
 
-//    val lifecycleOwner = LocalLifecycleOwner.current
-//    DisposableEffect(lifecycleOwner) {
-//        val lifecycleObserver = LifecycleEventObserver { _, event ->
-//            if (event == Lifecycle.Event.ON_STOP) {
-//                if (uiState.messages.isEmpty()) return@LifecycleEventObserver
-//                viewModel.markMessagesAsRead(uiState.recipient?.friendshipId ?: -1, uiState.messages[0].id)
-//            }
-//        }
-//        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
-//
-//        // Cleanup when the effect leaves the Composition
-//        onDispose {
-//            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
-//        }
-//    }
+    LaunchedEffect(Unit) {
+        viewModel.errorMessages.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
+    }
 
     FullscreenOverlays(uiState, viewModel)
 

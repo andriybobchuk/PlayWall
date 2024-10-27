@@ -21,8 +21,10 @@ import com.studios1299.playwall.feature.play.data.DefaultPaginator
 import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.data.model.Reaction
 import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -38,6 +40,14 @@ class ChatViewModel(
     companion object {
         private const val LOG_TAG = "ChatViewModel"
         private const val PAGE_SIZE = 10
+    }
+
+    private val _errorMessages = MutableSharedFlow<String>()
+    val errorMessages = _errorMessages.asSharedFlow()
+    fun sendErrorMessage(message: String) {
+        viewModelScope.launch {
+            _errorMessages.emit(message)
+        }
     }
 
     private val _uiState = MutableStateFlow(MessengerUiState())
@@ -295,7 +305,7 @@ class ChatViewModel(
     }
 
     fun sendWallpaper(context: Context, uri: Uri?, comment: String?, reaction: String?) {
-        Log.e(
+        Log.v(
             "sendWallpaper",
             "Function called with uri: $uri, comment: $comment, reaction: $reaction"
         )
@@ -304,17 +314,17 @@ class ChatViewModel(
             var s3Filename: String? = null
 
             if (uri != null) {
-                Log.e("sendWallpaper", "Converting Uri to File...")
+                Log.d("sendWallpaper", "Converting Uri to File...")
                 val wallpaperFile = uriToFile(context, uri)
                 if (wallpaperFile == null || !wallpaperFile.exists()) {
                     Log.e("sendWallpaper", "Failed to convert Uri to File or file does not exist.")
                     return@launch
                 }
-                Log.e("sendWallpaper", "Uploading file to S3...")
+                Log.d("sendWallpaper", "Uploading file to S3...")
                 val filename = chatRepository.uploadFile(wallpaperFile, S3Handler.Folder.WALLPAPERS)
                 if (filename is SmartResult.Success) {
                     s3Filename = filename.data
-                    Log.e("sendWallpaper", "File uploaded successfully. S3 Filename: $s3Filename")
+                    Log.d("sendWallpaper", "File uploaded successfully. S3 Filename: $s3Filename")
                 } else {
                     return@launch
                 }
@@ -336,7 +346,7 @@ class ChatViewModel(
                 type = "private"
             )
 
-            Log.e("sendWallpaper", "ChangeWallpaperRequest prepared: $changeWallpaperRequest")
+            Log.d("sendWallpaper", "ChangeWallpaperRequest prepared: $changeWallpaperRequest")
 
             // Optimistically update the UI state with the new message
             val currentTimestamp =
@@ -350,13 +360,12 @@ class ChatViewModel(
                 caption = comment,
                 timestamp = currentTimestamp,
                 status = MessageStatus.unread,
-                // reaction = reaction,
-                reaction = Reaction.none,
+                reaction = null,
                 senderId = uiState.value.currentUser!!.id,
                 recipientId = friendId.toInt()
             )
 
-            Log.e("sendWallpaper", "Optimistically adding message: $optimisticMessage")
+            Log.d("sendWallpaper", "Optimistically adding message: $optimisticMessage")
 
             // Update the UI state immediately
             _uiState.update { currentState ->
@@ -373,7 +382,7 @@ class ChatViewModel(
                         }.parse(timestamp)?.time
                     } ?: Long.MAX_VALUE // If timestamp is empty, place it at the end
                 }
-                Log.e(
+                Log.d(
                     "sendWallpaper",
                     "UI state updated with new message. Current message count: ${messages.size}"
                 )
@@ -381,7 +390,7 @@ class ChatViewModel(
             }
 
             // Send the wallpaper request
-            Log.e("sendWallpaper", "Sending wallpaper request to server...")
+            Log.d("sendWallpaper", "Sending wallpaper request to server...")
             val response = chatRepository.changeWallpaper(changeWallpaperRequest)
 
             if (response is SmartResult.Success) {
@@ -411,7 +420,8 @@ class ChatViewModel(
 
                     currentState.copy(messages = updatedMessages)
                 }
-            } else {
+            } else if (response is SmartResult.Error) {
+                sendErrorMessage(response.message?:response.errorBody?:"Wallpaper could not be sent")
                 // Remove the optimistic message if the request fails
                 _uiState.update { currentState ->
                     val filteredMessages =
@@ -422,6 +432,7 @@ class ChatViewModel(
                     )
                     currentState.copy(messages = filteredMessages)
                 }
+
             }
         }
     }
