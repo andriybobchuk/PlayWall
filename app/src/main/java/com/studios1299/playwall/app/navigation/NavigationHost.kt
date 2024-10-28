@@ -40,6 +40,7 @@ import com.studios1299.playwall.explore.presentation.explore.ExploreScreenRoot
 import com.studios1299.playwall.explore.presentation.explore.ExploreViewModel
 import com.studios1299.playwall.explore.presentation.detail.PostDetailScreenRoot
 import com.studios1299.playwall.explore.presentation.detail.PostDetailViewModel
+import com.studios1299.playwall.feature.play.presentation.DiamondsScreen
 import com.studios1299.playwall.feature.play.presentation.chat.MessengerScreen
 import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
 import com.studios1299.playwall.feature.play.presentation.play.PlayScreenRoot
@@ -55,14 +56,13 @@ fun NavigationHostLegacy(
     isLoggedIn: Boolean,
 ) {
     val navController = rememberNavController()
-    val selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
 
     NavHost(
         navController = navController,
         startDestination = if(isLoggedIn) Graphs.Main.root else Graphs.Auth.root
     ) {
         authGraph(navController)
-        mainGraph(navController, selectedItemIndex)
+        mainGraph(navController, adManager)
         sharedGraph(navController)
     }
 }
@@ -159,7 +159,7 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
     }
 }
 
-private fun NavGraphBuilder.mainGraph(navController: NavHostController, selectedItemIndex: Int) {
+private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManager: AdManager) {
     navigation(
         startDestination = Graphs.Main.Screens.play,
         route = Graphs.Main.root
@@ -176,7 +176,29 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, selected
                 onNavigateToChat = { friendId ->
                     navController.navigate("${Graphs.Main.Screens.play_chat}/$friendId")
                 },
+                onNavigateToDiamonds = {
+                    navController.navigate(Graphs.Main.Screens.diamonds)
+                },
                 bottomNavbar = { BottomNavigationBar(navController, 0) }
+            )
+        }
+        composable(Graphs.Main.Screens.diamonds) {
+            DiamondsScreen(
+                onNavigateToLuckySpin = {},
+                onNavigateToPremiumPurchase = {},
+                onBackClick = { navController.navigateUp() },
+                adManager = adManager
+//                viewModel = viewModel<PlayViewModel>(
+//                    factory = viewModelFactory {
+//                        PlayViewModel(
+//                            MyApp.appModule.coreRepository
+//                        )
+//                    }
+//                ),
+//                onNavigateToChat = { friendId ->
+//                    navController.navigate("${Graphs.Main.Screens.play_chat}/$friendId")
+//                },
+//                bottomNavbar = { BottomNavigationBar(navController, 0) }
             )
         }
 //        val sharedExploreViewModel = ExploreViewModel(

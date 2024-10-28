@@ -8,6 +8,7 @@ sealed interface PlayAction {
     data class OnFriendRemove(val friendshipId: Int): PlayAction
     data object OnEnterSelectMode : PlayAction
     data object OnExitSelectMode : PlayAction
+    data object OnNavigateToDiamonds : PlayAction
     data class UpdateSelectedFriends(val updatedSelectedFriends: List<Int>) : PlayAction
 
     data class OnAcceptFriendRequest(val requestId: Int): PlayAction

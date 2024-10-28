@@ -90,6 +90,7 @@ class PlayViewModel(
             is PlayAction.OnFriendRemove -> removeFriend(action.friendshipId)
             is PlayAction.OnFriendUnMute -> unblockFriend(action.friendshipId, action.friendshipId)
             is PlayAction.UpdateSelectedFriends -> state = state.copy(selectedFriends = action.updatedSelectedFriends)
+            PlayAction.OnNavigateToDiamonds -> navigateDiamonds()
         }
     }
 
@@ -115,6 +116,12 @@ class PlayViewModel(
     private fun navigateToChat(friendId: Int) {
         viewModelScope.launch {
             eventChannel.send(PlayEvent.NavigateToChat(friendId))
+        }
+    }
+
+    private fun navigateDiamonds() {
+        viewModelScope.launch {
+            eventChannel.send(PlayEvent.NavigateToDiamonds)
         }
     }
 

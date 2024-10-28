@@ -14,6 +14,7 @@ sealed class Graphs {
         const val root = "main"
         object Screens {
             const val play = "play"
+            const val diamonds = "diamonds"
             const val play_chat = "play-chat"
             const val explore = "explore"
             const val explore_image = "explore-image/{photoIndex}"

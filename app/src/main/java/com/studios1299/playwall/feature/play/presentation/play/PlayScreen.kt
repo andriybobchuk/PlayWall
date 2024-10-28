@@ -99,6 +99,7 @@ import me.saket.swipe.SwipeableActionsBox
 fun PlayScreenRoot(
     viewModel: PlayViewModel,
     onNavigateToChat: (Int) -> Unit,
+    onNavigateToDiamonds: () -> Unit,
     bottomNavbar: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -116,6 +117,7 @@ fun PlayScreenRoot(
             is PlayEvent.NavigateToChat -> {
                 onNavigateToChat(event.friendId)
             }
+            PlayEvent.NavigateToDiamonds -> onNavigateToDiamonds()
             PlayEvent.FriendRequestAccepted, PlayEvent.FriendRequestRejected -> {
                 Toast.makeText(context, R.string.action_successful, Toast.LENGTH_SHORT).show()
             }
@@ -295,7 +297,7 @@ fun PlayScreen(
                             //isPremium = viewModel.isPremiumPrefs(),
                             onClick = {
 //                                if (!viewModel.isPremiumPrefs()) {
-//                                    navController.navigateOnce("diamonds")
+                                    onAction(PlayAction.OnNavigateToDiamonds)
 //                                }
                             }
                         )
