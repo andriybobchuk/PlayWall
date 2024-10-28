@@ -40,7 +40,7 @@ class ChatViewModel(
 ) : ViewModel() {
     companion object {
         private const val LOG_TAG = "ChatViewModel"
-        private const val PAGE_SIZE = 10
+        private const val PAGE_SIZE = 20
     }
 
     private val _errorMessages = MutableSharedFlow<String>()
@@ -62,10 +62,18 @@ class ChatViewModel(
         },
         onRequest = { nextPage ->
             Log.e("Paginator", "Requesting next page: $nextPage")
+            Log.e("Paginator", "paginationState.page: ${paginationState.page}")
+            var forceUpdate = false
+            if (nextPage != 0) {
+                forceUpdate = true
+            }
+            Log.e("Paginator", "forceUpdate = $forceUpdate")
+
             chatRepository.getWallpaperHistory(
                 userId = friendId,
                 page = nextPage,
-                pageSize = PAGE_SIZE
+                pageSize = PAGE_SIZE,
+                forceUpdate = forceUpdate
             ).also {
                 Log.e("Paginator", "Request result for page $nextPage: $it")
             }
@@ -167,6 +175,7 @@ class ChatViewModel(
                     recipientId = wallpaperHistoryResponse.recipientId
                 )
                 currentMessages.add(newMessage)
+                chatRepository.saveMessageToLocal(newMessage)
             }
 
             // Sort messages by timestamp to ensure correct order
@@ -290,13 +299,14 @@ class ChatViewModel(
     }
 
     private fun setCurrentUser() {
+        Log.e(LOG_TAG, "setCurrentUser(), start")
         viewModelScope.launch {
             when (val result = chatRepository.getUserData()) {
                 is SmartResult.Error -> {
                     Log.e(LOG_TAG, "Error: setCurrentUser()")
                 }
-
                 is SmartResult.Success -> {
+                    Log.e(LOG_TAG, "setCurrentUser(), reult currentuserid: ${result.data?.id}")
                     _uiState.update { currentState ->
                         currentState.copy(currentUser =
                         result.data?.let {
@@ -315,6 +325,7 @@ class ChatViewModel(
                     }
                 }
             }
+            Log.e(LOG_TAG, "setCurrentUser(), currentuserid: ${uiState.value.currentUser?.id}")
         }
     }
 

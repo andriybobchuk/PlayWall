@@ -102,6 +102,7 @@ fun MessageItem(
     val onCheckReactions = { isReactionsSheetOpen.value = true }
 
     val currentUserId = uiState.currentUser?.id
+    Log.e(LOG_TAG,"messageid: ${message.id} currentuserid: $currentUserId. message.sender: ${message.senderId}")
     if (message.senderId == currentUserId) {
         MessageContent(
             viewModel = viewModel,

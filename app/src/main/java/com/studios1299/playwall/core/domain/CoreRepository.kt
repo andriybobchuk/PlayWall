@@ -12,6 +12,7 @@ import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.EmptyResult
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.model.WallpaperOption
+import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.presentation.play.Friend
 import java.io.File
 
@@ -38,10 +39,11 @@ interface CoreRepository {
     // WALLPAPER MANAGEMENT
     suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<ChangeWallpaperResponse?>
     suspend fun getUserDataById(recipientId: String): SmartResult<UserDataResponse>
-    suspend fun getWallpaperHistory(userId: String, page: Int, pageSize: Int): SmartResult<List<WallpaperHistoryResponse>>
+    suspend fun getWallpaperHistory(userId: String, page: Int, pageSize: Int, forceUpdate: Boolean): SmartResult<List<WallpaperHistoryResponse>>
     suspend fun react(wallpaperId: Int, reaction: String?): SmartResult<Unit>
     suspend fun comment(wallpaperId: Int, comment: String?): SmartResult<Unit>
     suspend fun markMessagesAsRead(friendshipId: Int, lastMessageId: Int): SmartResult<Unit>
+    suspend fun saveMessageToLocal(message: Message)
 
     // EXPLORE WALLPAPER MANAGEMENT
     suspend fun loadExploreWallpapers(page: Int, pageSize: Int, forceRefresh: Boolean): SmartResult<List<ExploreWallpaperResponse>>

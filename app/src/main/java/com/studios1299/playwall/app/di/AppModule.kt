@@ -89,7 +89,9 @@ class AppModuleImpl(
         FirebaseCoreRepositoryImpl(
             firebaseAuth = firebaseAuth,
             exploreDao = getDatabase(appContext).exploreWallpaperDao(),
-            friendsDao = getDatabase(appContext).friendDao()
+            friendsDao = getDatabase(appContext).friendDao(),
+            chatDao = getDatabase(appContext).chatDao(),
+            userDao = getDatabase(appContext).userDao()
         )
     }
     override val authRepository: AuthRepository by lazy {

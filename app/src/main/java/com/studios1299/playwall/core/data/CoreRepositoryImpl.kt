@@ -3,11 +3,16 @@ package com.studios1299.playwall.core.data
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.studios1299.playwall.core.data.local.Preferences
+import com.studios1299.playwall.core.data.local.dao.ChatDao
 import com.studios1299.playwall.core.data.local.dao.ExploreWallpaperDao
 import com.studios1299.playwall.core.data.local.dao.FriendDao
+import com.studios1299.playwall.core.data.local.dao.UserDao
 import com.studios1299.playwall.core.data.local.entity.ExploreWallpaperEntity
 import com.studios1299.playwall.core.data.local.toDomain
 import com.studios1299.playwall.core.data.local.toEntity
+import com.studios1299.playwall.core.data.local.toMessageEntity
+import com.studios1299.playwall.core.data.local.toUserDataResponse
+import com.studios1299.playwall.core.data.local.toUserEntity
 import com.studios1299.playwall.core.data.networking.RetrofitClient
 import com.studios1299.playwall.core.data.networking.RetrofitClientExt
 import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
@@ -30,14 +35,12 @@ import com.studios1299.playwall.core.data.networking.response.wallpapers.ChangeW
 import com.studios1299.playwall.core.data.networking.response.wallpapers.WallpaperHistoryResponse
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.domain.CoreRepository
-import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.model.WallpaperOption
+import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.presentation.play.Friend
 import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 import retrofit2.Response
 import java.io.File
 
@@ -45,6 +48,8 @@ class FirebaseCoreRepositoryImpl(
     private val firebaseAuth: FirebaseAuth,
     private val exploreDao: ExploreWallpaperDao,
     private val friendsDao: FriendDao,
+    private val chatDao: ChatDao,
+    private val userDao: UserDao,
 ) : CoreRepository {
     companion object {
         private const val LOG_TAG = "FirebaseCoreRepositoryImpl"
@@ -290,58 +295,99 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-
-
     override suspend fun getUserData(): SmartResult<UserDataResponse> {
         return try {
-            Log.e("getUserData", "Starting getUserData request")
+            // Check if the user data is available in the local database
+            val cachedUser = userDao.getCachedUser()
+            if (cachedUser != null) {
+                return SmartResult.Success(cachedUser.toUserDataResponse())
+            }
 
+            // If no local data, make a remote request
             val result = performAuthRequest { token ->
-                Log.e("getUserData", "Token retrieved: $token")
                 RetrofitClient.userApi.getUserData(token)
             }
 
             if (result is SmartResult.Success) {
-                val userData = result.data
-                    ?: return SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "User data is null")
-
-                Log.e("getUserData", "UserData retrieved successfully: $userData")
-
+                val userData = result.data ?: return SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "User data is null")
                 val avatarUrlResult = pathToLink(userData.avatarId)
-                Log.e("getUserData", "Avatar ID: ${userData.avatarId}, Avatar URL result: $avatarUrlResult")
+                val avatarUrl = if (avatarUrlResult is SmartResult.Success) avatarUrlResult.data ?: "" else ""
 
-                val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
-                    avatarUrlResult.data
-                } else {
-                    Log.e("getUserData", "Failed to retrieve avatar URL, using empty string.")
-                    ""
-                }
+                // Convert to UserDataResponse and cache in Room
+                val userDataResponse = UserDataResponse(
+                    id = userData.id,
+                    name = userData.name,
+                    email = userData.email,
+                    avatarId = avatarUrl,
+                    since = userData.since,
+                    status = userData.status,
+                    requesterId = userData.requesterId,
+                    friendshipId = userData.friendshipId,
+                    screenRatio = userData.screenRatio
+                )
 
-                val userDataResponse = userData?.let {
-                    UserDataResponse(
-                        id = it.id,
-                        name = userData.name,
-                        email = userData.email,
-                        avatarId = avatarUrl?:"",
-                        since = userData.since,
-                        status = userData.status,
-                        requesterId = userData.requesterId,
-                        friendshipId = userData.friendshipId,
-                        screenRatio = userData.screenRatio
-                    )
-                }
-
-                Log.e("getUserData", "Returning UserDataResponse: $userDataResponse")
+                // Cache the result in Room
+                userDao.insertUser(userDataResponse.toUserEntity())
                 SmartResult.Success(userDataResponse)
             } else {
-                Log.e("getUserData", "Failed to retrieve user data: $result")
                 SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "Could not get user data")
             }
         } catch (e: Exception) {
-            Log.e("getUserData", "Exception in getUserData: ${e.message}", e)
             SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
+
+
+//    override suspend fun getUserData(): SmartResult<UserDataResponse> {
+//        return try {
+//            Log.e("getUserData", "Starting getUserData request")
+//
+//            val result = performAuthRequest { token ->
+//                Log.e("getUserData", "Token retrieved: $token")
+//                RetrofitClient.userApi.getUserData(token)
+//            }
+//
+//            if (result is SmartResult.Success) {
+//                val userData = result.data
+//                    ?: return SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "User data is null")
+//
+//                Log.e("getUserData", "UserData retrieved successfully: $userData")
+//
+//                val avatarUrlResult = pathToLink(userData.avatarId)
+//                Log.e("getUserData", "Avatar ID: ${userData.avatarId}, Avatar URL result: $avatarUrlResult")
+//
+//                val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
+//                    avatarUrlResult.data
+//                } else {
+//                    Log.e("getUserData", "Failed to retrieve avatar URL, using empty string.")
+//                    ""
+//                }
+//
+//                val userDataResponse = userData?.let {
+//                    UserDataResponse(
+//                        id = it.id,
+//                        name = userData.name,
+//                        email = userData.email,
+//                        avatarId = avatarUrl?:"",
+//                        since = userData.since,
+//                        status = userData.status,
+//                        requesterId = userData.requesterId,
+//                        friendshipId = userData.friendshipId,
+//                        screenRatio = userData.screenRatio
+//                    )
+//                }
+//
+//                Log.e("getUserData", "Returning UserDataResponse: $userDataResponse")
+//                SmartResult.Success(userDataResponse)
+//            } else {
+//                Log.e("getUserData", "Failed to retrieve user data: $result")
+//                SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "Could not get user data")
+//            }
+//        } catch (e: Exception) {
+//            Log.e("getUserData", "Exception in getUserData: ${e.message}", e)
+//            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
+//        }
+//    }
 
     override suspend fun updateProfile(avatarId: String?, nick: String?): SmartResult<Unit> {
         return try {
@@ -393,6 +439,16 @@ class FirebaseCoreRepositoryImpl(
                 RetrofitClient.wallpaperApi.changeWallpaper(token, request)
             }
             if (response is SmartResult.Success) {
+                if (response.data?.data != null) {
+                    Log.v(LOG_TAG, "changeWallpaper, success! Inserting data to ROOM: response.data?.data = ${response.data.data}")
+                    val wallpaperUrlResult = pathToLink(response.data.data.fileName)
+                    val wallpaperUrl = if (wallpaperUrlResult is SmartResult.Success) {
+                        wallpaperUrlResult.data
+                    } else {
+                        ""
+                    }
+                    chatDao.insertMessages(listOf(response.data.data.toMessageEntity().copy(fileName = wallpaperUrl?:"")))
+                }
                 SmartResult.Success(response.data?.data)
             } else if (response is SmartResult.Error) {
                 Log.e(LOG_TAG, "changeWallpaper result: $response")
@@ -407,76 +463,164 @@ class FirebaseCoreRepositoryImpl(
 
     override suspend fun getUserDataById(recipientId: String): SmartResult<UserDataResponse> {
         return try {
+            // Check if the user data is available in the local database
+            val cachedUser = userDao.getUserById(recipientId.toInt())
+            if (cachedUser != null) {
+                return SmartResult.Success(cachedUser.toUserDataResponse())
+            }
+
+            // If no local data, make a remote request
             val result = performAuthRequest { token ->
                 RetrofitClient.wallpaperApi.getRecipientData(token, recipientId.toInt())
             }
+
             if (result is SmartResult.Success) {
-                if (result.data == null) {
-                    return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null")
-                }
-                val userData = result.data
+                val userData = result.data ?: return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null")
                 val avatarUrlResult = pathToLink(userData.avatarId)
-                val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
-                    avatarUrlResult.data
-                } else {
-                    ""
-                }
-                SmartResult.Success(
-                    UserDataResponse(
-                        id = userData.id,
-                        name = userData.name,
-                        email = userData.email,
-                        avatarId = avatarUrl?: "",
-                        since = userData.since,
-                        status = userData.status,
-                        requesterId = userData.requesterId,
-                        friendshipId = userData.friendshipId,
-                        screenRatio = userData.screenRatio
-                    )
+                val avatarUrl = if (avatarUrlResult is SmartResult.Success) avatarUrlResult.data ?: "" else ""
+
+                // Convert to UserDataResponse and cache in Room
+                val userDataResponse = UserDataResponse(
+                    id = userData.id,
+                    name = userData.name,
+                    email = userData.email,
+                    avatarId = avatarUrl,
+                    since = userData.since,
+                    status = userData.status,
+                    requesterId = userData.requesterId,
+                    friendshipId = userData.friendshipId,
+                    screenRatio = userData.screenRatio
                 )
+
+                // Cache the result in Room
+                userDao.insertUser(userDataResponse.toUserEntity())
+                SmartResult.Success(userDataResponse)
             } else {
-                Log.e(LOG_TAG, "Error in getRecipientData(): " + result)
-                return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null")
+                SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null")
             }
         } catch (e: Exception) {
-            Log.e(LOG_TAG, "Exception in getRecipientData(): " + e.message)
-            return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null: ${e.message}")
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null: ${e.message}")
         }
     }
 
+
+//
+//    override suspend fun getUserDataById(recipientId: String): SmartResult<UserDataResponse> {
+//        return try {
+//            val result = performAuthRequest { token ->
+//                RetrofitClient.wallpaperApi.getRecipientData(token, recipientId.toInt())
+//            }
+//            if (result is SmartResult.Success) {
+//                if (result.data == null) {
+//                    return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null")
+//                }
+//                val userData = result.data
+//                val avatarUrlResult = pathToLink(userData.avatarId)
+//                val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
+//                    avatarUrlResult.data
+//                } else {
+//                    ""
+//                }
+//                SmartResult.Success(
+//                    UserDataResponse(
+//                        id = userData.id,
+//                        name = userData.name,
+//                        email = userData.email,
+//                        avatarId = avatarUrl?: "",
+//                        since = userData.since,
+//                        status = userData.status,
+//                        requesterId = userData.requesterId,
+//                        friendshipId = userData.friendshipId,
+//                        screenRatio = userData.screenRatio
+//                    )
+//                )
+//            } else {
+//                Log.e(LOG_TAG, "Error in getRecipientData(): " + result)
+//                return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null")
+//            }
+//        } catch (e: Exception) {
+//            Log.e(LOG_TAG, "Exception in getRecipientData(): " + e.message)
+//            return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null: ${e.message}")
+//        }
+//    }
+
     override suspend fun getWallpaperHistory(
+        userId: String,
+        page: Int,
+        pageSize: Int,
+        forceUpdate: Boolean
+    ): SmartResult<List<WallpaperHistoryResponse>> {
+        Log.e(LOG_TAG, "getWallpaperHistory(), start. forceUpdate = $forceUpdate")
+
+        val userIdInt = userId.toInt()
+        val messageCount = chatDao.getMessageCountForUser(userIdInt)
+        Log.e(LOG_TAG, "getWallpaperHistory(), cached data size: $messageCount")
+
+        if (!forceUpdate) {
+            if (messageCount != 0) {
+                val cachedMessages = chatDao.getMessagesForUser(userIdInt, page, pageSize)
+                Log.e(LOG_TAG, "getWallpaperHistory(), returning cached messages from ROOM..")
+                return SmartResult.Success(cachedMessages.map { it.toDomain() })
+            } else {
+                return getWallpaperHistoryFromRemote(userId, page, pageSize)
+            }
+        } else {
+            return getWallpaperHistoryFromRemote(userId, page, pageSize)
+        }
+    }
+
+    override suspend fun saveMessageToLocal(message: Message) {
+        Log.v(LOG_TAG, "saveMessageToLocal, start. Inserting data to ROOM: message = ${message}")
+        chatDao.insertMessages(listOf(message.toMessageEntity()))
+    }
+
+    private suspend fun getWallpaperHistoryFromRemote(
         userId: String,
         page: Int,
         pageSize: Int
     ): SmartResult<List<WallpaperHistoryResponse>> {
         return try {
+            Log.e(
+                LOG_TAG,
+                "getWallpaperHistory(), no cached data found, fetching stuff from remote API.."
+            )
             val result = performAuthRequest { token ->
-                RetrofitClient.wallpaperApi.getWallpaperHistory(token, userId.toInt(), page, pageSize)
+                RetrofitClient.wallpaperApi.getWallpaperHistory(
+                    token,
+                    userId.toInt(),
+                    page,
+                    pageSize
+                )
             }
-
-            Log.e(LOG_TAG, "getWallpaperHistory: $result")
-
             if (result is SmartResult.Success) {
-                SmartResult.Success(result.data?.data?.map { wallpaper ->
-
-                    if (wallpaper.fileName == null) {
-                        wallpaper.copy(fileName = "")
+                val mappedWallpapers = result.data?.data?.map { wallpaper ->
+                    val wallpaperUrlResult = pathToLink(wallpaper.fileName)
+                    val wallpaperUrl = if (wallpaperUrlResult is SmartResult.Success) {
+                        wallpaperUrlResult.data
                     } else {
-                        val wallpaperUrlResult = pathToLink(wallpaper.fileName)
-                        val wallpaperUrl = if (wallpaperUrlResult is SmartResult.Success) {
-                            wallpaperUrlResult.data
-                        } else {
-                            ""
-                        }
-                        wallpaper.copy(fileName = wallpaperUrl?:"")
+                        ""
                     }
-                })
+                    wallpaper.copy(fileName = wallpaperUrl ?: "")
+                } ?: emptyList()
+
+                if (page == 0) {
+                    chatDao.insertMessages(mappedWallpapers.map { it.toEntity() })
+                }
+                SmartResult.Success(mappedWallpapers)
             } else {
-                return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getWallpaperHistory():", "Data is null")
+                return SmartResult.Error(
+                    600,
+                    "Runtime exception in $LOG_TAG.getWallpaperHistory():",
+                    "Data is null"
+                )
             }
         } catch (e: Exception) {
             Log.e(LOG_TAG, "Exception in getWallpaperHistory(): ${e.message}")
-            return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getWallpaperHistory():", "Data is null")
+            return SmartResult.Error(
+                600,
+                "Runtime exception in $LOG_TAG.getWallpaperHistory():",
+                "Data is null"
+            )
         }
     }
 

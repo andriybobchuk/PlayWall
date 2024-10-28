@@ -77,6 +77,7 @@ import com.studios1299.playwall.core.data.s3.uriToFile
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Banners
 import com.studios1299.playwall.core.presentation.components.Buttons
+import com.studios1299.playwall.core.presentation.components.DiamondsDisplay
 import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.core.presentation.components.ShimmerLoadingForFriendsList
 import com.studios1299.playwall.core.presentation.components.TextFields
@@ -123,22 +124,6 @@ fun PlayScreenRoot(
             }
         }
     }
-
-//    val lifecycleOwner = LocalLifecycleOwner.current
-//    DisposableEffect(lifecycleOwner) {
-//        val lifecycleObserver = LifecycleEventObserver { _, event ->
-//            if (event == Lifecycle.Event.ON_RESUME) {
-//                // This triggers when the PlayScreen regains focus
-//                viewModel.refreshFriends()
-//            }
-//        }
-//        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
-//
-//        // Cleanup when the effect leaves the Composition
-//        onDispose {
-//            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
-//        }
-//    }
 
     var refreshing by remember { mutableStateOf(false) }
     LaunchedEffect(refreshing) {
@@ -285,12 +270,12 @@ fun PlayScreen(
                     scrollBehavior = scrollBehavior
                 )
             } else {
-                Toolbars.Primary(
+                Toolbars.WithMenu(
                     title = "Play",
                     actions = listOf(
                         Toolbars.ToolBarAction(
                             icon = Icons.Default.CheckCircleOutline,
-                            contentDescription = "Select",
+                            contentDescription = "Select friends",
                             onClick = { onAction(PlayAction.OnEnterSelectMode) },
                             enabled = state.isOnline
                         ),
@@ -301,8 +286,22 @@ fun PlayScreen(
                             enabled = state.isOnline
                         )
                     ),
-                    scrollBehavior = scrollBehavior
+                    scrollBehavior = scrollBehavior,
+                    customContent = {
+                        DiamondsDisplay(
+                            diamondsCount = 12,
+                           // diamondsCount = viewModel.diamondsCount.collectAsState().value,
+                            isPremium = false,
+                            //isPremium = viewModel.isPremiumPrefs(),
+                            onClick = {
+//                                if (!viewModel.isPremiumPrefs()) {
+//                                    navController.navigateOnce("diamonds")
+//                                }
+                            }
+                        )
+                    }
                 )
+
             }
         },
         bottomBar = {
