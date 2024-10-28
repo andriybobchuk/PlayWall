@@ -112,6 +112,7 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.firebase.messaging.ktx)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.play.services.ads.lite)
 
     // Test:
     testImplementation(libs.junit)
@@ -184,5 +185,19 @@ dependencies {
     // crop image
     implementation ("com.github.yalantis:ucrop:2.2.8")
 
+    // Ads
+    //implementation("com.google.android.gms:play-services-location:21.3.0")
+
+    // Consents
+    implementation("com.google.android.ump:user-messaging-platform:3.0.0")
+
+    // Reviews
+    implementation ("com.google.android.play:review:2.0.2")
+    implementation ("com.google.android.play:review-ktx:2.0.2")
+
+    // Billing
+    implementation("com.android.billingclient:billing-ktx:7.1.1")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.8")
 
 }

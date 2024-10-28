@@ -71,6 +71,7 @@ firebaseConfigKtx = "22.0.0"
 workRuntimeKtx = "2.9.1"
 firebaseMessagingKtx = "24.0.1"
 runtimeLivedata = "1.7.3"
+playServicesAdsLite = "23.4.0"
 
 
 
@@ -149,6 +150,7 @@ firebase-config-ktx = { group = "com.google.firebase", name = "firebase-config-k
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
 firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
 androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
+play-services-ads-lite = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAdsLite" }
 
 
 

@@ -31,6 +31,7 @@ import com.studios1299.playwall.auth.presentation.login.LoginScreenRoot
 import com.studios1299.playwall.auth.presentation.login.LoginViewModel
 import com.studios1299.playwall.auth.presentation.register.RegisterScreenRoot
 import com.studios1299.playwall.auth.presentation.register.RegisterViewModel
+import com.studios1299.playwall.core.data.AdManager
 import com.studios1299.playwall.core.presentation.components.WebViewScreen
 import com.studios1299.playwall.core.presentation.components.WebContent
 import com.studios1299.playwall.create.presentation.CreateScreenRoot
@@ -50,6 +51,7 @@ import com.studios1299.playwall.profile.presentation.ProfileViewModel
 
 @Composable
 fun NavigationHostLegacy(
+    adManager: AdManager,
     isLoggedIn: Boolean,
 ) {
     val navController = rememberNavController()

@@ -30,6 +30,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.App.Starting"
         tools:targetApi="31">
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~5224354917"/>
         <activity
             android:name=".app.MainActivity"
             android:screenOrientation="portrait"
