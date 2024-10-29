@@ -15,11 +15,13 @@ import com.studios1299.playwall.app.di.AppModuleImpl
 import com.studios1299.playwall.core.presentation.designsystem.PlayWallTheme
 import com.studios1299.playwall.app.navigation.NavigationHostLegacy
 import com.studios1299.playwall.monetization.data.AdManager
+import com.studios1299.playwall.monetization.data.ConsentManager
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var viewModel: MainViewModel
     private lateinit var adManager: AdManager
+    private lateinit var consentManager: ConsentManager
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,6 +30,13 @@ class MainActivity : ComponentActivity() {
 
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         adManager = AdManager(this)
+        consentManager = ConsentManager.getInstance(this)
+
+        try {
+            gatherConsent()
+        } catch (e: Exception) {
+            Log.d("MainActivity", "Error gathering consent: $e")
+        }
 
         actionBar?.hide()
         installSplashScreen().apply {
@@ -60,6 +69,16 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private fun gatherConsent() {
+        consentManager.gatherConsent(this) { error ->
+            if (error == null) {
+                Log.d("MainActivity", "Consent gathered")
+            } else {
+                Log.e("MainActivity", "Consent gathering error: ${error.message}")
             }
         }
     }
