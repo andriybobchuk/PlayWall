@@ -345,15 +345,17 @@ fun ProfileScreen(
                     )
                 )
             }
-            item {
-                Text(
-                    text = "Saved Photos",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
-            items(state.wallpapers.chunked(3)) { photoRow ->
-                PhotoGridRow(photoRow, state, onAction)
+            if (state.isOnline) {
+                item {
+                    Text(
+                        text = "Saved Photos",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+                items(state.wallpapers.chunked(3)) { photoRow ->
+                    PhotoGridRow(photoRow, state, onAction)
+                }
             }
         }
     }

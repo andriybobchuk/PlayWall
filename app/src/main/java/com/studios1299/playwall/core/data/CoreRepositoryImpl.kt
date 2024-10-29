@@ -299,7 +299,9 @@ class FirebaseCoreRepositoryImpl(
         return try {
             // Check if the user data is available in the local database
             val cachedUser = userDao.getCachedUser()
+            Log.e(LOG_TAG, "getUserData, cached data: $cachedUser")
             if (cachedUser != null) {
+                Log.e(LOG_TAG, "getUserData, cached data: ${cachedUser.toUserDataResponse()}")
                 return SmartResult.Success(cachedUser.toUserDataResponse())
             }
 
@@ -309,6 +311,7 @@ class FirebaseCoreRepositoryImpl(
             }
 
             if (result is SmartResult.Success) {
+                Log.e(LOG_TAG, "getUserData, no cached data, so calling remote..")
                 val userData = result.data ?: return SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "User data is null")
                 val avatarUrlResult = pathToLink(userData.avatarId)
                 val avatarUrl = if (avatarUrlResult is SmartResult.Success) avatarUrlResult.data ?: "" else ""
@@ -327,7 +330,8 @@ class FirebaseCoreRepositoryImpl(
                 )
 
                 // Cache the result in Room
-                userDao.insertUser(userDataResponse.toUserEntity())
+                Log.e(LOG_TAG, "getUserData, remote data obtained and inserting into room: ${userDataResponse.toUserEntity()}")
+                userDao.insertUser(userDataResponse.copy(status = FriendshipStatus.accepted).toUserEntity())
                 SmartResult.Success(userDataResponse)
             } else {
                 SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "Could not get user data")
@@ -337,6 +341,51 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
+    override suspend fun getUserDataById(recipientId: String): SmartResult<UserDataResponse> {
+        return try {
+            // Check if the user data is available in the local database
+            val cachedUser = userDao.getUserById(recipientId.toInt())
+            Log.e(LOG_TAG, "getUserDataById, cached data: $cachedUser")
+            if (cachedUser != null) {
+                Log.e(LOG_TAG, "getUserDataById, cached data: ${cachedUser.toUserDataResponse()}")
+                return SmartResult.Success(cachedUser.toUserDataResponse())
+            }
+
+            // If no local data, make a remote request
+            val result = performAuthRequest { token ->
+                RetrofitClient.wallpaperApi.getRecipientData(token, recipientId.toInt())
+            }
+
+            if (result is SmartResult.Success) {
+                Log.e(LOG_TAG, "getUserDataById, no cached data, so calling remote..")
+                val userData = result.data ?: return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null")
+                val avatarUrlResult = pathToLink(userData.avatarId)
+                val avatarUrl = if (avatarUrlResult is SmartResult.Success) avatarUrlResult.data ?: "" else ""
+
+                // Convert to UserDataResponse and cache in Room
+                val userDataResponse = UserDataResponse(
+                    id = userData.id,
+                    name = userData.name,
+                    email = userData.email,
+                    avatarId = avatarUrl,
+                    since = userData.since,
+                    status = userData.status,
+                    requesterId = userData.requesterId,
+                    friendshipId = userData.friendshipId,
+                    screenRatio = userData.screenRatio
+                )
+
+                // Cache the result in Room
+                Log.e(LOG_TAG, "getUserDataById, remote data obtained and inserting into room: ${userDataResponse.toUserEntity()}")
+                userDao.insertUser(userDataResponse.toUserEntity())
+                SmartResult.Success(userDataResponse)
+            } else {
+                SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null")
+            }
+        } catch (e: Exception) {
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null: ${e.message}")
+        }
+    }
 
 //    override suspend fun getUserData(): SmartResult<UserDataResponse> {
 //        return try {
@@ -458,48 +507,6 @@ class FirebaseCoreRepositoryImpl(
             }
         } catch (e: Exception) {
             SmartResult.Error(600, "Runtime exception in $LOG_TAG.changeWallpaper():", "wallpaperApi could not change wallpaper")
-        }
-    }
-
-    override suspend fun getUserDataById(recipientId: String): SmartResult<UserDataResponse> {
-        return try {
-            // Check if the user data is available in the local database
-            val cachedUser = userDao.getUserById(recipientId.toInt())
-            if (cachedUser != null) {
-                return SmartResult.Success(cachedUser.toUserDataResponse())
-            }
-
-            // If no local data, make a remote request
-            val result = performAuthRequest { token ->
-                RetrofitClient.wallpaperApi.getRecipientData(token, recipientId.toInt())
-            }
-
-            if (result is SmartResult.Success) {
-                val userData = result.data ?: return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null")
-                val avatarUrlResult = pathToLink(userData.avatarId)
-                val avatarUrl = if (avatarUrlResult is SmartResult.Success) avatarUrlResult.data ?: "" else ""
-
-                // Convert to UserDataResponse and cache in Room
-                val userDataResponse = UserDataResponse(
-                    id = userData.id,
-                    name = userData.name,
-                    email = userData.email,
-                    avatarId = avatarUrl,
-                    since = userData.since,
-                    status = userData.status,
-                    requesterId = userData.requesterId,
-                    friendshipId = userData.friendshipId,
-                    screenRatio = userData.screenRatio
-                )
-
-                // Cache the result in Room
-                userDao.insertUser(userDataResponse.toUserEntity())
-                SmartResult.Success(userDataResponse)
-            } else {
-                SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null")
-            }
-        } catch (e: Exception) {
-            SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null: ${e.message}")
         }
     }
 

@@ -106,13 +106,19 @@ fun Message.toMessageEntity(): MessageEntity {
 
 fun UserEntity.toUserDataResponse(): UserDataResponse {
     Log.e("Mappers", "status(String): ${this.status}")
+    val status= if (this.status != null && this.status != "" && this.status != "null") {
+        this.status
+    } else {
+        Log.e("Mappers", "Lol, you had invalid status, new status: accepted")
+        "accepted"
+    }
     return UserDataResponse(
         id = this.id,
         name = this.name,
         email = this.email,
         avatarId = this.avatarId,
         since = this.since,
-        status = FriendshipStatus.valueOf(this.status?:"accepted")?:FriendshipStatus.accepted,
+        status = FriendshipStatus.valueOf(status),
         requesterId = this.requesterId,
         friendshipId = this.friendshipId,
         screenRatio = this.screenRatio
