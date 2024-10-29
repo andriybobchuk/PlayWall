@@ -22,6 +22,7 @@ import com.studios1299.playwall.feature.play.data.DefaultPaginator
 import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.data.model.Reaction
 import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
+import com.studios1299.playwall.feature.play.presentation.play.PlayRefreshState
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +37,7 @@ import java.util.TimeZone
 
 class ChatViewModel(
     private val chatRepository: CoreRepository,
-    private val friendId: String,
+    private val friendId: String
 ) : ViewModel() {
     companion object {
         private const val LOG_TAG = "ChatViewModel"
@@ -223,6 +224,8 @@ class ChatViewModel(
             WallpaperEventManager.wallpaperUpdates.collect { wallpaperHistoryResponse ->
                 Log.e(LOG_TAG, "Wallpaper event received: $wallpaperHistoryResponse")
                 handleMessageUpdate(wallpaperHistoryResponse)
+                PlayRefreshState.triggerRefresh()
+                Log.e("observeRefreshFlag", "Refresh was triggered after receiving a wallpaper")
             }
         }
         viewModelScope.launch {
@@ -334,6 +337,8 @@ class ChatViewModel(
             "sendWallpaper",
             "Function called with uri: $uri, comment: $comment, reaction: $reaction"
         )
+        Log.e("observeRefreshFlag", "Refresh was triggered after sending a wallpaper")
+        PlayRefreshState.triggerRefresh()
 
         viewModelScope.launch {
             var s3Filename: String? = null

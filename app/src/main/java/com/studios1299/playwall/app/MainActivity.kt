@@ -57,17 +57,17 @@ class MainActivity : ComponentActivity() {
                         // Load App Open Ad here
                     }
                     Log.e("MainActivity", "before loading rewarded ad")
-                    adManager.loadRewardedAd { adLoaded ->
-                        if (adLoaded) {
-                            adManager.showRewardedAdIfLoaded(
-                                onAdClosed = { Log.e("MainActivity", "onAdClosed")},
-                                onRewardEarned = { Log.e("MainActivity", "onRewardEarned")},
-                                onAdNotLoaded = { Log.e("MainActivity", "onAdNotLoaded")},
-                            )
-                        } else {
-                            Log.e("MainActivity", "else adLoaded == false")
-                        }
-                    }
+//                    adManager.loadRewardedAd { adLoaded ->
+//                        if (adLoaded) {
+//                            adManager.showRewardedAdIfLoaded(
+//                                onAdClosed = { Log.e("MainActivity", "onAdClosed")},
+//                                onRewardEarned = { Log.e("MainActivity", "onRewardEarned")},
+//                                onAdNotLoaded = { Log.e("MainActivity", "onAdNotLoaded")},
+//                            )
+//                        } else {
+//                            Log.e("MainActivity", "else adLoaded == false")
+//                        }
+//                    }
                 }
             }
         }

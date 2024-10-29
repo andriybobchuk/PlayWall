@@ -16,12 +16,13 @@ import com.studios1299.playwall.core.data.networking.request.friendships.Decline
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.domain.CoreRepository
-import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.presentation.UiText
-import com.studios1299.playwall.core.presentation.asUiText
 import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -56,8 +57,36 @@ class PlayViewModel(
                 handleFriendEvent(friendEvent)
             }
         }
+        viewModelScope.launch {
+            WallpaperEventManager.wallpaperUpdates.collect { _ ->
+                Log.e(LOG_TAG, "Wallpaper event received, refreshing the list..")
+                loadFriendsAndRequests(forceUpdate = true)
+            }
+        }
+        //observeRefreshFlag()
         loadFriendsAndRequests(forceUpdate = false)
     }
+
+    // When a message was sent or received in chat screen, it tells the play screen to refresh cached data
+    private fun observeRefreshFlag() {
+        viewModelScope.launch {
+            PlayRefreshState.needsRefresh.collectLatest { needsRefresh ->
+                if (needsRefresh) {
+                    Log.e("observeRefreshFlag", "Got a refresh event ($needsRefresh), force reloading friends..")
+                    loadFriendsAndRequests(forceUpdate = true)
+                    PlayRefreshState.resetRefreshFlag()
+                }
+            }
+        }
+    }
+
+    fun checkAndRefresh() {
+        if (PlayRefreshState.needsRefresh.value) {
+            loadFriendsAndRequests(forceUpdate = true)
+            PlayRefreshState.resetRefreshFlag()
+        }
+    }
+
 
     private fun handleFriendEvent(friendEvent: FriendEvent) {
         Log.e(LOG_TAG, "FriendEvent received: $friendEvent")
@@ -305,5 +334,19 @@ fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
                 state = state.copy(isLoading = false)
             }
         }
+    }
+}
+
+object PlayRefreshState {
+    private val _needsRefresh = MutableStateFlow(false)
+    val needsRefresh = _needsRefresh.asStateFlow()
+
+    fun triggerRefresh() {
+        Log.e("PlayRefreshState", "Triggering refresh to true")
+        _needsRefresh.value = true
+    }
+
+    fun resetRefreshFlag() {
+        _needsRefresh.value = false
     }
 }
