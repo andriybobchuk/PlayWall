@@ -1,26 +1,3 @@
-//package com.studios1299.playwall.core.data
-//
-//import android.app.NotificationChannel
-//import android.app.NotificationManager
-//import android.content.Context
-//import android.os.Build
-//import android.util.Log
-//import androidx.core.app.NotificationCompat
-//import androidx.work.OneTimeWorkRequestBuilder
-//import androidx.work.WorkManager
-//import androidx.work.workDataOf
-//import com.google.firebase.messaging.FirebaseMessagingService
-//import com.google.firebase.messaging.RemoteMessage
-//import com.studios1299.playwall.R
-//import com.studios1299.playwall.core.data.local.Preferences
-//import kotlinx.coroutines.CoroutineScope
-//import kotlinx.coroutines.Dispatchers
-//import kotlinx.coroutines.flow.MutableSharedFlow
-//import kotlinx.coroutines.launch
-//
-
-
-
 package com.studios1299.playwall.core.data
 
 import android.app.NotificationChannel
@@ -66,7 +43,7 @@ class FcmService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.e("FcmService", "onMessageReceived(): start: ${remoteMessage.data}")
 
-        val notificationType = remoteMessage.data["type"] // e.g., "wallpaper", "friend_request", "reaction"
+        val notificationType = remoteMessage.data["type"]
         val wallpaperId = remoteMessage.data["wallpaperId"]
         val requesterId = remoteMessage.data["requesterId"]?.toIntOrNull() ?: -1
         val recipientId = remoteMessage.data["recipientId"]?.toIntOrNull() ?: -1
@@ -76,9 +53,7 @@ class FcmService : FirebaseMessagingService() {
         val timeSent = remoteMessage.data["timeSent"]
         val friendshipId = remoteMessage.data["friendshipId"]?.toIntOrNull() ?: -1
 
-
         if (wallpaperId != null) {
-            // Build the WallpaperHistoryResponse dynamically
             val wallpaperHistoryResponse = WallpaperHistoryResponse(
                 id = wallpaperId.toInt(),
                 fileName = fileName ?: "",
@@ -96,6 +71,7 @@ class FcmService : FirebaseMessagingService() {
                     Log.e("FcmService", "New wallpaper received")
                     emitWallpaperUpdate(wallpaperHistoryResponse)
                     handleWallpaperDownload(fileName)
+                    sendNotification(NotificationType.wallpaper)
                 }
                 "reaction" -> {
                     Log.e("FcmService", "New reaction received: $reaction for message $wallpaperId")
@@ -128,6 +104,7 @@ class FcmService : FirebaseMessagingService() {
                     )
                     Log.e("FcmService", "Friend invite received: " + friendEvent)
                     emitFriendUpdate(friendEvent)
+                    sendNotification(NotificationType.friendInvite)
                 }
                 "friend_accept" -> {
                     Log.e("FcmService", "Friend request accepted")
@@ -138,6 +115,7 @@ class FcmService : FirebaseMessagingService() {
                         friendshipId = friendshipId
                     )
                     emitFriendUpdate(friendEvent)
+                    sendNotification(NotificationType.friendAccept)
                 }
                 "friend_remove" -> {
                     Log.e("FcmService", "Friend removed")
@@ -198,8 +176,6 @@ class FcmService : FirebaseMessagingService() {
 
             Log.e("FcmService", "Launching wallpaper worker for file: $fileName")
             WorkManager.getInstance(applicationContext).enqueue(changeWallpaperWork)
-
-            sendWallpaperNotification(fileName)
         }
     }
 
@@ -219,19 +195,16 @@ class FcmService : FirebaseMessagingService() {
         scope.cancel()
     }
 
-    private fun sendWallpaperNotification(fileName: String) {
+    private fun sendNotification(notificationType: NotificationType) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val notificationId = 1
-
+        val notificationId = notificationType.id
         createNotificationChannel(notificationManager)
-
         val notification = NotificationCompat.Builder(this, "playwall_notifications")
             .setSmallIcon(R.drawable.pw)
-            .setContentTitle("New Wallpaper Received")
-            .setContentText("You have received a new wallpaper: $fileName")
+            .setContentTitle(notificationType.title)
+            .setContentText(notificationType.content)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
-
         notificationManager.notify(notificationId, notification)
     }
 
@@ -247,6 +220,12 @@ class FcmService : FirebaseMessagingService() {
             notificationManager.createNotificationChannel(channel)
         }
     }
+}
+
+enum class NotificationType(val id: Int, val title: String, val content: String) {
+    wallpaper(1, "Wallpaper received", "Someone sent you a wallpaper! \uD83D\uDE08"),
+    friendInvite(2, "Friend request", "You received a friend request, find out who! \uD83D\uDE08"),
+    friendAccept(3, "Request accepted", "Your friend request was accepted, send them a wallpaper! \uD83D\uDE08")
 }
 
 //object WallpaperEventManager {
