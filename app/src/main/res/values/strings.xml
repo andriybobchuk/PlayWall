@@ -99,4 +99,8 @@
     <string name="forgot_password">Forgot password?</string>
     <string name="reset_password">Reset password</string>
     <string name="no_ads_available">No ads available</string>
+    <string name="we_work_hard">We work hard!</string>
+    <string name="rate_the_app">Rate the app</string>
+    <string name="click_here_if_you_are_happy">Click here if you are happy</string>
+    <string name="no_thanks">No, thanks</string>
 </resources>
