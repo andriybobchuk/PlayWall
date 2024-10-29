@@ -34,6 +34,7 @@ import com.studios1299.playwall.auth.presentation.register.RegisterViewModel
 import com.studios1299.playwall.core.data.AdManager
 import com.studios1299.playwall.core.presentation.components.WebViewScreen
 import com.studios1299.playwall.core.presentation.components.WebContent
+import com.studios1299.playwall.core.presentation.screens.LuckySpinScreen
 import com.studios1299.playwall.create.presentation.CreateScreenRoot
 import com.studios1299.playwall.create.presentation.CreateViewModel
 import com.studios1299.playwall.explore.presentation.explore.ExploreScreenRoot
@@ -184,7 +185,7 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
         }
         composable(Graphs.Main.Screens.diamonds) {
             DiamondsScreen(
-                onNavigateToLuckySpin = {},
+                onNavigateToLuckySpin = { navController.navigate(Graphs.Main.Screens.lucky_spin) },
                 onNavigateToPremiumPurchase = {},
                 onBackClick = { navController.navigateUp() },
                 adManager = adManager
@@ -199,6 +200,12 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
 //                    navController.navigate("${Graphs.Main.Screens.play_chat}/$friendId")
 //                },
 //                bottomNavbar = { BottomNavigationBar(navController, 0) }
+            )
+        }
+        composable(Graphs.Main.Screens.lucky_spin) {
+            LuckySpinScreen(
+                onBackClick = { navController.navigateUp() },
+                adManager = adManager
             )
         }
 //        val sharedExploreViewModel = ExploreViewModel(

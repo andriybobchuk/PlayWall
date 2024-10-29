@@ -68,10 +68,10 @@ fun DiamondsScreen(
     val noAdsMessage = "No ads available"
     val analytics = FirebaseAnalytics.getInstance(context)
 
-    val ColorGradient1 = Color(0xFFE91E63) // Pink shade
-    val ColorGradient2 = Color(0xFF9C27B0) // Purple shade
+    val ColorGradient1 = Color(0xFFFFF176) // Light yellow shade
+    val ColorGradient2 = Color(0xFFFFC107) // Golden yellow shade
     val colorStops = arrayOf(
-        0.7f to ColorGradient1,
+        0.3f to ColorGradient1,
         1.0f to ColorGradient2
     )
 

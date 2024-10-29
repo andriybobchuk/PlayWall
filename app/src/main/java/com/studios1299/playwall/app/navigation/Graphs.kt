@@ -15,6 +15,7 @@ sealed class Graphs {
         object Screens {
             const val play = "play"
             const val diamonds = "diamonds"
+            const val lucky_spin = "lucky-spin"
             const val play_chat = "play-chat"
             const val explore = "explore"
             const val explore_image = "explore-image/{photoIndex}"
