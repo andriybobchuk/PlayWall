@@ -1,4 +1,4 @@
-package com.studios1299.playwall.core.data
+package com.studios1299.playwall.monetization.data
 
 import android.app.Activity
 import android.util.Log
@@ -9,7 +9,6 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.studios1299.playwall.app.config.AppConfigManager
-
 
 // test ad unit id
 private const val adUnitId = "ca-app-pub-3940256099942544/5224354917"

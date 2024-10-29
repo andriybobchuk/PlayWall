@@ -1,4 +1,4 @@
-package com.studios1299.playwall.feature.play.presentation
+package com.studios1299.playwall.monetization.presentation.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -42,16 +42,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.studios1299.playwall.R
-import com.studios1299.playwall.core.data.AdManager
 import com.studios1299.playwall.core.presentation.components.Toolbars
+import com.studios1299.playwall.monetization.data.AdManager
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)

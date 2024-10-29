@@ -1,4 +1,4 @@
-package com.studios1299.playwall.core.presentation.screens
+package com.studios1299.playwall.monetization.presentation.screens
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -59,8 +59,9 @@ import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.studios1299.playwall.R
-import com.studios1299.playwall.core.data.AdManager
 import com.studios1299.playwall.core.presentation.components.Toolbars
+import com.studios1299.playwall.monetization.data.AdManager
+import com.studios1299.playwall.monetization.presentation.components.NextSpinSheet
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
@@ -114,7 +115,8 @@ fun LuckySpinTopBar(onBackClick: () -> Unit, isLoading: Boolean) {
 @Composable
 fun SpinView(
     //viewModel: AppViewModel,
-    adManager: AdManager) {
+    adManager: AdManager
+) {
     val scope = rememberCoroutineScope()
     val noAdsMessage = stringResource(id = R.string.no_ads_available)
     //val nextSpinSheetShow by viewModel.nextSpinSheetShow.collectAsState()
@@ -265,10 +267,9 @@ fun SpinView(
 
         }
 
-
 //        if(nextSpinSheetShow) {
 //            NextSpinSheet(
-//                viewModel = viewModel,
+//                //viewModel = viewModel,
 //                isLoading = isLoading,
 //                diamonds = diamonds,
 //                onDismiss = {

@@ -14,7 +14,7 @@ import com.studios1299.playwall.app.config.AppConfigManager
 import com.studios1299.playwall.app.di.AppModuleImpl
 import com.studios1299.playwall.core.presentation.designsystem.PlayWallTheme
 import com.studios1299.playwall.app.navigation.NavigationHostLegacy
-import com.studios1299.playwall.core.data.AdManager
+import com.studios1299.playwall.monetization.data.AdManager
 
 class MainActivity : ComponentActivity() {
 
