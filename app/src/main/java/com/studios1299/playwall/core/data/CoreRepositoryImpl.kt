@@ -40,9 +40,13 @@ import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.presentation.play.Friend
 import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
+import com.studios1299.playwall.monetization.presentation.AppState
 import kotlinx.coroutines.tasks.await
 import retrofit2.Response
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class FirebaseCoreRepositoryImpl(
     private val firebaseAuth: FirebaseAuth,
@@ -869,6 +873,82 @@ class FirebaseCoreRepositoryImpl(
             SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
+
+    override fun addDevils(count: Int) {
+        val currentCount = Preferences.getDevilsCount()
+        val newCount = currentCount + count
+        Preferences.setDevilsCount(newCount)
+        AppState.updateDevilCount(AppState.devilCount.value + count)
+        Log.e(LOG_TAG, "addDevils: Current count: $currentCount, Added: $count, New count: $newCount")
+    }
+
+    override fun getDevilCount(): Int {
+        val count = Preferences.getDevilsCount()
+        Log.e(LOG_TAG, "getDevilCount: $count")
+        return count
+    }
+
+    override fun updatePremiumStatus(isPremium: Boolean) {
+        Preferences.setPremiumStatus(isPremium)
+        AppState.updatePremiumStatus(isPremium)
+        Log.e(LOG_TAG, "updatePremiumStatus: Set to $isPremium")
+    }
+
+    override fun markCheckedInToday() {
+        Preferences.setCheckedInToday(true)
+        Preferences.setCheckedInToday(true)
+        Log.e(LOG_TAG, "markCheckedInToday: Marked as checked in today")
+    }
+
+    override fun resetDailyCheckin() {
+        Preferences.setCheckedInToday(false)
+        Preferences.setLastCheckInDate("2024-10-31")
+        Preferences.setConsecutiveDays(0)
+        Log.e(LOG_TAG, "resetDailyCheckin: Daily check-in reset")
+    }
+
+    override fun getLastCheckInDate(): String? {
+        val lastDate = Preferences.getLastCheckInDate()
+        Log.e(LOG_TAG, "getLastCheckInDate: $lastDate")
+        return lastDate
+    }
+
+    override fun setLastCheckInDate(date: String) {
+        Preferences.setLastCheckInDate(date)
+        AppState.updateLastCheckinDate(date)
+        Log.e(LOG_TAG, "setLastCheckInDate: Date set to $date")
+    }
+
+    override fun hasCheckedInToday(): Boolean {
+        val lastCheckInDate = Preferences.getLastCheckInDate()
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val hasCheckedIn = lastCheckInDate == today
+        Log.e(LOG_TAG, "hasCheckedInToday: Checked in today? $hasCheckedIn")
+        return hasCheckedIn
+    }
+
+    override fun getConsecutiveDays(): Int {
+        val consecutiveDays = Preferences.getConsecutiveDays()
+        Log.e(LOG_TAG, "getConsecutiveDays: $consecutiveDays")
+        return consecutiveDays
+    }
+
+    override fun setConsecutiveDays(days: Int) {
+        Preferences.setConsecutiveDays(days)
+        AppState.updateConsecutiveDays(days)
+        Log.e(LOG_TAG, "setConsecutiveDays: Consecutive days set to $days")
+    }
+
+
+
+    // Retrieve the current devils count from Preferences
+//    fun getDevilsCount(): Flow<Int> = AppState.devilCount
+//
+//    // Check if user is premium
+//    fun isPremium(): Flow<Boolean> = AppState.isPremium
+//
+//    // Check if user has checked in today
+//    fun hasCheckedInToday(): Flow<Boolean> = AppState.hasCheckedInToday
 
     override fun getWallpaperDestination(): WallpaperOption {
         return Preferences.getWallpaperDestination()

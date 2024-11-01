@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.data.WallpaperEventManager
 import com.studios1299.playwall.core.data.networking.NetworkMonitor
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
@@ -28,6 +29,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -127,6 +132,55 @@ class ChatViewModel(
         }
     )
 
+    suspend fun waitForUserAndRecipient(): Pair<User, User> {
+        return combine(
+            _uiState.map { it.currentUser }.filterNotNull(),
+            _uiState.map { it.recipient }.filterNotNull()
+        ) { currentUser, recipient ->
+            currentUser to recipient
+        }.first() // Suspend until both values are non-null
+    }
+    fun resetChat() {
+        Log.e(LOG_TAG, "Resetting chat..")
+        viewModelScope.launch {
+            // Wait until both currentUser and recipient are available
+            val (currentUser, recipient) = try {
+                waitForUserAndRecipient()
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, "Failed to retrieve currentUser and recipient: ${e.localizedMessage}")
+                sendErrorMessage("User data is unavailable.")
+                return@launch
+            }
+
+            // Clear current messages in the UI state
+            _uiState.update { it.copy(messages = emptyList()) }
+            Log.e(LOG_TAG, "Clearing old messages from UI..")
+
+            try {
+                Log.e(LOG_TAG, "Clearing local cached messages..")
+                MyApp.appModule.chatDao.clearChatCache(currentUser.id, recipient.id)
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, "Error clearing chat cache: ${e.localizedMessage}")
+                sendErrorMessage("Failed to reset chat.")
+            }
+
+            Log.e(LOG_TAG, "Resetting pagination state")
+            paginationState = PaginationState(page = 0, isLoading = false, endReached = false)
+            paginator.reset()
+
+            // Reload the first page of messages
+            try {
+                Log.e(LOG_TAG, "Loading messages after reset")
+                loadMessages()
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, "Error loading messages: ${e.localizedMessage}")
+                sendErrorMessage("Failed to load messages.")
+            }
+        }
+    }
+
+
+
     private suspend fun handleMessageUpdate(wallpaperHistoryResponse: WallpaperHistoryResponse) {
         Log.e(LOG_TAG, "Handling wallpaper update with id: ${wallpaperHistoryResponse.id}")
 
@@ -204,8 +258,14 @@ class ChatViewModel(
     init {
         Log.d(LOG_TAG, "ViewModel initialized")
         loadRecipientData()
-        loadMessages()
         setCurrentUser()
+
+        if (WallpaperNotificationForChat.isNewWallpaperReceived()) {
+            resetChat()
+            WallpaperNotificationForChat.setNewWallpaperReceived(false) // Reset flag after refreshing
+        } else {
+            loadMessages()
+        }
 
         viewModelScope.launch {
             NetworkMonitor.isOnline.collect { online ->
@@ -557,5 +617,20 @@ class ChatViewModel(
                 Log.e("ChatViewModel", "Unexpected result when marking messages as read: $result")
             }
         }
+    }
+}
+
+object WallpaperNotificationForChat {
+    private const val PREF_NAME = "wallpaper_notifications"
+    private const val NEW_WALLPAPER_RECEIVED_KEY = "new_wallpaper_received"
+
+    fun setNewWallpaperReceived(value: Boolean) {
+        val prefs = MyApp.appModule.context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(NEW_WALLPAPER_RECEIVED_KEY, value).apply()
+    }
+
+    fun isNewWallpaperReceived(): Boolean {
+        val prefs = MyApp.appModule.context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(NEW_WALLPAPER_RECEIVED_KEY, false)
     }
 }

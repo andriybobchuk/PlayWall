@@ -9,6 +9,7 @@ import com.studios1299.playwall.auth.data.FirebaseAuthRepositoryImpl
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.domain.PatternValidator
 import com.studios1299.playwall.core.data.FirebaseCoreRepositoryImpl
+import com.studios1299.playwall.core.data.local.dao.ChatDao
 import com.studios1299.playwall.core.data.local.database.AppDatabase.Companion.getDatabase
 import com.studios1299.playwall.core.domain.CoreRepository
 
@@ -79,6 +80,8 @@ interface AppModule {
     val firebaseAuth: FirebaseAuth
     val crashlytics: FirebaseCrashlytics
     val firebaseMessaging: FirebaseMessaging
+    val context: Context
+    val chatDao: ChatDao
 }
 
 class AppModuleImpl(
@@ -90,7 +93,7 @@ class AppModuleImpl(
             firebaseAuth = firebaseAuth,
             exploreDao = getDatabase(appContext).exploreWallpaperDao(),
             friendsDao = getDatabase(appContext).friendDao(),
-            chatDao = getDatabase(appContext).chatDao(),
+            chatDao = chatDao,
             userDao = getDatabase(appContext).userDao()
         )
     }
@@ -109,6 +112,13 @@ class AppModuleImpl(
     override val firebaseMessaging: FirebaseMessaging by lazy {
         FirebaseMessaging.getInstance()
     }
+    override val context: Context
+        get() = appContext
+
+    override val chatDao: ChatDao by lazy {
+        getDatabase(appContext).chatDao()
+    }
+
     override val emailPatternValidator: PatternValidator by lazy {
         EmailPatternValidator
     }

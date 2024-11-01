@@ -17,6 +17,8 @@ import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.networking.response.wallpapers.WallpaperHistoryResponse
 import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.data.model.Reaction
+import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.WallpaperNotificationForChat
+import com.studios1299.playwall.feature.play.presentation.play.WallpaperNotificationForPlay
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -71,6 +73,8 @@ class FcmService : FirebaseMessagingService() {
                     Log.e("FcmService", "New wallpaper received")
                     emitWallpaperUpdate(wallpaperHistoryResponse)
                     handleWallpaperDownload(fileName)
+                    WallpaperNotificationForChat.setNewWallpaperReceived(true)
+                    WallpaperNotificationForPlay.setNewWallpaperReceived(true)
                     sendNotification(NotificationType.wallpaper)
                 }
                 "reaction" -> {

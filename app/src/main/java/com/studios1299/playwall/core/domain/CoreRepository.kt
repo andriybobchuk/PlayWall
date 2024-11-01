@@ -51,10 +51,22 @@ interface CoreRepository {
     suspend fun removeSavedWallpaper(wallpaperId: Int): SmartResult<Unit>
     suspend fun loadSavedWallpapers(page: Int, pageSize: Int): SmartResult<List<ExploreWallpaperResponse>>
 
-
     suspend fun reportWallpaper(wallpaperId: Int): SmartResult<Unit>
-
     suspend fun getFriendScreenRatio(friendId: Int): SmartResult<Float>
+
+    // MONETIZATION
+    fun addDevils(count: Int)
+    fun getDevilCount(): Int
+    fun updatePremiumStatus(isPremium: Boolean)
+    fun getLastCheckInDate(): String?
+    fun setLastCheckInDate(date: String)
+    fun getConsecutiveDays(): Int
+    fun setConsecutiveDays(days: Int)
+    fun hasCheckedInToday(): Boolean
+
+
+    fun markCheckedInToday()
+    fun resetDailyCheckin()
 
     // PREFERENCE MANAGEMENT (DEPRECATED)
     fun getWallpaperDestination(): WallpaperOption

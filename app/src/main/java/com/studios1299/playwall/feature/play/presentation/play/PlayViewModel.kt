@@ -1,5 +1,6 @@
 package com.studios1299.playwall.feature.play.presentation.play
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.mutableStateOf
@@ -7,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.data.FriendEvent
 import com.studios1299.playwall.core.data.WallpaperEventManager
 import com.studios1299.playwall.core.data.local.Preferences
@@ -19,6 +21,7 @@ import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.presentation.UiText
 import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
+import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.WallpaperNotificationForChat
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -63,21 +66,12 @@ class PlayViewModel(
                 loadFriendsAndRequests(forceUpdate = true)
             }
         }
+        if (WallpaperNotificationForPlay.isNewWallpaperReceived()) {
+            loadFriendsAndRequests(forceUpdate = true)
+            WallpaperNotificationForPlay.setNewWallpaperReceived(false)
+        }
         //observeRefreshFlag()
         loadFriendsAndRequests(forceUpdate = false)
-    }
-
-    // When a message was sent or received in chat screen, it tells the play screen to refresh cached data
-    private fun observeRefreshFlag() {
-        viewModelScope.launch {
-            PlayRefreshState.needsRefresh.collectLatest { needsRefresh ->
-                if (needsRefresh) {
-                    Log.e("observeRefreshFlag", "Got a refresh event ($needsRefresh), force reloading friends..")
-                    loadFriendsAndRequests(forceUpdate = true)
-                    PlayRefreshState.resetRefreshFlag()
-                }
-            }
-        }
     }
 
     fun checkAndRefresh() {
@@ -87,12 +81,10 @@ class PlayViewModel(
         }
     }
 
-
     private fun handleFriendEvent(friendEvent: FriendEvent) {
         Log.e(LOG_TAG, "FriendEvent received: $friendEvent")
         loadFriendsAndRequests(forceUpdate = true)
     }
-
 
     fun onAction(action: PlayAction) {
         when(action) {
@@ -348,5 +340,20 @@ object PlayRefreshState {
 
     fun resetRefreshFlag() {
         _needsRefresh.value = false
+    }
+}
+
+object WallpaperNotificationForPlay {
+    private const val PREF_NAME = "wallpaper_notifications_play"
+    private const val NEW_WALLPAPER_RECEIVED_KEY = "new_wallpaper_received_play"
+
+    fun setNewWallpaperReceived(value: Boolean) {
+        val prefs = MyApp.appModule.context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(NEW_WALLPAPER_RECEIVED_KEY, value).apply()
+    }
+
+    fun isNewWallpaperReceived(): Boolean {
+        val prefs = MyApp.appModule.context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(NEW_WALLPAPER_RECEIVED_KEY, false)
     }
 }

@@ -36,6 +36,7 @@ import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatVie
 import com.studios1299.playwall.feature.play.presentation.play.PlayScreenRoot
 import com.studios1299.playwall.feature.play.presentation.play.PlayViewModel
 import com.studios1299.playwall.monetization.data.AdManager
+import com.studios1299.playwall.monetization.presentation.DiamondsViewModel
 import com.studios1299.playwall.profile.presentation.ProfileDestination
 import com.studios1299.playwall.profile.presentation.ProfileScreenRoot
 import com.studios1299.playwall.profile.presentation.ProfileViewModel
@@ -178,18 +179,14 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
                 onNavigateToLuckySpin = { navController.navigate(Graphs.Main.Screens.lucky_spin) },
                 onNavigateToPremiumPurchase = {},
                 onBackClick = { navController.navigateUp() },
-                adManager = adManager
-//                viewModel = viewModel<PlayViewModel>(
-//                    factory = viewModelFactory {
-//                        PlayViewModel(
-//                            MyApp.appModule.coreRepository
-//                        )
-//                    }
-//                ),
-//                onNavigateToChat = { friendId ->
-//                    navController.navigate("${Graphs.Main.Screens.play_chat}/$friendId")
-//                },
-//                bottomNavbar = { BottomNavigationBar(navController, 0) }
+                adManager = adManager,
+                viewModel = viewModel<DiamondsViewModel>(
+                    factory = viewModelFactory {
+                        DiamondsViewModel(
+                            MyApp.appModule.coreRepository
+                        )
+                    }
+                ),
             )
         }
         composable(Graphs.Main.Screens.lucky_spin) {

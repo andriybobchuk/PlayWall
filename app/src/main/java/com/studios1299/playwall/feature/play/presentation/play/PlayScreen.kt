@@ -50,6 +50,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -86,6 +87,7 @@ import com.studios1299.playwall.feature.play.data.model.MessageStatus
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
 import com.studios1299.playwall.feature.play.presentation.chat.util.requestNotificationPermissionWithDexter
 import com.studios1299.playwall.feature.play.presentation.chat.util.timestampAsDateTime
+import com.studios1299.playwall.monetization.presentation.AppState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -265,6 +267,7 @@ fun PlayScreen(
     }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val isPremium = AppState.isPremium.collectAsState().value
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -302,14 +305,14 @@ fun PlayScreen(
                     scrollBehavior = scrollBehavior,
                     customContent = {
                         DiamondsDisplay(
-                            diamondsCount = 12,
+                            diamondsCount = AppState.devilCount.collectAsState().value,
                            // diamondsCount = viewModel.diamondsCount.collectAsState().value,
-                            isPremium = false,
+                            isPremium = isPremium,
                             //isPremium = viewModel.isPremiumPrefs(),
                             onClick = {
-//                                if (!viewModel.isPremiumPrefs()) {
+                                if (!isPremium) {
                                     onAction(PlayAction.OnNavigateToDiamonds)
-//                                }
+                                }
                             }
                         )
                     }

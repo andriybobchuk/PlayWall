@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.studios1299.playwall.app.config.AppConfigManager
 import com.studios1299.playwall.app.config.FirebaseManager
 import com.studios1299.playwall.core.domain.CoreRepository
+import com.studios1299.playwall.monetization.presentation.AppState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -27,6 +28,7 @@ class MainViewModel(
             )
             state = state.copy(keepSplashScreen = false)
         }
+        initMonetizationData()
     }
     init {
         viewModelScope.launch {
@@ -41,6 +43,12 @@ class MainViewModel(
 
             state = state.copy(keepSplashScreen = false)
         }
+    }
+
+    fun initMonetizationData() {
+        AppState.updateHasCheckedInToday(coreRepository.hasCheckedInToday())
+        AppState.updateDevilCount(coreRepository.getDevilCount())
+        AppState.updatePremiumStatus(false)
     }
 
     private fun logConfigValues() {

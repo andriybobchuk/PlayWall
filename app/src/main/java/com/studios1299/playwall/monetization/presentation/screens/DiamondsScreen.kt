@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,12 +50,14 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.monetization.data.AdManager
+import com.studios1299.playwall.monetization.presentation.AppState
+import com.studios1299.playwall.monetization.presentation.DiamondsViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiamondsScreen(
-   // viewModel: AppViewModel,
+    viewModel: DiamondsViewModel,
     onNavigateToLuckySpin: () -> Unit,
     onNavigateToPremiumPurchase: () -> Unit,
     onBackClick: () -> Unit,
@@ -90,19 +93,16 @@ fun DiamondsScreen(
             .background(Brush.verticalGradient(colorStops = colorStops))
     ) {
         //val diamondsCount = viewModel.diamondsCount.collectAsState()
-        val diamondsCount = 2
+        val diamondsCount = AppState.devilCount.collectAsState()
         DiamondsScreenTopBar(onBackClick, isLoading)
         Column(
             modifier = Modifier
                 .padding(horizontal = 8.dp, vertical = 12.dp)
 
         ) {
-            //DiamondsCount(diamondsCount = diamondsCount.value)
-            DiamondsCount(diamondsCount = 4)
+            DiamondsCount(diamondsCount = diamondsCount.value)
             Spacer(modifier = Modifier.size(spacing))
-            DailyCheckIn(
-            //    viewModel
-            )
+            DailyCheckIn(viewModel)
             Spacer(modifier = Modifier.size(spacing))
             LuckySpinButton(onNavigateToLuckySpin)
             Spacer(modifier = Modifier.size(spacing))
@@ -115,14 +115,15 @@ fun DiamondsScreen(
                             if(adLoaded) {
                                 adManager.showRewardedAdIfLoaded(
                                     onRewardEarned = {
-                                        //viewModel.addDiamonds(1)
+                                        viewModel.addDevils(1)
                                     },
                                     onAdClosed = {
                                        // viewModel.showNextDiamondSheet()
+                                        AppState.updateNextDiamondSheetShow(true)
                                     }
                                 )
-
-                                ///viewModel.hideNextDiamondSheet()
+                                //viewModel.hideNextDiamondSheet()
+                                AppState.updateNextDiamondSheetShow(false)
                             } else {
                                 /*
                                *
@@ -150,10 +151,17 @@ fun DiamondsScreen(
             UnlimitedDiamondsButton(
             //    viewModel
             )
-//            Spacer(modifier = Modifier.size(spacing))
-//            Button(onClick = { viewModel.addDiamonds(-1) }) {
-//                Text(text = "Remove 1 diamond")
-//            }
+            Spacer(modifier = Modifier.size(spacing))
+            Button(onClick = {
+                viewModel.addDevils(-1)
+            }) {
+                Text(text = "Remove 1 diamond")
+            }
+            Button(onClick = {
+                viewModel.reset()
+            }) {
+                Text(text = "reset checkin")
+            }
 
 
         }
@@ -173,9 +181,7 @@ fun DiamondsScreenTopBar(onBackClick: () -> Unit, isLoading: Boolean) {
                 onBackClick()
             }
         },
-        scrollBehavior = scrollBehavior,
-        customContent = {
-        }
+        scrollBehavior = scrollBehavior
     )
 }
 
@@ -199,34 +205,23 @@ fun DiamondsCount(diamondsCount: Int) {
 
 @Composable
 fun DailyCheckIn(
-    //viewModel: AppViewModel
+    viewModel: DiamondsViewModel
 ) {
 
 //    val dailyCheckinData by viewModel.dailyCheckinState.collectAsState()
 //    val hasCheckedInToday by viewModel.hasCheckedInToday.collectAsState()
 //
+    val dailyCheckinData = AppState.dailyCheckinState.collectAsState()
+    val hasCheckedInToday = AppState.hasCheckedInToday.collectAsState()
+
     val listState = rememberLazyListState()
-//    val lastCheckedIndex = dailyCheckinData.indexOfLast { it.checked }
-//
-//    LaunchedEffect(key1 = dailyCheckinData) {
-//        if (lastCheckedIndex != -1) {
-//            listState.animateScrollToItem(index = lastCheckedIndex)
-//        }
-//
-//    }
+    val lastCheckedIndex = dailyCheckinData.value.indexOfLast { it.checked }
 
-    val dailyCheckinData = listOf(
-        DailyCheckinData(label = "Day 1", diamonds = 1, checked = true),
-        DailyCheckinData(label = "Day 2", diamonds = 1, checked = true),
-        DailyCheckinData(label = "Day 3", diamonds = 1, checked = true),
-        DailyCheckinData(label = "Day 4", diamonds = 2, checked = false),
-        DailyCheckinData(label = "Day 5", diamonds = 2, checked = false),
-        DailyCheckinData(label = "Day 6", diamonds = 2, checked = false),
-        DailyCheckinData(label = "Day 7", diamonds = 3, checked = false),
-        DailyCheckinData(label = "Day 8", diamonds = 4, checked = false),
-        DailyCheckinData(label = "Day 9", diamonds = 5, checked = false)
-    )
-
+    LaunchedEffect(key1 = dailyCheckinData) {
+        if (lastCheckedIndex != -1) {
+            listState.animateScrollToItem(index = lastCheckedIndex)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -246,20 +241,22 @@ fun DailyCheckIn(
             state = listState,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            items(dailyCheckinData) {
+            items(dailyCheckinData.value) {
                 DailyCheckInCard(it)
             }
         }
 
        // if(!hasCheckedInToday) {
-        if(!false) {
+        if(!hasCheckedInToday.value) {
             Spacer(modifier = Modifier.size(16.dp))
             Button(
                 modifier = Modifier
                     .fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(8.dp),
-                onClick = {}
+                onClick = {
+                    viewModel.checkIn()
+                }
                 //viewModel::checkIn
             ) {
                 Text(
@@ -355,7 +352,11 @@ fun DailyCheckInCard(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
             .background(color = bgColor)
-            .border(2.dp, color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(6.dp))
+            .border(
+                2.dp,
+                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(6.dp)
+            )
             .padding(vertical = 4.dp, horizontal = 10.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally

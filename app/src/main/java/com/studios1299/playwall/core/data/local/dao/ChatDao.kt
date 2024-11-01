@@ -16,4 +16,11 @@ interface ChatDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMessages(messages: List<MessageEntity>)
+
+    @Query("""
+        DELETE FROM messages 
+        WHERE (requesterId = :userId AND recipientId = :friendId) 
+           OR (requesterId = :friendId AND recipientId = :userId)
+    """)
+    suspend fun clearChatCache(userId: Int, friendId: Int)
 }
