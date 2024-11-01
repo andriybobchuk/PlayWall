@@ -45,7 +45,8 @@ object FirebaseManager {
     private fun fetchAndUpdateConfig() {
         remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                AppConfigManager.updateConfig(getConfigValues())
+                //TODO("Uncomment when FirebaseConfig actually has these values")
+                //AppConfigManager.updateConfig(getConfigValues())
                 isRemoteConfigInitialized = true
             }
         }

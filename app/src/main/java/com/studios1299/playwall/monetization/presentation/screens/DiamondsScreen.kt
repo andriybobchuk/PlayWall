@@ -52,6 +52,8 @@ import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.monetization.data.AdManager
 import com.studios1299.playwall.monetization.presentation.AppState
 import com.studios1299.playwall.monetization.presentation.DiamondsViewModel
+import com.studios1299.playwall.monetization.presentation.components.NextDiamondSheet
+import com.studios1299.playwall.monetization.presentation.components.NextSpinSheet
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,6 +96,8 @@ fun DiamondsScreen(
     ) {
         //val diamondsCount = viewModel.diamondsCount.collectAsState()
         val diamondsCount = AppState.devilCount.collectAsState()
+        val showNextDiamondSheet = AppState.nextDiamondSheetShow.collectAsState()
+
         DiamondsScreenTopBar(onBackClick, isLoading)
         Column(
             modifier = Modifier
@@ -163,6 +167,12 @@ fun DiamondsScreen(
                 Text(text = "reset checkin")
             }
 
+            if(showNextDiamondSheet.value) {
+                NextDiamondSheet(
+                    viewModel = viewModel,
+                    adManager = adManager
+                )
+            }
 
         }
 

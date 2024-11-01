@@ -34,6 +34,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +62,8 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.monetization.data.AdManager
+import com.studios1299.playwall.monetization.presentation.AppState
+import com.studios1299.playwall.monetization.presentation.LuckySpinViewModel
 import com.studios1299.playwall.monetization.presentation.components.NextSpinSheet
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
@@ -73,12 +76,13 @@ import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun LuckySpinScreen(
-    //viewModel: AppViewModel,
+    viewModel: LuckySpinViewModel,
     onBackClick: () -> Unit,
     adManager: AdManager
 ) {
     //val isLoading by viewModel.isNextSpinLoading.collectAsState()
-    val isLoading = false
+    val isLoading = AppState.isNextSpinLoading.collectAsState().value
+    //val isLoading = false
     val context = LocalContext.current
     val analytics = FirebaseAnalytics.getInstance(context)
 
@@ -95,7 +99,10 @@ fun LuckySpinScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
-            SpinView(adManager = adManager)
+            SpinView(
+                viewModel = viewModel,
+                adManager = adManager
+            )
         }
     }
 }
@@ -114,14 +121,19 @@ fun LuckySpinTopBar(onBackClick: () -> Unit, isLoading: Boolean) {
 
 @Composable
 fun SpinView(
-    //viewModel: AppViewModel,
+    viewModel: LuckySpinViewModel,
     adManager: AdManager
 ) {
     val scope = rememberCoroutineScope()
     val noAdsMessage = stringResource(id = R.string.no_ads_available)
     //val nextSpinSheetShow by viewModel.nextSpinSheetShow.collectAsState()
     //val isLoading by viewModel.isNextSpinLoading.collectAsState()
-    val isLoading = false
+    //val isLoading = false
+
+    val nextSpinSheetShow = AppState.nextSpinSheetShow.collectAsState().value
+    val isLoading = AppState.isNextSpinLoading.collectAsState().value
+
+
     var diamonds by remember { mutableStateOf(1) }
     var showButton by remember { mutableStateOf(true) }
 
@@ -189,10 +201,13 @@ fun SpinView(
             Log.d("SpinView", "Spin finished")
             Log.d("SpinView", "Got ${listItems[pickerValue].diamonds} diamonds")
             diamonds = listItems[pickerValue].diamonds
-//            viewModel.addDiamonds(diamonds)
-//            viewModel.showNextSpinSheet()
+            viewModel.addDevils(diamonds)
+           // viewModel.showNextSpinSheet()
+            AppState.updateNextSpinSheetShow(true)
             showButton = true
             //viewModel.setLoadingNextSpinState(false)
+            AppState.updateIsNextSpinLoading(false)
+
             analytics.logEvent("finished_spinning_wheel", null)
         },
         stopNbTurn = 5f,
@@ -219,6 +234,7 @@ fun SpinView(
             enabled = showButton,
             onClick = {
                 //viewModel.setLoadingNextSpinState(true)
+                AppState.updateIsNextSpinLoading(true)
                 showButton = false
                 analytics.logEvent("started_to_spin_wheel", null)
                 adManager.loadRewardedAd(
@@ -267,35 +283,38 @@ fun SpinView(
 
         }
 
-//        if(nextSpinSheetShow) {
-//            NextSpinSheet(
-//                //viewModel = viewModel,
-//                isLoading = isLoading,
-//                diamonds = diamonds,
-//                onDismiss = {
-//                    viewModel.hideNextSpinSheet()
-//                    showButton = true
-//                },
-//                onNextAdButtonClick = {
-//                    viewModel.setLoadingNextSpinState(true)
-//                    showButton = false
-//                    viewModel.hideNextSpinSheet()
-//                    adManager.loadRewardedAd(
-//                        onAdLoaded = { adLoaded ->
-//
-//                            if(adLoaded) {
-//                                adManager.showRewardedAdIfLoaded(
-//                                    onAdClosed = {
-//                                        showButton = false
-//                                        pickerValue = listItems
-//                                            .mapIndexed { index, item -> index to item.diamonds }
-//                                            .filter { it.second == 1 || it.second == 2 }
-//                                            .map { it.first }.random()
-//                                        spinState.stoppingWheel(pickerValue)
-//                                    }
-//                                )
-//
-//                            } else {
+        if(nextSpinSheetShow) {
+            NextSpinSheet(
+                //viewModel = viewModel,
+                isLoading = isLoading,
+                diamonds = diamonds,
+                onDismiss = {
+                    //viewModel.hideNextSpinSheet()
+                    AppState.updateNextSpinSheetShow(false)
+                    showButton = true
+                },
+                onNextAdButtonClick = {
+                   // viewModel.setLoadingNextSpinState(true)
+                    AppState.updateIsNextSpinLoading(true)
+                    showButton = false
+                    //viewModel.hideNextSpinSheet()
+                    AppState.updateNextSpinSheetShow(false)
+                    adManager.loadRewardedAd(
+                        onAdLoaded = { adLoaded ->
+
+                            if(adLoaded) {
+                                adManager.showRewardedAdIfLoaded(
+                                    onAdClosed = {
+                                        showButton = false
+                                        pickerValue = listItems
+                                            .mapIndexed { index, item -> index to item.diamonds }
+                                            .filter { it.second == 1 || it.second == 2 }
+                                            .map { it.first }.random()
+                                        spinState.stoppingWheel(pickerValue)
+                                    }
+                                )
+
+                            } else {
 //                                scope.launch {
 //                                    SnackbarController.sendEvent(
 //                                        SnackbarEvent(
@@ -304,13 +323,14 @@ fun SpinView(
 //                                        )
 //                                    )
 //                                }
-//                                viewModel.setLoadingNextSpinState(false)
-//                            }
-//                        },
-//                    )
-//                }
-//            )
-//        }
+                                //viewModel.setLoadingNextSpinState(false)
+                                AppState.updateIsNextSpinLoading(false)
+                            }
+                        },
+                    )
+                }
+            )
+        }
     }
 }
 

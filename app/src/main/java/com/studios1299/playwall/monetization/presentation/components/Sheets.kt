@@ -59,6 +59,8 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.studios1299.playwall.R
 import com.studios1299.playwall.monetization.data.AdManager
+import com.studios1299.playwall.monetization.presentation.AppState
+import com.studios1299.playwall.monetization.presentation.DiamondsViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -67,7 +69,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NextDiamondSheet(
-    //viewModel: AppViewModel,
+    viewModel: DiamondsViewModel,
     adManager: AdManager
 ) {
 
@@ -178,14 +180,14 @@ fun NextDiamondSheet(
                                 if(adLoaded) {
                                     adManager.showRewardedAdIfLoaded(
                                         onRewardEarned = {
-                                           // viewModel.addDiamonds(1)
+                                            viewModel.addDevils(1)
                                         },
                                         onAdClosed = {
                                             //viewModel.showNextDiamondSheet()
+                                            AppState.updateNextDiamondSheetShow(true)
                                         }
                                     )
-
-                                   // viewModel.hideNextDiamondSheet()
+                                    AppState.updateNextDiamondSheetShow(false)
                                 } else {
                                     /*
                                    *
@@ -193,6 +195,7 @@ fun NextDiamondSheet(
                                    *
                                    * */
                                     //viewModel.hideNextDiamondSheet()
+                                    AppState.updateNextDiamondSheetShow(false)
                                     scope.launch {
 //                                        SnackbarController.sendEvent(
 //                                            SnackbarEvent(
@@ -231,7 +234,7 @@ fun NextDiamondSheet(
 
             OutlinedButton(
                 //onClick = viewModel::hideNextDiamondSheet,
-                onClick = {},
+                onClick = { AppState.updateNextDiamondSheetShow(false) },
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth(),
                 border = BorderStroke(3.dp, MaterialTheme.colorScheme.primary),

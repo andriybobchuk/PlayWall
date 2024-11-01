@@ -37,6 +37,7 @@ import com.studios1299.playwall.feature.play.presentation.play.PlayScreenRoot
 import com.studios1299.playwall.feature.play.presentation.play.PlayViewModel
 import com.studios1299.playwall.monetization.data.AdManager
 import com.studios1299.playwall.monetization.presentation.DiamondsViewModel
+import com.studios1299.playwall.monetization.presentation.LuckySpinViewModel
 import com.studios1299.playwall.profile.presentation.ProfileDestination
 import com.studios1299.playwall.profile.presentation.ProfileScreenRoot
 import com.studios1299.playwall.profile.presentation.ProfileViewModel
@@ -191,6 +192,13 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
         }
         composable(Graphs.Main.Screens.lucky_spin) {
             LuckySpinScreen(
+                viewModel = viewModel<LuckySpinViewModel>(
+                    factory = viewModelFactory {
+                        LuckySpinViewModel(
+                            MyApp.appModule.coreRepository
+                        )
+                    }
+                ),
                 onBackClick = { navController.navigateUp() },
                 adManager = adManager
             )

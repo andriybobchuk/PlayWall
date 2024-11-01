@@ -78,7 +78,6 @@ class DiamondsViewModel(
     fun addDevils(count: Int) {
         viewModelScope.launch {
             repository.addDevils(count)
-            AppState.updateDevilCount(AppState.devilCount.value + count)
         }
     }
 
@@ -159,18 +158,11 @@ class DiamondsViewModel(
         repository.resetDailyCheckin()
     }
 
-//    private fun loadDailyCheckinData() {
-//        // Assuming this method will update the check-in data shown to the user
-//        AppState.updateDailyCheckinState(dailyCheckinData)
-//    }
     private fun loadDailyCheckinData() {
         viewModelScope.launch {
-           // val lastCheckInDate = repository.getLastCheckInDate()
             val consecutiveDaysCheckedIn = repository.getConsecutiveDays()
             val hasCheckedInToday = repository.hasCheckedInToday()
 
-            // Log to help with debugging
-            //Log.e(LOG_TAG, "loadDailyCheckinData(), lastCheckInDate: $lastCheckInDate")
             Log.e(LOG_TAG, "loadDailyCheckinData(), consecutiveDaysCheckedIn: $consecutiveDaysCheckedIn")
             Log.e(LOG_TAG, "loadDailyCheckinData(), hasCheckedInToday: $hasCheckedInToday")
 
