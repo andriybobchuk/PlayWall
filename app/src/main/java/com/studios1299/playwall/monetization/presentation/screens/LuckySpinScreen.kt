@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.components.Toolbars
+import com.studios1299.playwall.core.presentation.designsystem.DIAMONDS_SCREEN_PANEL
 import com.studios1299.playwall.monetization.data.AdManager
 import com.studios1299.playwall.monetization.presentation.AppState
 import com.studios1299.playwall.monetization.presentation.LuckySpinViewModel
@@ -183,7 +184,7 @@ fun SpinView(
                 colors = colors.toPersistentList()
             ) {
                 Text(
-                    text = "\uD83D\uDC8E ${spinItemData.diamonds}",
+                    text = "$EVIL_EMOJI ${spinItemData.diamonds}",
                     style = TextStyle(color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 )
             }
@@ -229,7 +230,7 @@ fun SpinView(
 
         Button(
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            colors = ButtonDefaults.buttonColors(containerColor = DIAMONDS_SCREEN_PANEL),
             shape = RoundedCornerShape(8.dp),
             enabled = showButton,
             onClick = {

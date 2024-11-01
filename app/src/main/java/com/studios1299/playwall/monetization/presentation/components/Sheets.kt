@@ -58,9 +58,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.studios1299.playwall.R
+import com.studios1299.playwall.core.presentation.designsystem.DIAMONDS_SCREEN_PANEL
 import com.studios1299.playwall.monetization.data.AdManager
 import com.studios1299.playwall.monetization.presentation.AppState
 import com.studios1299.playwall.monetization.presentation.DiamondsViewModel
+import com.studios1299.playwall.monetization.presentation.screens.EVIL_EMOJI
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -72,7 +74,6 @@ fun NextDiamondSheet(
     viewModel: DiamondsViewModel,
     adManager: AdManager
 ) {
-
     var isLoading by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val analytics = FirebaseAnalytics.getInstance(context)
@@ -136,7 +137,7 @@ fun NextDiamondSheet(
 
     ModalBottomSheet(
         //onDismissRequest = viewModel::hideNextDiamondSheet,
-        onDismissRequest = {},
+        onDismissRequest = { AppState.updateNextDiamondSheetShow(false) },
         sheetState = sheetState,
     ) {
         BackHandler(enabled = true, onBack = {
@@ -153,7 +154,7 @@ fun NextDiamondSheet(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "You earned 1 \uD83D\uDC8E",
+                text = "You earned 1 $EVIL_EMOJI",
                 textAlign = TextAlign.Center,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
@@ -212,7 +213,7 @@ fun NextDiamondSheet(
                 },
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.White)
+                colors = ButtonDefaults.buttonColors(containerColor = DIAMONDS_SCREEN_PANEL, contentColor = Color.White)
             ) {
                 if(isLoading) {
                     CircularProgressIndicator(
@@ -227,7 +228,7 @@ fun NextDiamondSheet(
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Watch ads to get more diamonds \uD83D\uDC8E", color = Color.White)
+                    Text(text = "Watch ads to get more diamonds $EVIL_EMOJI", color = Color.White)
                 }
 
             }
@@ -237,10 +238,10 @@ fun NextDiamondSheet(
                 onClick = { AppState.updateNextDiamondSheetShow(false) },
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth(),
-                border = BorderStroke(3.dp, MaterialTheme.colorScheme.primary),
+                border = BorderStroke(3.dp, DIAMONDS_SCREEN_PANEL),
                 enabled = !isLoading
             ) {
-                Text(text = "No, thanks", color = MaterialTheme.colorScheme.primary)
+                Text(text = "No, thanks", color = DIAMONDS_SCREEN_PANEL)
             }
         }
     }
@@ -333,7 +334,7 @@ fun NextSpinSheet(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "You earned $diamonds \uD83D\uDC8E",
+                text = "You earned $diamonds $EVIL_EMOJI",
                 textAlign = TextAlign.Center,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
@@ -358,7 +359,7 @@ fun NextSpinSheet(
                 },
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.White)
+                colors = ButtonDefaults.buttonColors(containerColor = DIAMONDS_SCREEN_PANEL, contentColor = Color.White)
             ) {
                 if(isLoadingInside) {
                     CircularProgressIndicator(
@@ -382,10 +383,10 @@ fun NextSpinSheet(
                 onClick = onDismiss,
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth(),
-                border = BorderStroke(3.dp, MaterialTheme.colorScheme.primary),
+                border = BorderStroke(3.dp, DIAMONDS_SCREEN_PANEL),
                 enabled = !isLoading
             ) {
-                Text(text = "No, thanks", color = MaterialTheme.colorScheme.primary)
+                Text(text = "No, thanks", color = DIAMONDS_SCREEN_PANEL)
             }
         }
     }

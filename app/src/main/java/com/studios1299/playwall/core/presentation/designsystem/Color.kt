@@ -20,6 +20,7 @@ val NAVY200 = Color(0xFF9290C3)
 val ERROR_RED = Color.Red
 val SUCCESS_GREEN = Color.Green
 
+val DIAMONDS_SCREEN_PANEL = Color(0xFF7a30e3)
 
 // Light orange theme
 val YELLOW100 = Color(0xFFf7e6ba)

@@ -49,12 +49,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.studios1299.playwall.core.presentation.components.Toolbars
+import com.studios1299.playwall.core.presentation.designsystem.DIAMONDS_SCREEN_PANEL
 import com.studios1299.playwall.monetization.data.AdManager
 import com.studios1299.playwall.monetization.presentation.AppState
 import com.studios1299.playwall.monetization.presentation.DiamondsViewModel
 import com.studios1299.playwall.monetization.presentation.components.NextDiamondSheet
 import com.studios1299.playwall.monetization.presentation.components.NextSpinSheet
 import kotlinx.coroutines.launch
+
+const val EVIL_EMOJI = "\uD83D\uDE08"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,11 +73,9 @@ fun DiamondsScreen(
     val noAdsMessage = "No ads available"
     val analytics = FirebaseAnalytics.getInstance(context)
 
-    val ColorGradient1 = Color(0xFFFFF176) // Light yellow shade
-    val ColorGradient2 = Color(0xFFFFC107) // Golden yellow shade
     val colorStops = arrayOf(
-        0.3f to ColorGradient1,
-        1.0f to ColorGradient2
+        0.3f to Color(0xFF8A2BE2), // Purple, like BlueViolet
+        1.0f to Color(0xFFFF00FF)  // Magenta
     )
 
     val spacing = 20.dp
@@ -135,6 +136,7 @@ fun DiamondsScreen(
                                *
                                * */
                                 //viewModel.hideNextDiamondSheet()
+                                AppState.updateNextDiamondSheetShow(false)
                                 scope.launch {
 //                                    SnackbarController.sendEvent(
 //                                        SnackbarEvent(
@@ -199,11 +201,11 @@ fun DiamondsScreenTopBar(onBackClick: () -> Unit, isLoading: Boolean) {
 fun DiamondsCount(diamondsCount: Int) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
         Box(modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.primary)
+            //.clip(RoundedCornerShape(8.dp))
+            //.background(DIAMONDS_SCREEN_PANEL.copy(alpha = 0.5f))
             .padding(vertical = 16.dp, horizontal = 24.dp)) {
             Text(
-                text = "\uD83D\uDC8E $diamondsCount",
+                text = "$EVIL_EMOJI $diamondsCount",
                 fontSize = 40.sp,
                 textAlign = TextAlign.Center,
                 color = Color.White
@@ -244,7 +246,7 @@ fun DailyCheckIn(
             text = "Daily Check-In",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = DIAMONDS_SCREEN_PANEL
         )
         Spacer(modifier = Modifier.size(12.dp))
         LazyRow(
@@ -262,7 +264,7 @@ fun DailyCheckIn(
             Button(
                 modifier = Modifier
                     .fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                colors = ButtonDefaults.buttonColors(containerColor = DIAMONDS_SCREEN_PANEL),
                 shape = RoundedCornerShape(8.dp),
                 onClick = {
                     viewModel.checkIn()
@@ -287,7 +289,7 @@ fun LuckySpinButton(onLuckySpinClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 70.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+        colors = ButtonDefaults.buttonColors(containerColor = DIAMONDS_SCREEN_PANEL),
         shape = RoundedCornerShape(8.dp),
         onClick = onLuckySpinClick
     ) {
@@ -305,7 +307,7 @@ fun UnlimitedDiamondsButton() {
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 70.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+        colors = ButtonDefaults.buttonColors(containerColor = DIAMONDS_SCREEN_PANEL),
         shape = RoundedCornerShape(8.dp),
         onClick = {
             //viewModel.showBuyScreen = true
@@ -314,7 +316,7 @@ fun UnlimitedDiamondsButton() {
     ) {
         Text(
             modifier = Modifier.padding(12.dp),
-            text = "GET UNLIMITED \uD83D\uDC8E",
+            text = "GET UNLIMITED $EVIL_EMOJI",
             fontSize = 17.sp,
             //color = ColorCarbon,
             fontWeight = FontWeight.Bold
@@ -329,7 +331,7 @@ fun WatchVideoButton(isLoading: Boolean, onClick: () -> Unit) {
             .fillMaxWidth()
             .defaultMinSize(minHeight = 40.dp)
             .heightIn(min = 70.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+        colors = ButtonDefaults.buttonColors(containerColor = DIAMONDS_SCREEN_PANEL),
         shape = RoundedCornerShape(8.dp),
         onClick = onClick
     ) {
@@ -346,7 +348,7 @@ fun WatchVideoButton(isLoading: Boolean, onClick: () -> Unit) {
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "WATCH ADS TO GET FREE \uD83D\uDC8E", color = Color.White, fontSize = 17.sp)
+            Text(text = "WATCH ADS TO GET FREE $EVIL_EMOJI", color = Color.White, fontSize = 17.sp)
         }
     }
 }
@@ -356,15 +358,15 @@ fun WatchVideoButton(isLoading: Boolean, onClick: () -> Unit) {
 fun DailyCheckInCard(
     data: DailyCheckinData
 ) {
-    val textColor = if(data.checked) Color.White else MaterialTheme.colorScheme.primary
-    val bgColor = if(data.checked) MaterialTheme.colorScheme.primary else Color.White
+    val textColor = if(data.checked) Color.White else DIAMONDS_SCREEN_PANEL
+    val bgColor = if(data.checked) DIAMONDS_SCREEN_PANEL else Color.White
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
             .background(color = bgColor)
             .border(
                 2.dp,
-                color = MaterialTheme.colorScheme.primary,
+                color = DIAMONDS_SCREEN_PANEL,
                 shape = RoundedCornerShape(6.dp)
             )
             .padding(vertical = 4.dp, horizontal = 10.dp),
@@ -376,7 +378,7 @@ fun DailyCheckInCard(
             color = textColor,
             fontWeight = FontWeight.Bold
         )
-        Text(text = "\uD83D\uDC8E", fontSize = 20.sp)
+        Text(text = "$EVIL_EMOJI", fontSize = 20.sp)
         Text(
             text = "+${data.diamonds}",
             color = textColor,
