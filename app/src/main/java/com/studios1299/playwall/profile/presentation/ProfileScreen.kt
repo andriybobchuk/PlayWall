@@ -307,7 +307,7 @@ fun ProfileScreen(
                             SwitchMenuItem(
                                 icon = Icons.Default.Save,
                                 enabled = state.isOnline,
-                                label = "Save wallpapers set by friends",
+                                label = "Save set wallpapers",
                                 isChecked = state.isSaveWallpapersEnabled,
                                 onCheckedChange = { onAction(ProfileAction.ToggleSaveWallpapers) }
                             )
