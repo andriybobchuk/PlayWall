@@ -17,6 +17,9 @@ import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
+import com.studios1299.playwall.core.data.local.Preferences
+import com.studios1299.playwall.monetization.presentation.AppState
+import com.studios1299.playwall.monetization.presentation.DiamondsViewModel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,12 +40,11 @@ import kotlin.coroutines.suspendCoroutine
  */
 class BillingManager(
     private val applicationContext: Context,
-    //private val viewModel: AppViewModel? = null
+    //private val viewModel: DiamondsViewModel? = null
 ) : PurchasesUpdatedListener {
 
    // private val viewModelRef = if (viewModel != null) WeakReference(viewModel) else null
-    private val viewModelRef = null
-
+    //private val viewModelRef = null
 
     private val billingClient: BillingClient = BillingClient.newBuilder(applicationContext)
         .setListener(this)
@@ -91,6 +93,9 @@ class BillingManager(
                         if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
 //                            val preferenceManager = PreferenceManager(applicationContext)
 //                            preferenceManager.setPremiumUser(true)
+                            Preferences.setPremiumStatus(true)
+                            AppState.updatePremiumStatus(true)
+
                             checkPremiumStatus()
                             restartApp(applicationContext)
                         } else {
@@ -107,10 +112,8 @@ class BillingManager(
         }
     }
 
-
-    fun startPurchaseFlow(activity: Activity,productId: String, billingType: String) {
+    fun startPurchaseFlow(activity: Activity, productId: String, billingType: String) {
         Log.d("BillingManager", "Starting purchase flow for productId: $productId and billingType: $billingType")
-
 
         if (isProcessingPurchase) {
             Log.w("BillingManager", "Purchase flow already in process")
@@ -298,14 +301,15 @@ class BillingManager(
                     val pricingPhase = productDetails.subscriptionOfferDetails!![0].pricingPhases.pricingPhaseList[0]
                     val price = pricingPhase.formattedPrice
                     Log.d("BillingManager","Price: $price")
-//                    val currency = pricingPhase.priceCurrencyCode
-                    val currency = ""
+                    val currency = pricingPhase.priceCurrencyCode
+                    Log.d("BillingManager","Currency: $currency")
+                    //val currency = ""
                     callback(price, currency)
                 } else if (productDetails.oneTimePurchaseOfferDetails != null) {
                     val price = productDetails.oneTimePurchaseOfferDetails!!.formattedPrice
-//                    val currency = productDetails.oneTimePurchaseOfferDetails!!.priceCurrencyCode
-                    val currency = ""
-                    Log.d("BillingManager","Price: $price")
+                    val currency = productDetails.oneTimePurchaseOfferDetails!!.priceCurrencyCode
+                    //val currency = ""
+                    Log.d("BillingManager","Price: $price $currency")
                     callback(price, currency)
                 } else {
                     callback("Unavailable", "Unavailable")
@@ -366,8 +370,16 @@ class BillingManager(
 }
 
 data class PriceData(
-    val weeklyPrice: String = "Unavailable",
-    val weeklyCurrency: String = "Unavailable",
-    val lifetimePrice: String = "Unavailable",
-    val lifetimeCurrency: String = "Unavailable"
+    val weeklyPrice: String = "1",
+    val weeklyCurrency: String = "USD",
+    val lifetimePrice: String = "10",
+    val lifetimeCurrency: String = "USD"
 )
+
+//data class PriceData(
+//    val weeklyPrice: String = "Unavailable",
+//    val weeklyCurrency: String = "Unavailable",
+//    val lifetimePrice: String = "Unavailable",
+//    val lifetimeCurrency: String = "Unavailable"
+//)
+

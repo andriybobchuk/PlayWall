@@ -1,5 +1,6 @@
 package com.studios1299.playwall.monetization.presentation.screens
 
+import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,12 +24,15 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AdUnits
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,10 +52,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import com.android.billingclient.api.BillingClient
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.core.presentation.designsystem.DIAMONDS_SCREEN_PANEL
 import com.studios1299.playwall.monetization.data.AdManager
+import com.studios1299.playwall.monetization.data.BillingManager
 import com.studios1299.playwall.monetization.presentation.AppState
 import com.studios1299.playwall.monetization.presentation.DiamondsViewModel
 import com.studios1299.playwall.monetization.presentation.components.NextDiamondSheet
@@ -72,6 +81,7 @@ fun DiamondsScreen(
     val scope = rememberCoroutineScope()
     val noAdsMessage = "No ads available"
     val analytics = FirebaseAnalytics.getInstance(context)
+    val billingManager = BillingManager(context)
 
     val colorStops = arrayOf(
         0.3f to Color(0xFF8A2BE2), // Purple, like BlueViolet
@@ -154,20 +164,30 @@ fun DiamondsScreen(
                 }
             }
             Spacer(modifier = Modifier.size(spacing))
+
+            val showDialog = remember { mutableStateOf(false) }
             UnlimitedDiamondsButton(
-            //    viewModel
+                onClick = {
+                    showDialog.value = true
+                }
             )
+            if (showDialog.value) {
+                BuyDialog(
+                    billingManager = billingManager,
+                    onDismissRequest = { showDialog.value = false }
+                )
+            }
             Spacer(modifier = Modifier.size(spacing))
-            Button(onClick = {
-                viewModel.addDevils(-1)
-            }) {
-                Text(text = "Remove 1 diamond")
-            }
-            Button(onClick = {
-                viewModel.reset()
-            }) {
-                Text(text = "reset checkin")
-            }
+//            Button(onClick = {
+//                viewModel.addDevils(-1)
+//            }) {
+//                Text(text = "Remove 1 diamond")
+//            }
+//            Button(onClick = {
+//                viewModel.reset()
+//            }) {
+//                Text(text = "reset checkin")
+//            }
 
             if(showNextDiamondSheet.value) {
                 NextDiamondSheet(
@@ -302,16 +322,14 @@ fun LuckySpinButton(onLuckySpinClick: () -> Unit) {
 }
 
 @Composable
-fun UnlimitedDiamondsButton() {
+fun UnlimitedDiamondsButton(onClick: () -> Unit) {
     Button(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 70.dp),
         colors = ButtonDefaults.buttonColors(containerColor = DIAMONDS_SCREEN_PANEL),
         shape = RoundedCornerShape(8.dp),
-        onClick = {
-            //viewModel.showBuyScreen = true
-        },
+        onClick = onClick,
         //border = BorderStroke(width = 4.dp, color = ColorCarbon)
     ) {
         Text(
@@ -392,3 +410,87 @@ data class DailyCheckinData(
     val diamonds: Int,
     val checked: Boolean
 )
+
+
+@Composable
+fun BuyDialog(
+    billingManager: BillingManager,
+    onDismissRequest: () -> Unit
+) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val priceData by billingManager.priceData.collectAsState()
+
+    Dialog(onDismissRequest = onDismissRequest) {
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(all = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Upgrade to Premium",
+                    style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Unlock all premium features including additional wallpapers, no ads, and exclusive content!",
+                    style = MaterialTheme.typography.titleSmall,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+
+                if (priceData.weeklyPrice != "Unavailable") {
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                billingManager.startPurchaseFlow(context as Activity, "weekly_subscription", BillingClient.ProductType.SUBS)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Subscribe Weekly - ${priceData.weeklyPrice}")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                if (priceData.lifetimePrice != "Unavailable") {
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                billingManager.startPurchaseFlow(context as Activity, "premium_lifetime", BillingClient.ProductType.INAPP)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Buy Lifetime - ${priceData.lifetimePrice}")
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                if (priceData.lifetimePrice == "Unavailable" && priceData.weeklyPrice == "Unavailable") {
+                    Text(
+                        text = "Unfortunately, prices are not available at the moment",
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(
+                        onClick = onDismissRequest
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            }
+        }
+    }
+}
