@@ -1,5 +1,6 @@
 package com.studios1299.playwall.profile.presentation
 
+import android.app.ActivityManager
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -11,6 +12,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.studios1299.playwall.R
+import com.studios1299.playwall.app.MyApp
+import com.studios1299.playwall.app.di.AppModule
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.networking.NetworkMonitor
@@ -81,7 +84,9 @@ class ProfileViewModel(
 //            is ProfileAction.OnEmailChanged -> state = state.copy(password = TextFieldState(action.email))
 //            is ProfileAction.OnEmailChanged -> state = state.copy(password = TextFieldState(action.email))
             ProfileAction.OnEditProfileClick -> openEditProfileDialog()
-            ProfileAction.OnLogOut -> authRepository.logOut()
+            ProfileAction.OnLogOut -> {
+                logOut()
+            }
         }
     }
 
@@ -274,4 +279,35 @@ class ProfileViewModel(
             eventChannel.send(ProfileEvent.NavigateTo(destination))
         }
     }
+
+//    private fun clearAllAppData() {
+//        val activityManager = MyApp.appModule.context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+//        activityManager.clearApplicationUserData()
+//    }
+
+    fun clearAllAppData() {
+        val context = MyApp.appModule.context
+
+        Preferences.clear()
+        context.getDatabasePath("app_database").delete()
+        context.filesDir.deleteRecursively()
+        context.cacheDir.deleteRecursively()
+        context.getExternalFilesDir(null)?.deleteRecursively()
+    }
+
+
+
+    private fun logOut() {
+        try {
+            clearAllAppData()
+        } catch (e: Exception) {
+            Log.e("ProfileViewModel", "clearAllAppData() crashed: ${e.message}")
+        }
+        viewModelScope.launch {
+            authRepository.deletePushToken()
+        }
+        authRepository.logOut()
+    }
+
+
 }

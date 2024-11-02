@@ -33,7 +33,7 @@ interface UserApi {
     @POST("api/user/updatePushToken")
     suspend fun updatePushToken(
         @Header("Authorization") authHeader: String,
-        @Body createUserRequest: Map<String, String>
+        @Body createUserRequest: Map<String, String?>
     ): Response<Unit>
 
     @GET("api/user/getFriendScreenRatio")

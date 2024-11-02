@@ -161,6 +161,19 @@ class FirebaseAuthRepositoryImpl(
         }
     }
 
+    override suspend fun deletePushToken(): EmptyResult {
+        return try {
+            performAuthRequest { token ->
+                Log.e("deletePushToken", "Start updating FCM token in the repo")
+                val requestBody = mapOf("pushToken" to null as String?)
+                Log.e("deletePushToken", "Calling userApi.updatePushToken()...")
+                RetrofitClient.userApi.updatePushToken(token, requestBody)
+            }
+        } catch (e: Exception) {
+            SmartResult.Error(600, "Runtime exception in ${LOG_TAG}:", e.message)
+        }
+    }
+
     private suspend fun getFirebaseToken(): String? {
         return Preferences.getAuthToken() ?: refreshFirebaseToken().let {
             if (it is SmartResult.Success) it.data else null

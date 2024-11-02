@@ -114,7 +114,9 @@ object Preferences {
         sharedPreferences.edit().putInt(KEY_CONSECUTIVE_DAYS, days).apply()
     }
 
-
+    fun clear() {
+        sharedPreferences.edit().clear().apply()
+    }
 
 
 

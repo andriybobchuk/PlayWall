@@ -14,6 +14,7 @@ interface AuthRepository {
     suspend fun updatePassword(currentPassword: String, newPassword: String): SmartResult<Unit>
     fun logOut()
     suspend fun updatePushToken(): EmptyResult
+    suspend fun deletePushToken(): EmptyResult
 }
 
 data class User(
