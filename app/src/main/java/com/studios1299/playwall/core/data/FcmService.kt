@@ -80,18 +80,22 @@ class FcmService : FirebaseMessagingService() {
                 "reaction" -> {
                     Log.e("FcmService", "New reaction received: $reaction for message $wallpaperId")
                     emitWallpaperUpdate(wallpaperHistoryResponse)
+                    WallpaperNotificationForChat.setNewWallpaperReceived(true)
                 }
                 "reaction_removed" -> {
                     Log.e("FcmService", "Reaction removed for wallpaper")
                     emitWallpaperUpdate(wallpaperHistoryResponse.copy(reaction = Reaction.none))
+                    WallpaperNotificationForChat.setNewWallpaperReceived(true)
                 }
                 "comment" -> {
                     Log.e("FcmService", "New comment received: $comment")
                     emitWallpaperUpdate(wallpaperHistoryResponse)
+                    WallpaperNotificationForChat.setNewWallpaperReceived(true)
                 }
                 "message_read" -> {
                     Log.e("FcmService", "Message read receipt received")
                     emitWallpaperUpdate(wallpaperHistoryResponse.copy(status = MessageStatus.read))
+                    WallpaperNotificationForChat.setNewWallpaperReceived(true)
                 }
                 else -> {
                     Log.e("FcmService", "Unknown notification type: $notificationType")

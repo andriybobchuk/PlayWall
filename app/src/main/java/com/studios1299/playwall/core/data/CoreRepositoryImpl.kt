@@ -302,12 +302,12 @@ class FirebaseCoreRepositoryImpl(
     override suspend fun getUserData(): SmartResult<UserDataResponse> {
         return try {
             // Check if the user data is available in the local database
-            val cachedUser = userDao.getCachedUser()
-            Log.e(LOG_TAG, "getUserData, cached data: $cachedUser")
-            if (cachedUser != null) {
-                Log.e(LOG_TAG, "getUserData, cached data: ${cachedUser.toUserDataResponse()}")
-                return SmartResult.Success(cachedUser.toUserDataResponse())
-            }
+//            val cachedUser = userDao.getCachedUser()
+//            Log.e(LOG_TAG, "getUserData, cached data: $cachedUser")
+//            if (cachedUser != null) {
+//                Log.e(LOG_TAG, "getUserData, cached data: ${cachedUser.toUserDataResponse()}")
+//                return SmartResult.Success(cachedUser.toUserDataResponse())
+//            }
 
             // If no local data, make a remote request
             val result = performAuthRequest { token ->
@@ -334,8 +334,8 @@ class FirebaseCoreRepositoryImpl(
                 )
 
                 // Cache the result in Room
-                Log.e(LOG_TAG, "getUserData, remote data obtained and inserting into room: ${userDataResponse.toUserEntity()}")
-                userDao.insertUser(userDataResponse.copy(status = FriendshipStatus.accepted).toUserEntity())
+                //Log.e(LOG_TAG, "getUserData, remote data obtained and inserting into room: ${userDataResponse.toUserEntity()}")
+                //userDao.insertUser(userDataResponse.copy(status = FriendshipStatus.accepted).toUserEntity())
                 SmartResult.Success(userDataResponse)
             } else {
                 SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "Could not get user data")
