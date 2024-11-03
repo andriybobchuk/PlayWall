@@ -594,18 +594,18 @@ fun FriendItem(
                 )
             }
         }
-        if (status == MessageStatus.unread) {
-            Box(
-                modifier = Modifier
-                    .size(10.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-            }
-        }
+//        if (status == MessageStatus.unread) {
+//            Box(
+//                modifier = Modifier
+//                    .size(10.dp)
+//                    .background(
+//                        color = MaterialTheme.colorScheme.primary,
+//                        shape = CircleShape
+//                    ),
+//                contentAlignment = Alignment.Center
+//            ) {
+//            }
+//        }
         Spacer(modifier = Modifier.width(6.dp))
         if (isSelectable) {
             Checkbox(

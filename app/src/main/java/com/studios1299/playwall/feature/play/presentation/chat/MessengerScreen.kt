@@ -455,16 +455,6 @@ fun MessengerScreenHeader(
             ) {
                 Row {
                     IconButton(
-                        onClick = onRefreshChat,
-                        enabled = true
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Update",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    IconButton(
                         onClick = { isMenuExpanded = true },
                         enabled = uiState.isOnline
                     ) {
@@ -475,7 +465,7 @@ fun MessengerScreenHeader(
                         )
                     }
                 }
-                
+
                 DropdownMenu(
                     expanded = isMenuExpanded,
                     onDismissRequest = { isMenuExpanded = false }
@@ -490,6 +480,10 @@ fun MessengerScreenHeader(
                             }
                             isMenuExpanded = false
                         }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = "Refresh chat") },
+                        onClick = onRefreshChat
                     )
                 }
             }

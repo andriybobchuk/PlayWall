@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -161,8 +162,17 @@ fun ReactSheet(
     currentUserId: Int,
     sheetState: SheetState,
     isSheetOpen: MutableState<Boolean>,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
 ) {
+    val focusState = remember { mutableStateOf(false) }
+    LaunchedEffect(focusState.value) {
+        if (focusState.value) {
+            sheetState.expand()
+        } else {
+            sheetState.partialExpand()
+        }
+    }
+
     if (isSheetOpen.value) {
         ModalBottomSheet(
             sheetState = sheetState,
@@ -219,12 +229,12 @@ fun ReactSheet(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-
                 if (recipient.status == FriendshipStatus.accepted) {
                     ReplyField(
                         message = message,
                         viewModel = viewModel,
-                        isSheetOpen = isSheetOpen
+                        isSheetOpen = isSheetOpen,
+                        onFocusChanged = { isFocused -> focusState.value = isFocused  }
                     )
                 }
                 Spacer(modifier = Modifier.height(10.dp))
@@ -240,6 +250,9 @@ fun ReactSheet(
                     Text(text = "Report this wallpaper", color = MaterialTheme.colorScheme.error)
                 }
                 Spacer(modifier = Modifier.height(10.dp))
+                if (focusState.value) {
+                    Spacer(modifier = Modifier.height(300.dp))
+                }
             }
         }
     }
@@ -250,11 +263,16 @@ fun ReplyField(
     message: Message,
     viewModel: ChatViewModel,
     isSheetOpen: MutableState<Boolean>,
+    onFocusChanged: (Boolean) -> Unit,
 ) {
     var text by remember { mutableStateOf(message.caption) }
     val roundedShape = RoundedCornerShape(14.dp)
     val maxCharacters = 200
     val context = LocalContext.current
+
+    var isFocused by remember {
+        mutableStateOf(false)
+    }
 
     // Track whether the character limit has been exceeded
     var showLimitExceededToast by remember { mutableStateOf(false) }
@@ -285,7 +303,9 @@ fun ReplyField(
                 label = { Text(stringResource(R.string.your_comment)) },
                 modifier = Modifier
                     .weight(1f)
-                    .background(MaterialTheme.colorScheme.primaryContainer, shape = roundedShape),
+                    .background(MaterialTheme.colorScheme.primaryContainer, shape = roundedShape)
+                    .onFocusChanged { isFocused = it.isFocused
+                        onFocusChanged(it.isFocused) },
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
