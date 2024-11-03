@@ -261,6 +261,7 @@ class ChatViewModel(
         setCurrentUser()
 
         if (WallpaperNotificationForChat.isNewWallpaperReceived()) {
+            Log.e(LOG_TAG, "New wallpaper received, resetting chat..")
             resetChat()
             WallpaperNotificationForChat.setNewWallpaperReceived(false) // Reset flag after refreshing
         } else {

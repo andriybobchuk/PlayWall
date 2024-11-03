@@ -254,8 +254,10 @@ fun CreateScreen(
             }
         }
 
+        val addTextBottomSheetState = rememberModalBottomSheetState()
         if (showAddTextSheet) {
             AddTextBottomSheet(
+                sheetState = addTextBottomSheetState,
                 onDismiss = { showAddTextSheet = false },
                 onTextAdded = { inputText, textColor ->
                     photoEditor?.addText(inputText, TextStyleBuilder().apply {

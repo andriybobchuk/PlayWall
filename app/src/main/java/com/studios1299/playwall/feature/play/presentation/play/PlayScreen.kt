@@ -81,6 +81,7 @@ import com.studios1299.playwall.core.presentation.components.Banners
 import com.studios1299.playwall.core.presentation.components.Buttons
 import com.studios1299.playwall.monetization.presentation.components.DiamondsDisplay
 import com.studios1299.playwall.core.presentation.components.Images
+import com.studios1299.playwall.core.presentation.components.KeyboardAware
 import com.studios1299.playwall.core.presentation.components.ShimmerLoadingForFriendsList
 import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.Toolbars
@@ -149,20 +150,22 @@ fun PlayScreenRoot(
             refreshing = false
         }
     }
-    SwipeRefresh(
-        state = rememberSwipeRefreshState(isRefreshing = refreshing),
-        onRefresh = {
-            refreshing = true
-            viewModel.loadFriendsAndRequests(forceUpdate = true)        },
-    ) {
-        PlayScreen(
-            state = state,
-            onAction = { action ->
-                viewModel.onAction(action)
-            },
-            bottomNavbar = bottomNavbar
-        )
-    }
+    //KeyboardAware {
+        SwipeRefresh(
+            state = rememberSwipeRefreshState(isRefreshing = refreshing),
+            onRefresh = {
+                refreshing = true
+                viewModel.loadFriendsAndRequests(forceUpdate = true)        },
+        ) {
+            PlayScreen(
+                state = state,
+                onAction = { action ->
+                    viewModel.onAction(action)
+                },
+                bottomNavbar = bottomNavbar
+            )
+        }
+    //}
 }
 
 
@@ -189,13 +192,15 @@ fun PlayScreen(
 
     requestNotificationPermissionWithDexter(LocalContext.current)
 
-    InviteSheet(
-        state = state,
-        sheetState = inviteSheetState,
-        isSheetOpen = isInviteSheetOpen,
-        coroutineScope = coroutineScope,
-        onAction = onAction
-    )
+    KeyboardAware {
+        InviteSheet(
+            state = state,
+            sheetState = inviteSheetState,
+            isSheetOpen = isInviteSheetOpen,
+            coroutineScope = coroutineScope,
+            onAction = onAction
+        )
+    }
 
     SavedWallpaperSheet(
         isSheetOpen = isSavedWallpaperSheetOpen,
@@ -295,7 +300,7 @@ fun PlayScreen(
                             icon = Icons.Default.CheckCircleOutline,
                             contentDescription = "Select friends",
                             onClick = { onAction(PlayAction.OnEnterSelectMode) },
-                            enabled = state.isOnline
+                            enabled = state.isOnline && state.friends.isNotEmpty()
                         ),
                         Toolbars.ToolBarAction(
                             icon = Icons.Default.PersonAddAlt,
@@ -358,14 +363,13 @@ fun PlayScreen(
             }
         }
     ) { combinedPadding ->
-
         if (state.friends.isEmpty() && state.friendRequests.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(combinedPadding),
 
-            ) {
+                ) {
                 Column(
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -531,7 +535,6 @@ fun PlayScreen(
                 }
             }
         }
-
     }
 }
 
@@ -665,6 +668,8 @@ fun FriendRequestItem(
     }
 }
 
+
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
 )
 @Composable
@@ -675,7 +680,18 @@ fun InviteSheet(
     coroutineScope: CoroutineScope,
     onAction: (PlayAction) -> Unit,
 ) {
+    val focusState = remember { mutableStateOf(false) }
+
     if (isSheetOpen.value) {
+
+        LaunchedEffect(focusState.value) {
+            if (focusState.value) {
+                sheetState.expand()
+            } else {
+                sheetState.partialExpand()
+            }
+        }
+
         ModalBottomSheet(
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.background,
@@ -703,7 +719,8 @@ fun InviteSheet(
                     endIcon = null,
                     hint = "jane.doe@gmail.com",
                     title = stringResource(R.string.enter_email),
-                    keyboardType = KeyboardType.Email
+                    keyboardType = KeyboardType.Email,
+                    onFocusChanged = { isFocused -> focusState.value = isFocused }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Buttons.Primary(
@@ -715,36 +732,10 @@ fun InviteSheet(
                         isSheetOpen.value = false
                     }
                 )
+                if (focusState.value) {
+                    Spacer(modifier = Modifier.height(300.dp))
+                }
             }
-//            LazyColumn {
-//                items(state.searchResults) { user ->
-//                    Row(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(16.dp),
-//                        verticalAlignment = Alignment.CenterVertically
-//                    ) {
-//                        GlideImage(
-//                            model = user.profilePictureUrl,
-//                            contentDescription = user.name,
-//                            modifier = Modifier
-//                                .size(40.dp)
-//                                .clip(CircleShape)
-//                                .background(MaterialTheme.colorScheme.outline)
-//                        )
-//                        Spacer(modifier = Modifier.width(16.dp))
-//                        Column {
-//                            Text(text = user.name, style = MaterialTheme.typography.bodyMedium)
-//                            Text(text = user.email, style = MaterialTheme.typography.bodySmall)
-//                        }
-//                        Spacer(modifier = Modifier.weight(1f))
-//                        Button(onClick = {
-//                        }) {
-//                            Text(text = stringResource(R.string.invite))
-//                        }
-//                    }
-//                }
-//            }
             Spacer(modifier = Modifier.height(56.dp))
         }
     }

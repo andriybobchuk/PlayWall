@@ -58,7 +58,8 @@ object TextFields {
         modifier: Modifier = Modifier,
         error: String? = null,
         keyboardType: KeyboardType = KeyboardType.Text,
-        additionalInfo: String? = null
+        additionalInfo: String? = null,
+        onFocusChanged: (Boolean) -> Unit = {},
     ) {
         var isFocused by remember {
             mutableStateOf(false)
@@ -128,6 +129,7 @@ object TextFields {
                     .padding(12.dp)
                     .onFocusChanged {
                         isFocused = it.isFocused
+                        onFocusChanged(it.isFocused)
                     },
                 decorator = { innerBox ->
                     Row(

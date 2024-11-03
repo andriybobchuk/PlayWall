@@ -19,6 +19,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -120,6 +122,7 @@ fun MessengerScreen(
                 ),
                 viewModel = viewModel,
                 onBackClick = onBackClick,
+                onRefreshChat = { viewModel.resetChat() }
             )
             if (!uiState.isOnline) {
                 Banners.OfflineStatus()
@@ -383,6 +386,7 @@ fun MessengerScreenHeader(
     recipient: User,
     viewModel: ChatViewModel,
     onBackClick: () -> Unit,
+    onRefreshChat: () -> Unit
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
@@ -449,17 +453,29 @@ fun MessengerScreenHeader(
             Box(
                 modifier = Modifier.align(Alignment.CenterEnd)
             ) {
-                IconButton(
-                    onClick = { isMenuExpanded = true },
-                    enabled = uiState.isOnline
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "More options",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                Row {
+                    IconButton(
+                        onClick = onRefreshChat,
+                        enabled = true
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Update",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    IconButton(
+                        onClick = { isMenuExpanded = true },
+                        enabled = uiState.isOnline
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "More options",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
-
+                
                 DropdownMenu(
                     expanded = isMenuExpanded,
                     onDismissRequest = { isMenuExpanded = false }

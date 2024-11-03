@@ -280,11 +280,6 @@ class ProfileViewModel(
         }
     }
 
-//    private fun clearAllAppData() {
-//        val activityManager = MyApp.appModule.context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-//        activityManager.clearApplicationUserData()
-//    }
-
     fun clearAllAppData() {
         val context = MyApp.appModule.context
 
@@ -294,8 +289,6 @@ class ProfileViewModel(
         context.cacheDir.deleteRecursively()
         context.getExternalFilesDir(null)?.deleteRecursively()
     }
-
-
 
     private fun logOut() {
         try {
@@ -308,6 +301,5 @@ class ProfileViewModel(
         }
         authRepository.logOut()
     }
-
 
 }

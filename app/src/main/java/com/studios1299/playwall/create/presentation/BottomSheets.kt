@@ -24,9 +24,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,17 +46,29 @@ import com.studios1299.playwall.core.presentation.components.TextFields
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AddTextBottomSheet(
+    sheetState: SheetState,
     onDismiss: () -> Unit,
     onTextAdded: (inputText: String, textColor: Int) -> Unit,
     initialColor: Color? = null
 ) {
     val textFieldState = remember { TextFieldState("") }
     var selectedColor by remember { mutableStateOf(initialColor ?: Color.Blue) }
+    val focusState = remember { mutableStateOf(false) }
 
     val availableColors = listOf(
         Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Black
     )
+
+    LaunchedEffect(focusState.value) {
+        if (focusState.value) {
+            sheetState.expand()
+        } else {
+            sheetState.partialExpand()
+        }
+    }
+
     ModalBottomSheet(
+        sheetState = sheetState,
         onDismissRequest = {
             val selectedTextColor = android.graphics.Color.parseColor(
                 "#" + Integer.toHexString(selectedColor.hashCode())
@@ -70,7 +84,8 @@ fun AddTextBottomSheet(
                 endIcon = null,
                 hint = "Enter text",
                 title = "Add label",
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                onFocusChanged = { isFocused -> focusState.value = isFocused }
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = "Select label color")
@@ -104,6 +119,9 @@ fun AddTextBottomSheet(
                         }
                     }
                 }
+            }
+            if (focusState.value) {
+                Spacer(modifier = Modifier.height(300.dp))
             }
         }
     }
