@@ -68,6 +68,7 @@ import java.io.File
 @Composable
 fun CreateScreenRoot(
     viewModel: CreateViewModel,
+    onNavigateToDiamonds: () -> Unit,
     bottomNavbar: @Composable () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
@@ -86,6 +87,7 @@ fun CreateScreenRoot(
 
     CreateScreen(
         state = state,
+        onNavigateToDiamonds = onNavigateToDiamonds,
         onAction = { action -> viewModel.onAction(action) },
         bottomNavbar = bottomNavbar
     )
@@ -95,6 +97,7 @@ fun CreateScreenRoot(
 @Composable
 fun CreateScreen(
     state: CreateScreenState,
+    onNavigateToDiamonds: () -> Unit,
     onAction: (CreateScreenAction) -> Unit,
     bottomNavbar: @Composable () -> Unit
 ) {
@@ -190,6 +193,7 @@ fun CreateScreen(
                     coroutineScope.launch { isFriendsSheetOpen.value = true }
                 },
                 sendEnabled = state.isOnline,
+                goToDiamonds = onNavigateToDiamonds,
                 setAsMyWallpaper = {
                     CoroutineScope(Dispatchers.Main).launch {
                         if (photoEditor != null && photoEditorView != null) {
@@ -207,8 +211,7 @@ fun CreateScreen(
                             Toast.makeText(context, "Photo editor is not initialized", Toast.LENGTH_SHORT).show()
                         }
 
-                    }
-                                   },
+                    } },
                 isImageSelected = isImageSelected
             )
         },

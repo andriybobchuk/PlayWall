@@ -81,17 +81,6 @@ class DiamondsViewModel(
         }
     }
 
-    fun checkInToday() {
-        viewModelScope.launch {
-            repository.markCheckedInToday()
-        }
-    }
-
-    fun resetDailyCheckIn() {
-        viewModelScope.launch {
-            repository.resetDailyCheckin()
-        }
-    }
 
     fun updatePremiumStatus(isPremium: Boolean) {
         viewModelScope.launch {
@@ -101,11 +90,13 @@ class DiamondsViewModel(
 
 
     private fun checkIfCheckedInToday() {
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val today = sdf.format(Date())
+        viewModelScope.launch {
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val today = sdf.format(Date())
 
-        val lastCheckInDate = repository.getLastCheckInDate()
-        AppState.updateHasCheckedInToday(lastCheckInDate == today)
+            val lastCheckInDate = repository.getLastCheckInDate()
+            AppState.updateHasCheckedInToday(lastCheckInDate == today)
+        }
     }
 
     fun checkIn() {
@@ -159,6 +150,7 @@ class DiamondsViewModel(
     }
 
     private fun loadDailyCheckinData() {
+        Log.e(LOG_TAG, "loadDailyCheckinData(), start")
         viewModelScope.launch {
             val consecutiveDaysCheckedIn = repository.getConsecutiveDays()
             val hasCheckedInToday = repository.hasCheckedInToday()

@@ -54,6 +54,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -91,6 +92,8 @@ import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
+import com.studios1299.playwall.monetization.presentation.AppState
+import com.studios1299.playwall.monetization.presentation.components.DiamondsDisplay
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -104,6 +107,7 @@ fun ProfileScreenRoot(
     onNavigateTo: (ProfileDestination) -> Unit,
     onNavigateToPhotoDetail: (Int) -> Unit,
     onLogOut: () -> Unit,
+    onNavigateToDiamonds: () -> Unit,
     bottomNavbar: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -157,6 +161,7 @@ fun ProfileScreenRoot(
                 else -> viewModel.onAction(action)
             }
         },
+        onNavigateToDiamonds = onNavigateToDiamonds,
         bottomNavbar = bottomNavbar
     )
 
@@ -196,10 +201,12 @@ fun ProfileScreenRoot(
 fun ProfileScreen(
     state: ProfileState,
     onAction: (ProfileAction) -> Unit,
+    onNavigateToDiamonds: () -> Unit,
     bottomNavbar: @Composable () -> Unit
 ) {
     val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val isPremium = AppState.isPremium.collectAsState().value
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -220,7 +227,16 @@ fun ProfileScreen(
                         onClick = { onAction(ProfileAction.OnLogOut) }
                     )
                 ),
-                scrollBehavior = scrollBehavior
+                scrollBehavior = scrollBehavior,
+                customContent = {
+                    DiamondsDisplay(
+                        diamondsCount = AppState.devilCount.collectAsState().value,
+                        isPremium = isPremium,
+                        onClick = {
+                            if (!isPremium) onNavigateToDiamonds()
+                        }
+                    )
+                }
             )
         },
         bottomBar = { bottomNavbar() }

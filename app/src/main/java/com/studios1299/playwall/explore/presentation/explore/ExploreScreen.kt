@@ -10,6 +10,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,12 +25,16 @@ import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Banners
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.core.presentation.components.image_grid.ImageGrid
+import com.studios1299.playwall.feature.play.presentation.play.PlayAction
+import com.studios1299.playwall.monetization.presentation.AppState
+import com.studios1299.playwall.monetization.presentation.components.DiamondsDisplay
 import kotlinx.coroutines.delay
 
 @Composable
 fun ExploreScreenRoot(
     viewModel: ExploreViewModel,
     onNavigateToPhotoDetail: (Int) -> Unit,
+    onNavigateToDiamonds: () -> Unit,
     bottomNavbar: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -48,6 +53,7 @@ fun ExploreScreenRoot(
     ExploreScreen(
         viewModel = viewModel,
         state = state,
+        onNavigateToDiamonds = onNavigateToDiamonds,
         onAction = { action ->
             viewModel.onAction(action)
         },
@@ -61,16 +67,29 @@ fun ExploreScreenRoot(
 fun ExploreScreen(
     viewModel: ExploreViewModel,
     state: ExploreState,
+    onNavigateToDiamonds: () -> Unit,
     onAction: (ExploreAction) -> Unit,
     bottomNavbar: @Composable () -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val isPremium = AppState.isPremium.collectAsState().value
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             Toolbars.Primary(
                 title = "Explore",
-                scrollBehavior = scrollBehavior
+                scrollBehavior = scrollBehavior,
+                customContent = {
+                    DiamondsDisplay(
+                        diamondsCount = AppState.devilCount.collectAsState().value,
+                        isPremium = isPremium,
+                        onClick = {
+                            if (!isPremium) {
+                                onNavigateToDiamonds()
+                            }
+                        }
+                    )
+                }
             )
         },
         bottomBar = { bottomNavbar() }

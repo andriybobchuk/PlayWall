@@ -22,6 +22,7 @@ import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.presentation.UiText
 import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
 import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.WallpaperNotificationForChat
+import com.studios1299.playwall.monetization.presentation.AppState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,6 +47,7 @@ class PlayViewModel(
 
     private var isInitialLoad = true
     init {
+        initMonetizationData()
         viewModelScope.launch {
             NetworkMonitor.isOnline.collect { online ->
                 state = state.copy(isOnline = online)
@@ -72,6 +74,16 @@ class PlayViewModel(
         }
         //observeRefreshFlag()
         loadFriendsAndRequests(forceUpdate = false)
+    }
+
+    private fun initMonetizationData() {
+        Log.e("MainViewModel", "initMonetizationData() start")
+        viewModelScope.launch {
+            AppState.updateDevilCount(repository.getDevilCount())
+            AppState.updateHasCheckedInToday(repository.hasCheckedInToday())
+            AppState.updateConsecutiveDays(repository.getConsecutiveDays())
+            AppState.updatePremiumStatus(repository.isPremium())
+        }
     }
 
     fun checkAndRefresh() {
@@ -178,6 +190,7 @@ fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
 
         when (val friendsResult = repository.getFriends(forceUpdate)) {
             is SmartResult.Success -> {
+                Log.e(LOG_TAG, "Friends in VM fetched from repo: ${friendsResult.data}")
                 state = state.copy(
                     friends = friendsResult.data!!,
                     isLoading = false

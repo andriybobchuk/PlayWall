@@ -150,22 +150,20 @@ fun PlayScreenRoot(
             refreshing = false
         }
     }
-    //KeyboardAware {
-        SwipeRefresh(
-            state = rememberSwipeRefreshState(isRefreshing = refreshing),
-            onRefresh = {
-                refreshing = true
-                viewModel.loadFriendsAndRequests(forceUpdate = true)        },
-        ) {
-            PlayScreen(
-                state = state,
-                onAction = { action ->
-                    viewModel.onAction(action)
-                },
-                bottomNavbar = bottomNavbar
-            )
-        }
-    //}
+    SwipeRefresh(
+        state = rememberSwipeRefreshState(isRefreshing = refreshing),
+        onRefresh = {
+            refreshing = true
+            viewModel.loadFriendsAndRequests(forceUpdate = true)        },
+    ) {
+        PlayScreen(
+            state = state,
+            onAction = { action ->
+                viewModel.onAction(action)
+            },
+            bottomNavbar = bottomNavbar
+        )
+    }
 }
 
 
@@ -322,7 +320,6 @@ fun PlayScreen(
                         )
                     }
                 )
-
             }
         },
         bottomBar = {
@@ -363,7 +360,7 @@ fun PlayScreen(
             }
         }
     ) { combinedPadding ->
-        if (state.friends.isEmpty() && state.friendRequests.isEmpty()) {
+        if (!state.isLoading && state.friends.isEmpty() && state.friendRequests.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -428,6 +425,7 @@ fun PlayScreen(
                         }
                     }
                     items(state.friends) { friend ->
+                        Log.e("UI", "friend: $friend")
                         if (friend.status != FriendshipStatus.blocked) {
                             // Swipe actions (mute and unfriend) will only be available when online
                             val mute = SwipeAction(

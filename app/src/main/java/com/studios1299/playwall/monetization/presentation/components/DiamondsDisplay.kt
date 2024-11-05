@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -34,8 +35,8 @@ fun PlusIcon(modifier: Modifier = Modifier) {
 fun DiamondsDisplay(diamondsCount: Int, isPremium: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
+            .clip(CircleShape)
             .clickable(onClick = onClick)
-            .clip(RoundedCornerShape(4.dp))
             .padding(horizontal = 4.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

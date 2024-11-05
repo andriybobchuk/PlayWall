@@ -91,7 +91,7 @@ object Preferences {
 
     // Devils management
     fun getDevilsCount(): Int {
-        return sharedPreferences.getInt(KEY_DEVILS_COUNT, 0)
+        return sharedPreferences.getInt(KEY_DEVILS_COUNT, -1)
     }
 
     fun setDevilsCount(count: Int) {
@@ -107,7 +107,7 @@ object Preferences {
     }
 
     fun getConsecutiveDays(): Int {
-        return sharedPreferences.getInt(KEY_CONSECUTIVE_DAYS, 0)
+        return sharedPreferences.getInt(KEY_CONSECUTIVE_DAYS, -1)
     }
 
     fun setConsecutiveDays(days: Int) {

@@ -221,6 +221,9 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
                     navController.navigate("${Graphs.Main.Screens.explore_image}/${selectedPhoto}/$fromProfile")
                     Log.e("Rerouting", "rereouted probablyt with " +selectedPhoto)
                 },
+                onNavigateToDiamonds = {
+                    navController.navigate(Graphs.Main.Screens.diamonds)
+                },
                 bottomNavbar = { BottomNavigationBar(
                     navController = navController,
                     selectedItemIndex = 1
@@ -264,6 +267,9 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
                         )
                     }
                 ),
+                onNavigateToDiamonds = {
+                    navController.navigate(Graphs.Main.Screens.diamonds)
+                },
                 bottomNavbar = { BottomNavigationBar(
                     navController = navController,
                     selectedItemIndex = 2
@@ -280,6 +286,9 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
                         )
                     }
                 ),
+                onNavigateToDiamonds = {
+                    navController.navigate(Graphs.Main.Screens.diamonds)
+                },
                 onNavigateTo = { destination ->
                     when (destination) {
                         ProfileDestination.TermsOfService -> {

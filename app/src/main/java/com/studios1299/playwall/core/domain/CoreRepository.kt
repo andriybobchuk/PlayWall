@@ -55,14 +55,15 @@ interface CoreRepository {
     suspend fun getFriendScreenRatio(friendId: Int): SmartResult<Float>
 
     // MONETIZATION
-    fun addDevils(count: Int)
-    fun getDevilCount(): Int
-    fun updatePremiumStatus(isPremium: Boolean)
-    fun getLastCheckInDate(): String?
-    fun setLastCheckInDate(date: String)
-    fun getConsecutiveDays(): Int
-    fun setConsecutiveDays(days: Int)
-    fun hasCheckedInToday(): Boolean
+    suspend fun addDevils(count: Int): SmartResult<Unit>
+    suspend fun getDevilCount(): Int
+    suspend fun isPremium(): Boolean
+    suspend fun updatePremiumStatus(isPremium: Boolean): SmartResult<Unit>
+    suspend fun getLastCheckInDate(): String?
+    suspend fun setLastCheckInDate(date: String): SmartResult<Unit>
+    suspend fun getConsecutiveDays(): Int
+    suspend fun setConsecutiveDays(days: Int): SmartResult<Unit>
+    suspend fun hasCheckedInToday(): Boolean
 
 
     fun markCheckedInToday()

@@ -23,11 +23,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import aws.sdk.kotlin.services.s3.model.LoggingEnabled
 import com.studios1299.playwall.core.presentation.components.Toolbars
+import com.studios1299.playwall.explore.presentation.explore.ExploreAction
+import com.studios1299.playwall.monetization.presentation.AppState
+import com.studios1299.playwall.monetization.presentation.components.DiamondsDisplay
 import ja.burhanrashid52.photoeditor.PhotoEditor
 import java.io.File
 import java.io.OutputStream
@@ -74,10 +78,12 @@ fun NoImagePlaceholder(
 fun Topbar(
     download: () -> Unit,
     send: () -> Unit,
+    goToDiamonds: () -> Unit,
     sendEnabled: Boolean,
     setAsMyWallpaper: () -> Unit,
     isImageSelected: Boolean
 ) {
+    val isPremium = AppState.isPremium.collectAsState().value
     Toolbars.WithMenu(
         title = "Create",
         actions = listOf(
@@ -101,7 +107,16 @@ fun Topbar(
                 enabled = isImageSelected
             )
         ),
-        scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+        scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(),
+        customContent = {
+            DiamondsDisplay(
+                diamondsCount = AppState.devilCount.collectAsState().value,
+                isPremium = isPremium,
+                onClick = {
+                    if (!isPremium) goToDiamonds()
+                }
+            )
+        }
     )
 }
 

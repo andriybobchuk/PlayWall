@@ -28,7 +28,6 @@ class MainViewModel(
             )
             state = state.copy(keepSplashScreen = false)
         }
-        initMonetizationData()
     }
     init {
         viewModelScope.launch {
@@ -43,12 +42,6 @@ class MainViewModel(
 
             state = state.copy(keepSplashScreen = false)
         }
-    }
-
-    fun initMonetizationData() {
-        AppState.updateHasCheckedInToday(coreRepository.hasCheckedInToday())
-        AppState.updateDevilCount(coreRepository.getDevilCount())
-        AppState.updatePremiumStatus(false)
     }
 
     private fun logConfigValues() {

@@ -15,6 +15,7 @@ import com.studios1299.playwall.core.data.local.toUserDataResponse
 import com.studios1299.playwall.core.data.local.toUserEntity
 import com.studios1299.playwall.core.data.networking.RetrofitClient
 import com.studios1299.playwall.core.data.networking.RetrofitClientExt
+import com.studios1299.playwall.core.data.networking.api.UpdateAppDataRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.BlockRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.DeclineRequest
@@ -41,6 +42,7 @@ import com.studios1299.playwall.feature.play.data.model.Message
 import com.studios1299.playwall.feature.play.presentation.play.Friend
 import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
 import com.studios1299.playwall.monetization.presentation.AppState
+import com.studios1299.playwall.monetization.presentation.screens.EVIL_EMOJI
 import kotlinx.coroutines.tasks.await
 import retrofit2.Response
 import java.io.File
@@ -161,7 +163,7 @@ class FirebaseCoreRepositoryImpl(
             }
 
             if (result is SmartResult.Success) {
-                Log.d(LOG_TAG, "Successfully fetched friends from API: ${result.data?.size}")
+                Log.d(LOG_TAG, "Successfully fetched friends from API: ${result.data}")
                 val friendsWithAvatars = result.data?.mapIndexed { index, friend ->
                     val avatarUrl = friend.avatarId?.let {
                         val avatarUrlResult = pathToLink(it)
@@ -169,7 +171,7 @@ class FirebaseCoreRepositoryImpl(
                     } ?: ""
                     friend.copy(
                         avatarId = avatarUrl,
-                        lastMessageDate = friend.lastMessageDate ?: index.toString() // Preserve order if no date
+                        lastMessageDate = friend.lastMessageDate
                     )
                 }
 
@@ -183,7 +185,7 @@ class FirebaseCoreRepositoryImpl(
                     friendsDao.insertFriends(friendsWithOrderIndex)
                 }
 
-                return SmartResult.Success(friendsWithAvatars?.filter { it.status == FriendshipStatus.accepted })
+                return SmartResult.Success(friendsWithAvatars?.filter { it.status == FriendshipStatus.accepted || it.status == FriendshipStatus.blocked })
             } else {
                 return result
             }
@@ -488,6 +490,11 @@ class FirebaseCoreRepositoryImpl(
     override suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<ChangeWallpaperResponse?> {
         return try {
             Log.v(LOG_TAG, "changeWallpaper, start")
+
+            if (AppState.devilCount.value <= 0) {
+                return SmartResult.Error(600, "Not enough $EVIL_EMOJI to send wallpaper, get more by watching ads", "Not enough $EVIL_EMOJI to send wallpaper")
+            }
+
             val response = performAuthRequest { token ->
                 RetrofitClient.wallpaperApi.changeWallpaper(token, request)
             }
@@ -502,6 +509,7 @@ class FirebaseCoreRepositoryImpl(
                     }
                     chatDao.insertMessages(listOf(response.data.data.toMessageEntity().copy(fileName = wallpaperUrl?:"")))
                 }
+                addDevils(-1)
                 SmartResult.Success(response.data?.data)
             } else if (response is SmartResult.Error) {
                 Log.e(LOG_TAG, "changeWallpaper result: $response")
@@ -874,72 +882,186 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-    override fun addDevils(count: Int) {
-        val currentCount = Preferences.getDevilsCount()
-        val newCount = currentCount + count
-        Preferences.setDevilsCount(newCount)
-        AppState.updateDevilCount(AppState.devilCount.value + count)
-        Log.e(LOG_TAG, "addDevils: Current count: $currentCount, Added: $count, New count: $newCount")
+
+    override suspend fun addDevils(count: Int): SmartResult<Unit> {
+        return try {
+            val currentCount = Preferences.getDevilsCount()
+            val newCount = currentCount + count
+            Preferences.setDevilsCount(newCount)
+            AppState.updateDevilCount(AppState.devilCount.value + count)
+            val result = performAuthRequest { token ->
+                RetrofitClient.userAppDataApi.updateAppData(token, UpdateAppDataRequest(devilCount = newCount))
+            }
+            Log.e(LOG_TAG, "addDevils: Current count: $currentCount, Added: $count, New count: $newCount")
+            if (result is SmartResult.Success) {
+                SmartResult.Success(Unit)
+            } else {
+                SmartResult.Error(600, "Runtime exception in $LOG_TAG: ", result.toString())
+            }
+        } catch (e: Exception) {
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG: ", e.message)
+        }
     }
 
-    override fun getDevilCount(): Int {
-        val count = Preferences.getDevilsCount()
-        Log.e(LOG_TAG, "getDevilCount: $count")
+    override suspend fun getDevilCount(): Int {
+        Log.e(LOG_TAG, "getDevilCount() start")
+        var count = Preferences.getDevilsCount()
+        if (count != -1) {
+            Log.e(LOG_TAG, "getDevilCount from local: $count")
+            return count
+        } else {
+            val result = performAuthRequest { token ->
+                RetrofitClient.userAppDataApi.getAppData(token)
+            }
+            if (result is SmartResult.Success) {
+                count = result.data?.devilCount?:0
+                Log.e(LOG_TAG, "getDevilCount from remote: $count, result.data?.devilCount: ${result.data?.devilCount}")
+            } else {
+                count = 10
+                Log.e(LOG_TAG, "getDevilCount from remote (error): $count")
+            }
+        }
+        Log.e(LOG_TAG, "Final devils count $count")
+        Preferences.setDevilsCount(count)
+        AppState.updateDevilCount(count)
         return count
     }
 
-    override fun updatePremiumStatus(isPremium: Boolean) {
-        Preferences.setPremiumStatus(isPremium)
-        AppState.updatePremiumStatus(isPremium)
-        Log.e(LOG_TAG, "updatePremiumStatus: Set to $isPremium")
+    override suspend fun updatePremiumStatus(isPremium: Boolean): SmartResult<Unit> {
+        return try {
+            Preferences.setPremiumStatus(isPremium)
+            AppState.updatePremiumStatus(isPremium)
+            val result = performAuthRequest { token ->
+                RetrofitClient.userAppDataApi.updateAppData(token, UpdateAppDataRequest(isPremium = isPremium))
+            }
+            Log.e(LOG_TAG, "updatePremiumStatus: Set to $isPremium")
+            if (result is SmartResult.Success) {
+                SmartResult.Success(Unit)
+            } else {
+                SmartResult.Error(600, "Failed to update premium status on server", result.toString())
+            }
+        } catch (e: Exception) {
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG: ", e.message)
+        }
     }
 
-    override fun markCheckedInToday() {
-        Preferences.setCheckedInToday(true)
-        Preferences.setCheckedInToday(true)
-        Log.e(LOG_TAG, "markCheckedInToday: Marked as checked in today")
+    override suspend fun isPremium(): Boolean {
+        var isPremium = Preferences.isPremium()
+        val checkValue = Preferences.getDevilsCount()
+        Log.e(LOG_TAG, "isPremium from prefs: $isPremium")
+        if (checkValue == -1) {
+            val result = performAuthRequest { token ->
+                RetrofitClient.userAppDataApi.getAppData(token)
+            }
+            if (result is SmartResult.Success) {
+                isPremium = result.data?.isPremium == 1
+                Log.e(LOG_TAG, "isPremium from remote: $isPremium")
+                Preferences.setPremiumStatus(isPremium)
+                AppState.updatePremiumStatus(isPremium)
+            } else {
+                // If there's an error and no local data, default to premium status
+                isPremium = true
+                Preferences.setPremiumStatus(isPremium)
+                AppState.updatePremiumStatus(isPremium)
+            }
+        }
+        Log.e(LOG_TAG, "isPremium: $isPremium")
+        return isPremium
     }
 
-    override fun resetDailyCheckin() {
-        Preferences.setCheckedInToday(false)
-        Preferences.setLastCheckInDate("2024-10-31")
-        Preferences.setConsecutiveDays(0)
-        Log.e(LOG_TAG, "resetDailyCheckin: Daily check-in reset")
-    }
-
-    override fun getLastCheckInDate(): String? {
-        val lastDate = Preferences.getLastCheckInDate()
-        Log.e(LOG_TAG, "getLastCheckInDate: $lastDate")
+    override suspend fun getLastCheckInDate(): String? {
+        var lastDate = Preferences.getLastCheckInDate()
+        Log.e(LOG_TAG, "getLastCheckInDate from prefs: $lastDate")
+        if (lastDate.isNullOrEmpty()) {
+            val result = performAuthRequest { token ->
+                RetrofitClient.userAppDataApi.getAppData(token)
+            }
+            if (result is SmartResult.Success) {
+                lastDate = result.data?.lastCheckInDate
+                Log.e(LOG_TAG, "getLastCheckInDate from remote: $lastDate")
+                if (lastDate != null) {
+                    Preferences.setLastCheckInDate(lastDate)
+                }
+            }
+        }
+        Log.e(LOG_TAG, "final getLastCheckInDate: $lastDate")
         return lastDate
     }
 
-    override fun setLastCheckInDate(date: String) {
-        Preferences.setLastCheckInDate(date)
-        AppState.updateLastCheckinDate(date)
-        Log.e(LOG_TAG, "setLastCheckInDate: Date set to $date")
+    override suspend fun setLastCheckInDate(date: String): SmartResult<Unit> {
+        return try {
+            Preferences.setLastCheckInDate(date)
+            AppState.updateLastCheckinDate(date)
+            val result = performAuthRequest { token ->
+                RetrofitClient.userAppDataApi.updateAppData(token, UpdateAppDataRequest(lastCheckInDate = date))
+            }
+            Log.e(LOG_TAG, "setLastCheckInDate: Date set to $date")
+            if (result is SmartResult.Success) {
+                SmartResult.Success(Unit)
+            } else {
+                SmartResult.Error(600, "Failed to update last check-in date on server", result.toString())
+            }
+        } catch (e: Exception) {
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG: ", e.message)
+        }
     }
 
-    override fun hasCheckedInToday(): Boolean {
-        val lastCheckInDate = Preferences.getLastCheckInDate()
+    override suspend fun hasCheckedInToday(): Boolean {
+        val lastCheckInDate = getLastCheckInDate()
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         val hasCheckedIn = lastCheckInDate == today
         Log.e(LOG_TAG, "hasCheckedInToday: Checked in today? $hasCheckedIn")
         return hasCheckedIn
     }
 
-    override fun getConsecutiveDays(): Int {
-        val consecutiveDays = Preferences.getConsecutiveDays()
+    override suspend fun getConsecutiveDays(): Int {
+        var consecutiveDays = Preferences.getConsecutiveDays()
+        Log.e(LOG_TAG, "getConsecutiveDays from prefs: $consecutiveDays")
+        if (consecutiveDays == -1) {  // Assuming -1 indicates no local data available
+            val result = performAuthRequest { token ->
+                RetrofitClient.userAppDataApi.getAppData(token)
+            }
+            if (result is SmartResult.Success) {
+                consecutiveDays = result.data?.consecutiveDays ?: 0
+                Log.e(LOG_TAG, "getConsecutiveDays from remote: $consecutiveDays")
+                Preferences.setConsecutiveDays(consecutiveDays)
+                AppState.updateConsecutiveDays(consecutiveDays)
+            }
+        }
         Log.e(LOG_TAG, "getConsecutiveDays: $consecutiveDays")
         return consecutiveDays
     }
 
-    override fun setConsecutiveDays(days: Int) {
-        Preferences.setConsecutiveDays(days)
-        AppState.updateConsecutiveDays(days)
-        Log.e(LOG_TAG, "setConsecutiveDays: Consecutive days set to $days")
+    override suspend fun setConsecutiveDays(days: Int): SmartResult<Unit> {
+        return try {
+            Preferences.setConsecutiveDays(days)
+            AppState.updateConsecutiveDays(days)
+            val result = performAuthRequest { token ->
+                RetrofitClient.userAppDataApi.updateAppData(token, UpdateAppDataRequest(consecutiveDays = days))
+            }
+            Log.e(LOG_TAG, "setConsecutiveDays: Consecutive days set to $days")
+            if (result is SmartResult.Success) {
+                SmartResult.Success(Unit)
+            } else {
+                SmartResult.Error(600, "Failed to update consecutive days on server", result.toString())
+            }
+        } catch (e: Exception) {
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG: ", e.message)
+        }
     }
 
+    override fun markCheckedInToday() {
+//        Preferences.setCheckedInToday(true)
+//        Preferences.setCheckedInToday(true)
+//        Log.e(LOG_TAG, "markCheckedInToday: Marked as checked in today")
+    }
 
+    override fun resetDailyCheckin() {
+//        Preferences.setCheckedInToday(false)
+//        Preferences.setLastCheckInDate("2024-10-31")
+//        Preferences.setConsecutiveDays(0)
+//        Log.e(LOG_TAG, "resetDailyCheckin: Daily check-in reset")
+    }
 
     // Retrieve the current devils count from Preferences
 //    fun getDevilsCount(): Flow<Int> = AppState.devilCount
