@@ -294,6 +294,8 @@ class ChatViewModel(
                 Log.e(LOG_TAG, "Friendship event received: $friendEvent")
                 if (friendEvent.type == "friend_remove") {
                     _uiState.update { it.copy(goBack = true) }
+                } else if (friendEvent.type == "friend_block") {
+                    _uiState.update { it.copy(goBack = true) }
                 } else {
                     loadRecipientData()
                 }

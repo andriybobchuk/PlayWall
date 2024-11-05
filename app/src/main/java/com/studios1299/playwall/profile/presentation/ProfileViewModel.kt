@@ -229,12 +229,20 @@ class ProfileViewModel(
         }
     }
 
-
+    /**
+     * @param photId is index?
+     */
     private fun navigateToPhotoDetail(photoId: Int) {
 
-        if (photoId != -1) {
+        val photoIndex = state.wallpapers.indexOfFirst { it.id == photoId }
+//        if (photoIndex in state.wallpapers.indices) {
+//            updateExploreState(state.copy(currentPhotoIndex = photoIndex))
+//        }
+        Log.e("ProfileViewModel", "Photo clicked with id $photoId and index $photoIndex, currentPhotoIndex was updated")
+
+        if (photoIndex != -1) {
             viewModelScope.launch {
-                eventChannel.send(ProfileEvent.NavigateToPhotoDetail(photoId))
+                eventChannel.send(ProfileEvent.NavigateToPhotoDetail(photoIndex))
             }
         } else {
             viewModelScope.launch {

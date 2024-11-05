@@ -523,7 +523,9 @@ fun PlayScreen(
                             ) {
                                 FriendItem(
                                     friend = friend,
-                                    onClick = { onAction(PlayAction.OnFriendClick(friend.id)) },
+                                    onClick = {
+                                        //onAction(PlayAction.OnFriendClick(friend.id))
+                                    },
                                     isSelectable = false,
                                     isSelected = false
                                 )

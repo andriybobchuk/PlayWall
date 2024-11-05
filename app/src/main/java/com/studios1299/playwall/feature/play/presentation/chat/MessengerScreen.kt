@@ -470,17 +470,18 @@ fun MessengerScreenHeader(
                     expanded = isMenuExpanded,
                     onDismissRequest = { isMenuExpanded = false }
                 ) {
-                    DropdownMenuItem(
-                        text = { Text(text = if (recipient.status == FriendshipStatus.accepted) "Mute friend" else "Unmute friend") },
-                        onClick = {
-                            if (recipient.status == FriendshipStatus.accepted) {
-                                viewModel.blockFriend(recipient.friendshipId, recipient.id)
-                            } else {
-                                viewModel.unblockFriend(recipient.friendshipId, recipient.id)
-                            }
-                            isMenuExpanded = false
-                        }
-                    )
+//                    DropdownMenuItem(
+//                        text = { Text(text = if (recipient.status == FriendshipStatus.accepted) "Mute friend" else "Unmute friend") },
+//                        onClick = {
+//                            if (recipient.status == FriendshipStatus.accepted) {
+//                               // viewModel.blockFriend(recipient.friendshipId, recipient.id)
+//                                viewModel.blockFriend(uiState.currentUser?.friendshipId?:-1, recipient.id)
+//                            } else {
+//                                viewModel.unblockFriend(recipient.friendshipId, recipient.id)
+//                            }
+//                            isMenuExpanded = false
+//                        }
+//                    )
                     DropdownMenuItem(
                         text = { Text(text = "Refresh chat") },
                         onClick = onRefreshChat
