@@ -34,15 +34,12 @@ class PostDetailViewModel(
 
     val exploreState: ExploreState
         get() = ExploreStateSingleton.state
-
-    // Function to update the singleton state
     fun updateExploreState(newState: ExploreState) {
         ExploreStateSingleton.updateState(newState)
     }
 
     val profileState: ProfileState
         get() = ProfileStateSingleton.state
-
     fun updateProfileState(newState: ProfileState) {
         ProfileStateSingleton.updateState(newState)
     }
@@ -52,19 +49,9 @@ class PostDetailViewModel(
 
     init {
         Log.e("PostDetailViewModel", "Init of PostDetailViewModel with photo.id = $photoId")
-
-
         if (fromProfile) {
             updateProfileState(profileState.copy(currentPhotoIndex = photoId))
-        } else {
-            //updateExploreState(exploreState.copy(currentPhotoIndex = photoId))
-            //loadAllWallpapers(true)
         }
-//        viewModelScope.launch {
-//            NetworkMonitor.isOnline.collect { online ->
-//                updateExploreState(state.copy(isOnline = online))
-//            }
-//        }
         loadFriends()
     }
 
@@ -75,83 +62,6 @@ class PostDetailViewModel(
             is PostDetailAction.ToggleLike -> likeWallpaper(action.photoId)
         }
     }
-
-//    private fun loadAllWallpapers(forceRefresh: Boolean) {
-//        viewModelScope.launch {
-//            Log.e("PostDetailViewModel", "Loading photos...")
-//            updateExploreState(state.copy(isLoading = true))
-//
-//            try {
-//                val photos = repository.loadExploreWallpapers(0, 18, forceRefresh) // Fetches all photos
-//
-//                if (photos is SmartResult.Success) {
-//                    updateExploreState(state.copy(wallpapers =
-//                    photos.data!!.map {
-//                        ExploreWallpaper(
-//                            id = it.id,
-//                            fileName = it.fileName,
-//                            type = it.type,
-//                            sentCount = it.sentCount,
-//                            savedCount = it.savedCount,
-//                            isLiked = Preferences.isWallpaperLiked(it.id),
-//                            dateCreated = it.dateCreated,
-//                        )
-//                    }, isLoading = false))
-//                }
-//
-//                Log.e("PostDetailViewModel", "Fetched ${state.wallpapers.size} photos")
-//
-//                val initialPhotoIndex = state.wallpapers.indexOfFirst { it.id == photoId }
-//                Log.e("PostDetailViewModel", "Initial photo index for photoId $photoId: $initialPhotoIndex")
-//
-//                if (initialPhotoIndex != -1) {
-//                    updateExploreState(state.copy(wallpapers = state.wallpapers, currentPhotoIndex = initialPhotoIndex, isLoading = false))
-//                    Log.e("PostDetailViewModel", "Photos loaded successfully. Current photo index: $initialPhotoIndex")
-//                } else {
-//                    Log.e("PostDetailViewModel", "Photo not found for photoId: $photoId")
-//                    eventChannel.send(PostDetailEvent.ShowError(UiText.StringResource(R.string.error_photo_not_found)))
-//                }
-//            } catch (e: Exception) {
-//                Log.e("PostDetailViewModel", "Error loading photos: ${e.message}")
-//                eventChannel.send(PostDetailEvent.ShowError(UiText.StringResource(R.string.error_photo_not_found)))
-//            } finally {
-//                updateExploreState(state.copy(isLoading = false))
-//            }
-//        }
-//    }
-
-//    fun loadSavedWallpapers() {
-//        viewModelScope.launch {
-//            updateExploreState(state.copy(isLoading = true))
-//            val result = repository.loadSavedWallpapers(0, 18)
-//
-//            if (result is SmartResult.Success) {
-//                updateExploreState(state.copy(wallpapers = result.data!!.map {
-//                    ExploreWallpaper(
-//                        id = it.id,
-//                        fileName = it.fileName,
-//                        type = it.type,
-//                        sentCount = it.sentCount,
-//                        savedCount = it.savedCount,
-//                        isLiked = Preferences.isWallpaperLiked(it.id),
-//                        dateCreated = it.dateCreated
-//                    )
-//                }, isLoading = false))
-//                val initialPhotoIndex = state.wallpapers.indexOfFirst { it.id == photoId }
-//                if (initialPhotoIndex != -1) {
-//                    updateExploreState(state.copy(wallpapers = state.wallpapers, currentPhotoIndex = initialPhotoIndex, isLoading = false))
-//                    Log.e("PostDetailViewModel", "Photos loaded successfully. Current photo index: $initialPhotoIndex")
-//                } else {
-//                    Log.e("PostDetailViewModel", "Photo not found for photoId: $photoId")
-//                    eventChannel.send(PostDetailEvent.ShowError(UiText.StringResource(R.string.error_photo_not_found)))
-//                }
-//            } else {
-//                Log.e("loadSavedWallpapers", "Shit saved wpps: " + result)
-//                updateExploreState(state.copy(isLoading = false))
-//                // Handle error, if needed
-//            }
-//        }
-//    }
 
     private fun loadFriends() {
         viewModelScope.launch {
@@ -175,7 +85,6 @@ class PostDetailViewModel(
                 updateExploreState(exploreState.copy(currentPhotoIndex = newIndex))
             }
         }
-
     }
 
     private fun exitImageDetail() {
@@ -185,8 +94,6 @@ class PostDetailViewModel(
     }
 
     private fun likeWallpaper(wallpaperId: Int) {
-        //val state = if (fromProfile) profileState else exploreState
-
         val updatedExploreWallpapers = exploreState.wallpapers.map { wallpaper ->
             if (wallpaper.id == wallpaperId) {
                 val isLikedNow = !wallpaper.isLiked
@@ -262,15 +169,11 @@ class PostDetailViewModel(
             "file_name" to pathToS3,
             "from_device" to false // its from explorer, not device
         )
-        Log.e("setAsWallpaper", "filename:  " + s3Link)
-
-
         val changeWallpaperWork = OneTimeWorkRequestBuilder<ChangeWallpaperWorker>()
             .setInputData(workData)
             .build()
 
         WorkManager.getInstance(context).enqueue(changeWallpaperWork)
-
         WorkManager.getInstance(context).getWorkInfoByIdLiveData(changeWallpaperWork.id)
             .observeForever { workInfo ->
                 if (workInfo.state.isFinished) {
@@ -310,11 +213,7 @@ class PostDetailViewModel(
                     Log.e("sendWallpaperToFriends", "couldnt send wallpapers" + result)
                 }
             }
-
             WallpaperNotificationForPlay.setNewWallpaperReceived(true)
         }
     }
-
-
-
 }

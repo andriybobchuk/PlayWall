@@ -13,7 +13,6 @@ import com.studios1299.playwall.feature.play.data.model.Reaction
 import com.studios1299.playwall.feature.play.presentation.play.Friend
 import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
 
-// Mapping from FriendEntity to Domain
 fun FriendEntity.toDomain(): Friend {
     return Friend(
         friendshipId = this.friendshipId,
@@ -30,7 +29,6 @@ fun FriendEntity.toDomain(): Friend {
     )
 }
 
-// Mapping from Domain to FriendEntity
 fun Friend.toEntity(): FriendEntity {
     return FriendEntity(
         friendshipId = this.friendshipId,
@@ -80,32 +78,31 @@ fun ChangeWallpaperResponse.toMessageEntity(): MessageEntity {
     return MessageEntity(
         id = this.id,
         fileName = this.fileName,
-        type = this.type ?: "",  // Use an empty string if type is null
-        requesterId = this.senderId ?: -1,  // Use -1 if senderId is null
+        type = this.type ?: "",
+        requesterId = this.senderId ?: -1,
         recipientId = this.recipientId,
         comment = this.comment,
-        reaction = this.reaction?.toString(),  // Convert Reaction enum to string, if needed
-        timeSent = this.timestamp ?: "",  // Use an empty string if timestamp is null
-        status = this.status?.toString()  // Convert MessageStatus enum to string, if needed
+        reaction = this.reaction?.toString(),
+        timeSent = this.timestamp ?: "",
+        status = this.status?.toString()
     )
 }
 
 fun Message.toMessageEntity(): MessageEntity {
     return MessageEntity(
         id = this.id,
-        fileName = this.imageUrl,            // Map imageUrl to fileName
-        type = "",                            // Set type to an empty string if not available
-        requesterId = this.senderId,          // Map senderId to requesterId
+        fileName = this.imageUrl,
+        type = "",
+        requesterId = this.senderId,
         recipientId = this.recipientId,
-        comment = this.caption,               // Map caption to comment
-        reaction = this.reaction?.toString(), // Convert Reaction to String
+        comment = this.caption,
+        reaction = this.reaction?.toString(),
         timeSent = this.timestamp,
-        status = this.status.toString()       // Convert MessageStatus to String
+        status = this.status.toString()
     )
 }
 
 fun UserEntity.toUserDataResponse(): UserDataResponse {
-    Log.e("Mappers", "status(String): ${this.status}")
     val status= if (this.status != null && this.status != "" && this.status != "null") {
         this.status
     } else {

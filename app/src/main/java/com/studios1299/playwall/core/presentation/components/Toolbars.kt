@@ -76,53 +76,6 @@ object Toolbars {
         )
     }
 
-//    @OptIn(ExperimentalMaterial3Api::class)
-//    @Composable
-//    fun Primary(
-//        modifier: Modifier = Modifier,
-//        showBackButton: Boolean = false,
-//        title: String,
-//        onBackClick: () -> Unit = {},
-//        scrollBehavior: TopAppBarScrollBehavior,
-//        actions: List<ToolBarAction> = emptyList()
-//    ) {
-//        TopAppBar(
-//            title = { Text(text = title) },
-//            modifier = modifier,
-//            scrollBehavior = scrollBehavior,
-//            navigationIcon = {
-//                if (showBackButton) {
-//                    IconButton(onClick = onBackClick) {
-//                        Icon(
-//                            imageVector = ArrowLeftIcon,
-//                            contentDescription = stringResource(id = R.string.go_back),
-//                            tint = MaterialTheme.colorScheme.onBackground
-//                        )
-//                    }
-//                }
-//            },
-//            actions = {
-//                actions.take(3).forEach { actionIcon ->
-//                    IconButton(
-//                        onClick = actionIcon.onClick,
-//                        enabled = actionIcon.enabled,
-////                        colors = IconButtonColors(
-////                            containerColor = Color.Transparent,
-////                            contentColor = Color.Black,
-////                            disabledContentColor = Color.Gray,
-////                            disabledContainerColor = Color.Transparent
-////                        )
-//                    ) {
-//                        Icon(
-//                            imageVector = actionIcon.icon,
-//                            contentDescription = actionIcon.contentDescription,
-//                        )
-//                    }
-//                }
-//            }
-//        )
-//    }
-
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun WithMenu(

@@ -110,7 +110,7 @@ private fun LogoVertical(
     ) {
         Image(
             painter = painterResource(id = R.drawable.pw),
-            contentDescription = "Logo",
+            contentDescription = null,
             modifier = Modifier.size(172.dp)
         )
     }

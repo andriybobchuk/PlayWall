@@ -13,7 +13,7 @@ fun getScreenRatio(context: Context?): Float {
 
             if (width == 0 || height == 0) {
                 Log.e("ScreenRatio", "Invalid width or height: width=$width, height=$height")
-                return@let 0f
+                return@let 2f
             }
 
             val ratio = height.toFloat() / width.toFloat()
@@ -21,10 +21,10 @@ fun getScreenRatio(context: Context?): Float {
             ratio
         } ?: run {
             Log.e("ScreenRatio", "Context or DisplayMetrics is null")
-            0f
+            2f
         }
     } catch (e: Exception) {
         Log.e("ScreenRatio", "Failed to get screen ratio: ${e.message}", e)
-        0f
+        2f
     }
 }

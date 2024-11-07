@@ -46,28 +46,11 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             PlayWallTheme {
-                Log.e("MainActivity", "playwalltheme")
                 if(!viewModel.state.keepSplashScreen) {
-                    Log.e("MainActivity", "after theme")
                     NavigationHostLegacy(
                         adManager = adManager,
                         isLoggedIn = viewModel.state.isLoggedIn
                     )
-                    if (AppConfigManager.enableAppOpenAd) {
-                        // Load App Open Ad here
-                    }
-                    Log.e("MainActivity", "before loading rewarded ad")
-//                    adManager.loadRewardedAd { adLoaded ->
-//                        if (adLoaded) {
-//                            adManager.showRewardedAdIfLoaded(
-//                                onAdClosed = { Log.e("MainActivity", "onAdClosed")},
-//                                onRewardEarned = { Log.e("MainActivity", "onRewardEarned")},
-//                                onAdNotLoaded = { Log.e("MainActivity", "onAdNotLoaded")},
-//                            )
-//                        } else {
-//                            Log.e("MainActivity", "else adLoaded == false")
-//                        }
-//                    }
                 }
             }
         }

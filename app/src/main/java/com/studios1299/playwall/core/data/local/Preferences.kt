@@ -19,12 +19,7 @@ object Preferences {
     private const val KEY_DEVILS_COUNT = "devils_count"
     private const val KEY_LAST_CHECK_IN_DATE = "last_check_in_date"
     private const val KEY_CONSECUTIVE_DAYS = "consecutive_days"
-
-
-
     private const val KEY_IS_PREMIUM = "is_premium"
-    private const val KEY_CHECKED_IN_TODAY = "checked_in_today"
-
 
     private lateinit var sharedPreferences: SharedPreferences
 
@@ -89,7 +84,6 @@ object Preferences {
         sharedPreferences.edit().putString(KEY_FCM_TOKEN, fcmToken).apply()
     }
 
-    // Devils management
     fun getDevilsCount(): Int {
         return sharedPreferences.getInt(KEY_DEVILS_COUNT, -1)
     }
@@ -114,17 +108,6 @@ object Preferences {
         sharedPreferences.edit().putInt(KEY_CONSECUTIVE_DAYS, days).apply()
     }
 
-    fun clear() {
-        sharedPreferences.edit().clear().apply()
-    }
-
-
-
-
-
-    //..,..
-
-    // Premium status management
     fun isPremium(): Boolean {
         return sharedPreferences.getBoolean(KEY_IS_PREMIUM, false)
     }
@@ -133,13 +116,8 @@ object Preferences {
         sharedPreferences.edit().putBoolean(KEY_IS_PREMIUM, isPremium).apply()
     }
 
-    // Daily check-in management
-    fun hasCheckedInToday(): Boolean {
-        return sharedPreferences.getBoolean(KEY_CHECKED_IN_TODAY, false)
-    }
-
-    fun setCheckedInToday(checkedIn: Boolean) {
-        sharedPreferences.edit().putBoolean(KEY_CHECKED_IN_TODAY, checkedIn).apply()
+    fun clear() {
+        sharedPreferences.edit().clear().apply()
     }
 }
 

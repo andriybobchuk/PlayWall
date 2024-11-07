@@ -3,6 +3,7 @@ package com.studios1299.playwall.app.config
 import androidx.lifecycle.MutableLiveData
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 
+@Deprecated("I am keeping this here only for reference, this is not used")
 class AppConfigLegacy private constructor() {
 
     var enableRewardAd = DEFAULT_ENABLE_REWARD_AD

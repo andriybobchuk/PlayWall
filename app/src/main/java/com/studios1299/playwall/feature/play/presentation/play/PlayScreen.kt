@@ -238,7 +238,7 @@ fun PlayScreen(
             onDismissRequest = { showMuteDialog = false },
             title = { Text(text = "Mute Friend?") },
             text = {
-                Text(text = "You are about to mute this friend. They will go to the bottom of the list and neither of you will be able to set wallpapers for each other. Are you sure?")
+                 Text(stringResource(R.string.remove_friend_alert))
             },
             confirmButton = {
                 TextButton(

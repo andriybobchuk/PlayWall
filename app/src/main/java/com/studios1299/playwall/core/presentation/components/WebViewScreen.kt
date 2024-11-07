@@ -62,18 +62,6 @@ fun WebViewComponent(
     isLoading: Boolean,
     onPageFinished: () -> Unit
 ) {
-//    Row {
-//        val context = LocalContext.current
-//        val openInBrowser = {
-//            url.let {
-//                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it))
-//                context.startActivity(intent)
-//            }
-//        }
-//
-//        openInBrowser()
-//    }
-
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(

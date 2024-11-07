@@ -10,6 +10,9 @@ import com.studios1299.playwall.app.di.AppModuleImpl
 import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.networking.NetworkMonitor
 
+/**
+ * Used to initialize application wide utilities
+ */
 class MyApp: Application() {
 
     companion object {
@@ -18,16 +21,9 @@ class MyApp: Application() {
 
     override fun onCreate() {
         super.onCreate()
-
-        // Initialize manual DI:
-        appModule = AppModuleImpl(this)
-
-        // Initialize Firebase and app config
-        FirebaseManager.init(this)
-
-        // Shared prefs:
-        Preferences.initialize(this)
-
+        appModule = AppModuleImpl(this) // Initialize my custom lovely manual DI
+        FirebaseManager.init(this) // Initialize Firebase and app config
+        Preferences.initialize(this) // Shared prefs
         NetworkMonitor.initialize(this)
     }
 }

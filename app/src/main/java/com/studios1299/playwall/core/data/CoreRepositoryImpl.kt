@@ -303,14 +303,6 @@ class FirebaseCoreRepositoryImpl(
 
     override suspend fun getUserData(): SmartResult<UserDataResponse> {
         return try {
-            // Check if the user data is available in the local database
-//            val cachedUser = userDao.getCachedUser()
-//            Log.e(LOG_TAG, "getUserData, cached data: $cachedUser")
-//            if (cachedUser != null) {
-//                Log.e(LOG_TAG, "getUserData, cached data: ${cachedUser.toUserDataResponse()}")
-//                return SmartResult.Success(cachedUser.toUserDataResponse())
-//            }
-
             // If no local data, make a remote request
             val result = performAuthRequest { token ->
                 RetrofitClient.userApi.getUserData(token)
@@ -334,10 +326,6 @@ class FirebaseCoreRepositoryImpl(
                     friendshipId = userData.friendshipId,
                     screenRatio = userData.screenRatio
                 )
-
-                // Cache the result in Room
-                //Log.e(LOG_TAG, "getUserData, remote data obtained and inserting into room: ${userDataResponse.toUserEntity()}")
-                //userDao.insertUser(userDataResponse.copy(status = FriendshipStatus.accepted).toUserEntity())
                 SmartResult.Success(userDataResponse)
             } else {
                 SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "Could not get user data")
@@ -393,57 +381,6 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-//    override suspend fun getUserData(): SmartResult<UserDataResponse> {
-//        return try {
-//            Log.e("getUserData", "Starting getUserData request")
-//
-//            val result = performAuthRequest { token ->
-//                Log.e("getUserData", "Token retrieved: $token")
-//                RetrofitClient.userApi.getUserData(token)
-//            }
-//
-//            if (result is SmartResult.Success) {
-//                val userData = result.data
-//                    ?: return SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "User data is null")
-//
-//                Log.e("getUserData", "UserData retrieved successfully: $userData")
-//
-//                val avatarUrlResult = pathToLink(userData.avatarId)
-//                Log.e("getUserData", "Avatar ID: ${userData.avatarId}, Avatar URL result: $avatarUrlResult")
-//
-//                val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
-//                    avatarUrlResult.data
-//                } else {
-//                    Log.e("getUserData", "Failed to retrieve avatar URL, using empty string.")
-//                    ""
-//                }
-//
-//                val userDataResponse = userData?.let {
-//                    UserDataResponse(
-//                        id = it.id,
-//                        name = userData.name,
-//                        email = userData.email,
-//                        avatarId = avatarUrl?:"",
-//                        since = userData.since,
-//                        status = userData.status,
-//                        requesterId = userData.requesterId,
-//                        friendshipId = userData.friendshipId,
-//                        screenRatio = userData.screenRatio
-//                    )
-//                }
-//
-//                Log.e("getUserData", "Returning UserDataResponse: $userDataResponse")
-//                SmartResult.Success(userDataResponse)
-//            } else {
-//                Log.e("getUserData", "Failed to retrieve user data: $result")
-//                SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "Could not get user data")
-//            }
-//        } catch (e: Exception) {
-//            Log.e("getUserData", "Exception in getUserData: ${e.message}", e)
-//            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
-//        }
-//    }
-
     override suspend fun updateProfile(avatarId: String?, nick: String?): SmartResult<Unit> {
         return try {
             performAuthRequest { token ->
@@ -486,7 +423,6 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-    // Wallpapers
     override suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<ChangeWallpaperResponse?> {
         return try {
             Log.v(LOG_TAG, "changeWallpaper, start")
@@ -1016,28 +952,6 @@ class FirebaseCoreRepositoryImpl(
             SmartResult.Error(600, "Runtime exception in $LOG_TAG: ", e.message)
         }
     }
-
-    override fun markCheckedInToday() {
-//        Preferences.setCheckedInToday(true)
-//        Preferences.setCheckedInToday(true)
-//        Log.e(LOG_TAG, "markCheckedInToday: Marked as checked in today")
-    }
-
-    override fun resetDailyCheckin() {
-//        Preferences.setCheckedInToday(false)
-//        Preferences.setLastCheckInDate("2024-10-31")
-//        Preferences.setConsecutiveDays(0)
-//        Log.e(LOG_TAG, "resetDailyCheckin: Daily check-in reset")
-    }
-
-    // Retrieve the current devils count from Preferences
-//    fun getDevilsCount(): Flow<Int> = AppState.devilCount
-//
-//    // Check if user is premium
-//    fun isPremium(): Flow<Boolean> = AppState.isPremium
-//
-//    // Check if user has checked in today
-//    fun hasCheckedInToday(): Flow<Boolean> = AppState.hasCheckedInToday
 
     override fun getWallpaperDestination(): WallpaperOption {
         return Preferences.getWallpaperDestination()

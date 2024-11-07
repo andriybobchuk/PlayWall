@@ -145,10 +145,6 @@ class DiamondsViewModel(
         }
     }
 
-    fun reset() {
-        repository.resetDailyCheckin()
-    }
-
     private fun loadDailyCheckinData() {
         Log.e(LOG_TAG, "loadDailyCheckinData(), start")
         viewModelScope.launch {

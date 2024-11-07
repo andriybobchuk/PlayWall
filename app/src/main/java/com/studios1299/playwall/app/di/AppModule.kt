@@ -5,7 +5,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.messaging.FirebaseMessaging
 import com.studios1299.playwall.auth.data.EmailPatternValidator
-import com.studios1299.playwall.auth.data.FirebaseAuthRepositoryImpl
+import com.studios1299.playwall.auth.data.AuthRepositoryImpl
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.domain.PatternValidator
 import com.studios1299.playwall.core.data.FirebaseCoreRepositoryImpl
@@ -98,7 +98,7 @@ class AppModuleImpl(
         )
     }
     override val authRepository: AuthRepository by lazy {
-        FirebaseAuthRepositoryImpl(
+        AuthRepositoryImpl(
             firebaseAuth = firebaseAuth,
             firebaseMessaging = firebaseMessaging,
         )

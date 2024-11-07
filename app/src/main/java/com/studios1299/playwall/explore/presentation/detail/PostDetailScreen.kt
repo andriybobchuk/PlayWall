@@ -50,6 +50,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -157,7 +158,7 @@ fun PostDetailScreen(
                         onClick = {
                             coroutineScope.launch { isFriendsSheetOpen.value = true }
                         }) {
-                        Text(text = "Set as friend's", color = MaterialTheme.colorScheme.primary)
+                        Text(text = stringResource(R.string.set_as_friend_s), color = MaterialTheme.colorScheme.primary)
                     }
                     Button(
                         modifier = Modifier.padding(2.dp),
@@ -167,9 +168,9 @@ fun PostDetailScreen(
                         onClick = {
                             viewModel.setAsWallpaper(primaryState.wallpapers[pagerState.currentPage].fileName, context)
                             Toast.makeText(context,
-                                "Done!", Toast.LENGTH_SHORT).show()
+                                context.getString(R.string.done), Toast.LENGTH_SHORT).show()
                         }) {
-                        Text(text = "Set as mine", color = MaterialTheme.colorScheme.primary)
+                        Text(text = stringResource(R.string.set_as_mine), color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -196,10 +197,7 @@ fun PostDetailScreen(
                 Banners.OfflineStatus()
             }
             if (exploreState.isLoading) {
-
-                CircularProgressIndicator(
-                    //modifier = Modifier.align(Alignment.Center)
-                )
+                CircularProgressIndicator()
             }
             VerticalPager(
                 state = pagerState,
@@ -219,15 +217,15 @@ fun PostDetailScreen(
                                 .padding(16.dp)
                                 .align(Alignment.TopEnd)
                                 .background(
-                                    color = MaterialTheme.colorScheme.primary, // You can use your preferred color
-                                    shape = RoundedCornerShape(16.dp) // Rounded corners
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = RoundedCornerShape(16.dp)
                                 )
-                                .padding(horizontal = 16.dp, vertical = 8.dp) // Padding inside the box
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
                             Text(
                                 text = "#${photo.type}",
-                                color = Color.White, // Text color
-                                style = MaterialTheme.typography.bodyMedium // You can style the text as per your design
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                         Box(
@@ -235,15 +233,15 @@ fun PostDetailScreen(
                                 .padding(16.dp)
                                 .align(Alignment.BottomEnd)
                                 .background(
-                                    color = MaterialTheme.colorScheme.primary, // You can use your preferred color
-                                    shape = RoundedCornerShape(16.dp) // Rounded corners
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = RoundedCornerShape(16.dp)
                                 )
-                                .padding(horizontal = 16.dp, vertical = 8.dp) // Padding inside the box
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
                             Text(
                                 text = timestampAsDateTime(photo.dateCreated, context),
-                                color = Color.White, // Text color
-                                style = MaterialTheme.typography.bodyMedium // You can style the text as per your design
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                     }

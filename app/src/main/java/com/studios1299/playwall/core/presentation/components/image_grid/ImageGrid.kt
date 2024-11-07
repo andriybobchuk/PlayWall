@@ -45,9 +45,7 @@ import com.studios1299.playwall.explore.presentation.explore.ExploreState
 import com.studios1299.playwall.explore.presentation.explore.ExploreViewModel
 
 @Composable
-@OptIn(ExperimentalGlideComposeApi::class)
 fun ImageGrid(
-   // innerPadding: PaddingValues,
     viewModel: ExploreViewModel,
     state: ImageGridState,
     onAction: (ExploreAction) -> Unit,
@@ -56,7 +54,6 @@ fun ImageGrid(
     Box(
         modifier = Modifier
             .fillMaxSize()
-           // .padding(innerPadding)
     ) {
         if (state.isLoading) {
             ShimmerLoadingForWallpaperGrid()
@@ -80,7 +77,6 @@ fun ImageGrid(
                     Box {
                         Images.Square(
                             modifier = Modifier
-                                //.weight(1f)
                                 .aspectRatio(1f),
                             model = photo.fileName,
                             onClick = {
@@ -92,7 +88,6 @@ fun ImageGrid(
                         )
                         if (exploreState.isOnline) {
                             Box(modifier = Modifier.align(Alignment.BottomEnd)) {
-                                //Text(text = photo.id.toString())
                                 LikeButton(
                                     likeCount = photo.savedCount,
                                     isLiked = photo.isLiked,

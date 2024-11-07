@@ -142,8 +142,7 @@ class ExploreViewModel(
         }
     }
 
-
-    // TODO: Boilerplate from PostDetailViewModel
+    // TODO: Boilerplate from PostDetailViewModel, but it is needed
     private fun likeWallpaper(wallpaperId: Int) {
         val updatedWallpapers = state.wallpapers.map { wallpaper ->
             if (wallpaper.id == wallpaperId) {

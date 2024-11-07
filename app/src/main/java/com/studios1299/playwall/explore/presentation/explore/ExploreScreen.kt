@@ -18,9 +18,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Banners
 import com.studios1299.playwall.core.presentation.components.Toolbars
@@ -77,7 +79,7 @@ fun ExploreScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             Toolbars.Primary(
-                title = "Explore",
+                title = stringResource(R.string.explore),
                 scrollBehavior = scrollBehavior,
                 customContent = {
                     DiamondsDisplay(

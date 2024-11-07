@@ -7,7 +7,7 @@ data class User(
     val name: String,
     val profilePictureUrl: String,
     val lastOnline: Long = 0,
-    val email: String = "random@email.com",
+    val email: String = "",
     val since: String,
     val status: FriendshipStatus,
     val requesterId: Int,

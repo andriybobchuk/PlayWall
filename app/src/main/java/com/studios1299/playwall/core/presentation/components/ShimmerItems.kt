@@ -17,27 +17,22 @@ import com.valentinilk.shimmer.shimmer
 
 @Composable
 fun ShimmerFriendListItem() {
-    Log.e("Shimmering", "...")
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Circle for friend's profile picture
         Box(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
                 .background(Color.Gray)
         )
-
         Spacer(modifier = Modifier.width(16.dp))
-
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Rectangle representing name
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.7f)
@@ -45,10 +40,7 @@ fun ShimmerFriendListItem() {
                     .clip(RoundedCornerShape(4.dp))
                     .background(Color.Gray)
             )
-
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Rectangle representing subtitle (e.g., status)
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.5f)
@@ -68,17 +60,13 @@ fun ShimmerUserProfile() {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Circle for profile picture
         Box(
             modifier = Modifier
                 .size(70.dp)
                 .clip(CircleShape)
                 .background(Color.Gray)
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
-        // Rectangle for user's name
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.4f)
@@ -86,10 +74,7 @@ fun ShimmerUserProfile() {
                 .clip(RoundedCornerShape(4.dp))
                 .background(Color.Gray)
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
-        // Rectangle for user's bio/status
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.6f)
@@ -189,12 +174,3 @@ fun ShimmerWallpaperGridItem() {
     )
 }
 
-
-@Composable
-fun ShimmerLoadingForMessages() {
-    Column(modifier = Modifier.shimmer()) {
-        repeat(5) {
-            ShimmerMessageItem()
-        }
-    }
-}

@@ -50,7 +50,6 @@ interface CoreRepository {
     suspend fun saveWallpaper(wallpaperId: Int): SmartResult<Unit>
     suspend fun removeSavedWallpaper(wallpaperId: Int): SmartResult<Unit>
     suspend fun loadSavedWallpapers(page: Int, pageSize: Int): SmartResult<List<ExploreWallpaperResponse>>
-
     suspend fun reportWallpaper(wallpaperId: Int): SmartResult<Unit>
     suspend fun getFriendScreenRatio(friendId: Int): SmartResult<Float>
 
@@ -64,10 +63,6 @@ interface CoreRepository {
     suspend fun getConsecutiveDays(): Int
     suspend fun setConsecutiveDays(days: Int): SmartResult<Unit>
     suspend fun hasCheckedInToday(): Boolean
-
-
-    fun markCheckedInToday()
-    fun resetDailyCheckin()
 
     // PREFERENCE MANAGEMENT (DEPRECATED)
     fun getWallpaperDestination(): WallpaperOption

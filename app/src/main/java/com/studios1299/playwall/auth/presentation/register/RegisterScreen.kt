@@ -271,13 +271,13 @@ private fun RegisterScreen(
                         append(stringResource(R.string.i_agree_to_the))
                         pushStringAnnotation(tag = "terms", annotation = "terms_of_service")
                         withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)) {
-                            append("Terms of Service")
+                            append(stringResource(R.string.terms_of_service))
                         }
                         pop()
                         append(stringResource(R.string.and))
                         pushStringAnnotation(tag = "privacy", annotation = "privacy_policy")
                         withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)) {
-                            append("Privacy Policy")
+                            append(stringResource(R.string.privacy_policy))
                         }
                     }
                 }
@@ -310,7 +310,7 @@ private fun RegisterScreen(
                         top = 40.dp,
                     )
                     .align(Alignment.CenterHorizontally),
-                text = "Or connect with",
+                text = stringResource(id = R.string.or_connect_with),
                 fontWeight = FontWeight.Normal, fontFamily = poppins
             )
             Spacer(modifier = Modifier.height(16.dp))

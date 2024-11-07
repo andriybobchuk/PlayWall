@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.components.TextFields
@@ -82,13 +83,13 @@ fun AddTextBottomSheet(
                 state = textFieldState,
                 startIcon = null,
                 endIcon = null,
-                hint = "Enter text",
-                title = "Add label",
+                hint = stringResource(R.string.add_label),
+                title = stringResource(R.string.add_label),
                 modifier = Modifier.fillMaxWidth(),
                 onFocusChanged = { isFocused -> focusState.value = isFocused }
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Select label color")
+            Text(text = stringResource(R.string.select_label_color))
             LazyRow(
                 modifier = Modifier
                     .padding(vertical = 16.dp)
@@ -200,7 +201,7 @@ fun DrawModeBottomSheet(
         }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Choose Brush Color")
+            Text(stringResource(R.string.choose_brush_color))
             LazyRow(
                 modifier = Modifier
                     .padding(vertical = 16.dp)

@@ -15,7 +15,6 @@ interface FriendDao {
     @Query("SELECT * FROM friends WHERE status = 'accepted'")
     suspend fun getAllFriends(): List<FriendEntity>
 
-    // Get all pending friend requests
     @Query("SELECT * FROM friends WHERE status = 'pending'")
     suspend fun getAllFriendRequests(): List<FriendEntity>
 

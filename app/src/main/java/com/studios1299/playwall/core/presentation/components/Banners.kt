@@ -74,7 +74,6 @@ object Banners {
         }
     }
 
-
     @Composable
     fun OfflineStatus(
         modifier: Modifier = Modifier

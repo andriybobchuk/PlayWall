@@ -14,20 +14,6 @@ interface ExploreWallpaperDao {
     @Query("SELECT * FROM explore_wallpapers ORDER BY `order` ASC")
     fun getAllWallpapersSortedByOrder(): List<ExploreWallpaperEntity>
 
-//    @Query("""
-//        SELECT * FROM explore_wallpapers
-//        ORDER BY
-//            CASE
-//                WHEN type = 'New' THEN 1
-//                WHEN type = 'Popular' THEN 2
-//            END,
-//            CASE
-//                WHEN type = 'New' THEN dateCreated
-//                WHEN type = 'Popular' THEN savedCount
-//            END DESC
-//    """)
-//    suspend fun getAllWallpapers(): List<ExploreWallpaperEntity>
-
     @Query("DELETE FROM explore_wallpapers")
     suspend fun deleteAllWallpapers()
 }

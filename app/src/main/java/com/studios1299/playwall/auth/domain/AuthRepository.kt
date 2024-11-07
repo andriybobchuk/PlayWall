@@ -12,9 +12,9 @@ interface AuthRepository {
     suspend fun googleRegister(credential: AuthCredential, screenRatio: Float): SmartResult<User>
     suspend fun sendPasswordResetEmail(email: String): SmartResult<Unit>
     suspend fun updatePassword(currentPassword: String, newPassword: String): SmartResult<Unit>
-    fun logOut()
     suspend fun updatePushToken(): EmptyResult
     suspend fun deletePushToken(): EmptyResult
+    fun logOut()
 }
 
 data class User(

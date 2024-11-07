@@ -179,8 +179,6 @@ class ChatViewModel(
         }
     }
 
-
-
     private suspend fun handleMessageUpdate(wallpaperHistoryResponse: WallpaperHistoryResponse) {
         Log.e(LOG_TAG, "Handling wallpaper update with id: ${wallpaperHistoryResponse.id}")
 

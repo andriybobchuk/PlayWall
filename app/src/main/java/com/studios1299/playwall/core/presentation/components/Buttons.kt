@@ -65,7 +65,6 @@ object Buttons {
                     text = text,
                     modifier = Modifier
                         .alpha(if(isLoading) 0f else 1f),
-                   // fontWeight = FontWeight.Medium,
                     style = style
                 )
             }
@@ -111,12 +110,9 @@ object Buttons {
                     text = text,
                     modifier = Modifier
                         .alpha(if(isLoading) 0f else 1f),
-                   // fontWeight = FontWeight.Medium,
                     style = style
                 )
             }
         }
     }
-
-
 }

@@ -104,7 +104,7 @@ fun LoginScreenRoot(
             LoginEvent.PasswordResetEmailSent -> {
                 Toast.makeText(
                     context,
-                    "Password reset email was sent to your address",
+                    context.getString(R.string.password_reset_email_was_sent_to_your_address),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -230,7 +230,7 @@ private fun LoginScreen(
                         if (state.email.text.toString().trim().isEmpty()) {
                             Toast.makeText(
                                 context,
-                                "Enter a valid email",
+                                context.getString(R.string.enter_a_valid_email),
                                 Toast.LENGTH_LONG
                             ).show()
                         } else {

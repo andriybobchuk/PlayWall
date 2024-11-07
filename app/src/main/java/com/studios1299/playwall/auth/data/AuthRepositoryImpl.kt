@@ -8,20 +8,17 @@ import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.messaging.FirebaseMessaging
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.domain.User
-import com.studios1299.playwall.core.data.FirebaseCoreRepositoryImpl
-import com.studios1299.playwall.core.data.FirebaseCoreRepositoryImpl.Companion
 import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.networking.request.user.CreateUserRequest
 import com.studios1299.playwall.core.data.networking.RetrofitClientExt
 import com.studios1299.playwall.core.data.networking.RetrofitClient
-import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.EmptyResult
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.error_handling.asEmptyDataResult
 import kotlinx.coroutines.tasks.await
 import retrofit2.Response
 
-class FirebaseAuthRepositoryImpl(
+class AuthRepositoryImpl(
     private val firebaseAuth: FirebaseAuth,
     private val firebaseMessaging: FirebaseMessaging,
 ) : AuthRepository {

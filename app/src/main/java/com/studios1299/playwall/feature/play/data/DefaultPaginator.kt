@@ -1,7 +1,6 @@
 package com.studios1299.playwall.feature.play.data
 
 import android.util.Log
-import com.studios1299.playwall.core.domain.error_handling.CustomError
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.feature.play.domain.Paginator
 

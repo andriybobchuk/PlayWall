@@ -12,6 +12,7 @@ import com.studios1299.playwall.app.Credentials
 import java.io.File
 import java.net.URI
 import java.util.UUID
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -71,7 +72,7 @@ object S3Handler {
             key = filename
         }
         return try {
-            val presignedRequest = s3Client.presignGetObject(getObjectRequest, 3600.seconds)
+            val presignedRequest = s3Client.presignGetObject(getObjectRequest, 12.hours)
             val presignedUrl = presignedRequest.url.toString()
             Log.d("com.studios1299.playwall.core.data.s3.S3Handler", "Generated presigned URL: $presignedUrl")
             presignedUrl
@@ -101,6 +102,5 @@ object S3Handler {
             null
         }
     }
-
 }
 

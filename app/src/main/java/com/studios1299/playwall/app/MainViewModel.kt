@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(
     private val coreRepository: CoreRepository = MyApp.appModule.coreRepository
-): ViewModel() {
+) : ViewModel() {
 
     var state by mutableStateOf(MainState())
         private set
@@ -29,23 +29,16 @@ class MainViewModel(
             state = state.copy(keepSplashScreen = false)
         }
     }
+
     init {
         viewModelScope.launch {
             state = state.copy(keepSplashScreen = true)
             state = state.copy(isLoggedIn = coreRepository.getCurrentUserId() != null)
-
-            // Wait until Firebase is done initializing
-//            while (!FirebaseManager.isFirebaseSetupComplete()) {
-//                delay(100) // Poll every 100ms until Firebase setup is complete
-//            }
-//            logConfigValues()
-
             state = state.copy(keepSplashScreen = false)
         }
     }
 
     private fun logConfigValues() {
-        // Log config values to ensure they are loaded correctly
         Log.d("MainViewModel", "Config Values:")
         Log.d("MainViewModel", "enableRewardAd: ${AppConfigManager.enableRewardAd}")
         Log.d("MainViewModel", "enableBannerAd: ${AppConfigManager.enableBannerAd}")
@@ -53,8 +46,14 @@ class MainViewModel(
         Log.d("MainViewModel", "enableInterstitialAd: ${AppConfigManager.enableInterstitialAd}")
         Log.d("MainViewModel", "allowPremiumPreview: ${AppConfigManager.allowPremiumPreview}")
         Log.d("MainViewModel", "enableAppOpenAd: ${AppConfigManager.enableAppOpenAd}")
-        Log.d("MainViewModel", "enableAppOpenAdOnResume: ${AppConfigManager.enableAppOpenAdOnResume}")
+        Log.d(
+            "MainViewModel",
+            "enableAppOpenAdOnResume: ${AppConfigManager.enableAppOpenAdOnResume}"
+        )
         Log.d("MainViewModel", "enableUserDailyReward: ${AppConfigManager.enableUserDailyReward}")
-        Log.d("MainViewModel", "enableUserOpinionPrompt: ${AppConfigManager.enableUserOpinionPrompt}")
+        Log.d(
+            "MainViewModel",
+            "enableUserOpinionPrompt: ${AppConfigManager.enableUserOpinionPrompt}"
+        )
     }
 }

@@ -17,7 +17,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-@Database(entities = [ExploreWallpaperEntity::class, FriendEntity::class, MessageEntity::class, UserEntity::class], version = 9, exportSchema = false)
+@Database(
+    entities = [
+        ExploreWallpaperEntity::class,
+        FriendEntity::class,
+        MessageEntity::class,
+        UserEntity::class], version = 9, exportSchema = false
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun exploreWallpaperDao(): ExploreWallpaperDao
     abstract fun friendDao(): FriendDao

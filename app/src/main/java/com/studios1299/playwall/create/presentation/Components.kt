@@ -26,8 +26,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import aws.sdk.kotlin.services.s3.model.LoggingEnabled
+import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.explore.presentation.explore.ExploreAction
 import com.studios1299.playwall.monetization.presentation.AppState
@@ -50,13 +52,13 @@ fun NoImagePlaceholder(
                 .align(Alignment.Center)
         ) {
             Text(
-                text = "No Image",
+                text = stringResource(R.string.no_image),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
             )
             Text(
-                text = "Select an image to start editing!",
+                text = stringResource(R.string.select_an_image_to_start_editing),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier
                     .padding(16.dp)
@@ -66,7 +68,7 @@ fun NoImagePlaceholder(
                 onClick = requestImagePicker,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
-                Text(text = "Select Image")
+                Text(text = stringResource(R.string.select_image))
             }
         }
 
@@ -85,24 +87,24 @@ fun Topbar(
 ) {
     val isPremium = AppState.isPremium.collectAsState().value
     Toolbars.WithMenu(
-        title = "Create",
+        title = stringResource(R.string.create),
         actions = listOf(
             Toolbars.ToolBarAction(
                 icon = Icons.Outlined.Send,
-                contentDescription = "Send to friend",
+                contentDescription = stringResource(R.string.send_to_friend),
                 onClick = send,
                 enabled = isImageSelected && sendEnabled
             ),
             Toolbars.ToolBarAction(
                 icon = Icons.Default.Download,
-                contentDescription = "Download image",
+                contentDescription = stringResource(R.string.download_image),
                 onClick = { download() },
                 enabled = isImageSelected
             )
             ,
             Toolbars.ToolBarAction(
                 icon = Icons.Outlined.Wallpaper,
-                contentDescription = "Set as my wallpaper",
+                contentDescription = stringResource(R.string.set_as_my_wallpaper),
                 onClick = setAsMyWallpaper,
                 enabled = isImageSelected
             )
@@ -181,17 +183,20 @@ private fun saveImageForNewerVersions(
                 contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
                 contentResolver.update(imageUri, contentValues, null, null)
 
-                Toast.makeText(context, "Image saved successfully", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context,
+                    context.getString(R.string.image_saved_successfully), Toast.LENGTH_SHORT).show()
                 onSuccess(imageUri)
             }
 
             override fun onFailure(exception: Exception) {
-                Toast.makeText(context, "Failed to save image: ${exception.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context,
+                    context.getString(R.string.failed_to_save_image, exception.message), Toast.LENGTH_SHORT).show()
                 onFailure()
             }
         })
     } else {
-        Toast.makeText(context, "Failed to create new MediaStore record", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context,
+            context.getString(R.string.failed_to_create_new_mediastore_record), Toast.LENGTH_SHORT).show()
         onFailure()
     }
 }
@@ -220,25 +225,3 @@ private fun saveImageForOlderVersions(
         }
     })
 }
-
-//fun saveImageToGallery(
-//    context: Context,
-//    photoEditor: PhotoEditor?,
-//    onSuccess: (Uri) -> Unit,
-//    onFailure: () -> Unit = {}
-//) {
-//    val filePath = "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)}/edited_image_${System.currentTimeMillis()}.png"
-//
-//    photoEditor?.saveAsFile(filePath, object : PhotoEditor.OnSaveListener {
-//        override fun onSuccess(imagePath: String) {
-//            MediaScannerConnection.scanFile(context, arrayOf(filePath), null) { path, uri ->
-//                Toast.makeText(context, "Image saved successfully: $path", Toast.LENGTH_SHORT).show()
-//                onSuccess(uri)
-//            }
-//        }
-//        override fun onFailure(exception: Exception) {
-//            Toast.makeText(context, "Failed to save image: ${exception.message}", Toast.LENGTH_SHORT).show()
-//            onFailure()
-//        }
-//    })
-//}

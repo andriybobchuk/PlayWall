@@ -49,7 +49,6 @@ fun NavigationHostLegacy(
     isLoggedIn: Boolean,
 ) {
     val navController = rememberNavController()
-
     NavHost(
         navController = navController,
         startDestination = if(isLoggedIn) Graphs.Main.root else Graphs.Auth.root
@@ -95,7 +94,6 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
                         }
                         restoreState = true
                     }
-                    //navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TIKTOK.name))
                 },
                 onSuccessfulRegistration = {
                     navController.navigate("main") {
@@ -137,7 +135,6 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
                         }
                         restoreState = true
                     }
-                   // navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TIKTOK.name))
                 },
                 viewModel = viewModel<LoginViewModel>(
                     factory = viewModelFactory {
@@ -203,9 +200,6 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
                 adManager = adManager
             )
         }
-//        val sharedExploreViewModel = ExploreViewModel(
-//            MyApp.appModule.coreRepository
-//        )
         composable(Graphs.Main.Screens.explore) {
             ExploreScreenRoot(
                 viewModel = viewModel<ExploreViewModel>(
@@ -219,7 +213,7 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
                     val fromProfile = false
                     Log.e("Rerouting", "rereouting...")
                     navController.navigate("${Graphs.Main.Screens.explore_image}/${selectedPhoto}/$fromProfile")
-                    Log.e("Rerouting", "rereouted probablyt with " +selectedPhoto)
+                    Log.e("Rerouting", "Rereouted with " +selectedPhoto)
                 },
                 onNavigateToDiamonds = {
                     navController.navigate(Graphs.Main.Screens.diamonds)
@@ -338,7 +332,6 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
                             )
                         }
                     ),
-                    //onBackClick = { navController.popBackStack() }
                     onBackClick = { navController.navigateUp() }
                 )
             }
@@ -351,76 +344,7 @@ private fun NavGraphBuilder.sharedGraph(navController: NavHostController) {
         val policyType = WebContent.valueOf(backStackEntry.arguments?.getString("webType") ?: WebContent.TOS.name)
         WebViewScreen(
             policyType = policyType,
-            //onBackClick = { navController.popBackStack() }
             onBackClick = { navController.navigateUp() }
         )
     }
 }
-
-/**
- * Use this navigation host to define your app's screens and pass the ViewModel
- * using my custom [viewModelFactory] with the required dependencies. Add your screens
- * and corresponding ViewModels as needed.
- *
- * Example of adding viewModel:
- *
- * ```
- * MessengerScreen(
- *       viewModel = viewModel<ChatViewModel>(
- *           factory = viewModelFactory {
- *               ChatViewModel(MyApp.appModule.chatRepository)
- *           }
- *       ),
- *       onBackClick = {},
- *       modifier = Modifier.padding(innerPadding)
- * )
- * ```
- */
-@Composable
-fun NavigationHost(navController: NavHostController, innerPadding: PaddingValues) {
-//    NavHost(
-//        navController = navController,
-//        startDestination = Screens.RegisterScreen
-//    ) {
-//        composable<Screens.IntroScreen> {
-//            IntroScreenRoot(onSignUpClick = { /*TODO*/ }) {
-//
-//            }
-//        }
-//        composable<Screens.RegisterScreen> {
-//            RegisterScreenRoot(
-//                onSignInClick = { /*TODO*/ },
-//                onSuccessfulRegistration = { /*TODO*/ },
-//                viewModel = viewModel<RegisterViewModel>(
-//                    factory = viewModelFactory {
-//                        RegisterViewModel()
-//                    }
-//                ),
-//            )
-//        }
-//        composable<Screens.LoginScreen> {
-//           // LoginScreenContent()
-//        }
-//        composable<Screens.HomeScreen> {
-//            HomeScreenContent()
-//        }
-//        composable<Screens.ChatScreen> {
-//            MessengerScreen(
-//                viewModel = viewModel<ChatViewModel>(
-//                    factory = viewModelFactory {
-//                        ChatViewModel(MyApp.appModule.chatRepository)
-//                    }
-//                ),
-//                onBackClick = {},
-//                modifier = Modifier.padding(innerPadding)
-//            )
-//        }
-//        composable<Screens.SettingsScreen> {
-//            SettingsScreenContent()
-//        }
-//        composable<Screens.ProfileScreen> {
-//            ProfileScreenContent()
-//        }
-//    }
-}
-

@@ -96,13 +96,15 @@ fun MessageItem(
     val coroutineScope = rememberCoroutineScope()
     val reactSheet = rememberModalBottomSheetState()
     val isReactSheetOpen = remember { mutableStateOf(false) }
-    //val reactionsSheet = rememberModalBottomSheetState()
     val isReactionsSheetOpen = remember { mutableStateOf(false) }
     val onReact = { isReactSheetOpen.value = true }
     val onCheckReactions = { isReactionsSheetOpen.value = true }
 
     val currentUserId = uiState.currentUser?.id
-    Log.e(LOG_TAG,"messageid: ${message.id} currentuserid: $currentUserId. message.sender: ${message.senderId}")
+    Log.e(
+        LOG_TAG,
+        "messageid: ${message.id} currentuserid: $currentUserId. message.sender: ${message.senderId}"
+    )
     if (message.senderId == currentUserId) {
         MessageContent(
             viewModel = viewModel,
@@ -118,7 +120,7 @@ fun MessageItem(
             modifier = swipeModifier(onReact),
             viewModel = viewModel,
             message = message,
-            currentUserId = currentUserId?:-1,
+            currentUserId = currentUserId ?: -1,
             isLastMessage = isLastMessage,
             horizontalArrangement = Arrangement.Start,
             onReact = onReact,
@@ -126,21 +128,23 @@ fun MessageItem(
         )
     }
     ReactSheet(
-        recipient = uiState.recipient?:User(-1, "", "", since = "", status = FriendshipStatus.accepted, requesterId = -1, friendshipId = -1, screenRatio = 2f),
+        recipient = uiState.recipient ?: User(
+            -1,
+            "",
+            "",
+            since = "",
+            status = FriendshipStatus.accepted,
+            requesterId = -1,
+            friendshipId = -1,
+            screenRatio = 2f
+        ),
         viewModel = viewModel,
         message = message,
-        currentUserId = currentUserId?:-1,
+        currentUserId = currentUserId ?: -1,
         sheetState = reactSheet,
         isSheetOpen = isReactSheetOpen,
         coroutineScope = coroutineScope
     )
-//    Reactions(
-//        viewModel = viewModel,
-//        reactions = message.reactions,
-//        sheetState = reactionsSheet,
-//        isSheetOpen = isReactionsSheetOpen,
-//        coroutineScope = coroutineScope
-//    )
 }
 
 /**
@@ -184,7 +188,7 @@ fun MessageContent(
                 )
                 if (!isCurrentUser) {
                     ReplyButton { onReact() }
-                   // Spacer(modifier = Modifier.weight(1 - HORIZONTAL_SCREEN_PERCENTAGE + 0.05f)) // Adjust space between bubble and button
+                    // Spacer(modifier = Modifier.weight(1 - HORIZONTAL_SCREEN_PERCENTAGE + 0.05f)) // Adjust space between bubble and button
                 }
             }
         }
@@ -260,7 +264,6 @@ private fun MessageBubble(
     onCheckReactions: () -> Unit,
     horizontalArrangement: Arrangement.Horizontal,
 ) {
-    //Log.e(LOG_TAG, "messagebuble, selected message: " + message)
     val (maxWidth, maxHeight) = getMaxMessageDimensions()
     var aspectRatio by remember { mutableFloatStateOf(1f) }
     var dimensionsLoaded by remember { mutableStateOf(false) }
@@ -374,7 +377,6 @@ fun ImageBox(
     imageHeight: Dp,
     onReactionClick: () -> Unit
 ) {
-    //Log.e(LOG_TAG, "ImageBox, selected message: " + message)
     Box(
         modifier = Modifier
             .width(imageWidth)
@@ -386,8 +388,11 @@ fun ImageBox(
     ) {
         val shimmerDrawable = ShimmerDrawable().apply {
             setShimmer(
-                Shimmer.AlphaHighlightBuilder().setDuration(1000).setBaseAlpha(0.2f).setHighlightAlpha(0.1f).setDirection(
-                    Shimmer.Direction.LEFT_TO_RIGHT).build())
+                Shimmer.AlphaHighlightBuilder().setDuration(1000).setBaseAlpha(0.2f)
+                    .setHighlightAlpha(0.1f).setDirection(
+                    Shimmer.Direction.LEFT_TO_RIGHT
+                ).build()
+            )
         }
         GlideImage(
             model = message.imageUrl,
@@ -401,29 +406,30 @@ fun ImageBox(
                 requestBuilder
                     .placeholder(shimmerDrawable)
                     .addListener(object : RequestListener<Drawable> {
-                    override fun onLoadFailed(
-                        e: GlideException?,
-                        model: Any?,
-                        target: Target<Drawable>,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        Log.e(LOG_TAG, "Image load failed", e)
-                        e?.logRootCauses(LOG_TAG)
-                        e?.causes?.forEach { cause ->
-                            Log.e(LOG_TAG, "Cause: ${cause.message}", cause)
+                        override fun onLoadFailed(
+                            e: GlideException?,
+                            model: Any?,
+                            target: Target<Drawable>,
+                            isFirstResource: Boolean
+                        ): Boolean {
+                            Log.e(LOG_TAG, "Image load failed", e)
+                            e?.logRootCauses(LOG_TAG)
+                            e?.causes?.forEach { cause ->
+                                Log.e(LOG_TAG, "Cause: ${cause.message}", cause)
+                            }
+                            return false
                         }
-                        return false
-                    }
-                    override fun onResourceReady(
-                        resource: Drawable,
-                        model: Any,
-                        target: Target<Drawable>?,
-                        dataSource: DataSource,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        return false
-                    }
-                })
+
+                        override fun onResourceReady(
+                            resource: Drawable,
+                            model: Any,
+                            target: Target<Drawable>?,
+                            dataSource: DataSource,
+                            isFirstResource: Boolean
+                        ): Boolean {
+                            return false
+                        }
+                    })
             }
         )
         if (message.caption.isNullOrEmpty()) {

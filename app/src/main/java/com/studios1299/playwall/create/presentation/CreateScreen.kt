@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -77,7 +78,7 @@ fun CreateScreenRoot(
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is CreateScreenEvent.ImageSaved -> {
-                Toast.makeText(context, "Image saved successfully", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.image_saved_successfully), Toast.LENGTH_LONG).show()
             }
             is CreateScreenEvent.ShowError -> {
                 Toast.makeText(context, event.message, Toast.LENGTH_LONG).show()
@@ -117,7 +118,8 @@ fun CreateScreen(
 
     val requestImagePicker = rememberRequestPermissionAndPickImage { uri ->
         if (isGif(uri, context)) {
-            Toast.makeText(context, "GIFs are not supported.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context,
+                context.getString(R.string.gifs_are_not_supported), Toast.LENGTH_SHORT).show()
         } else {
             if (isImageSelected) {
                 pendingImageUri = uri
@@ -140,7 +142,8 @@ fun CreateScreen(
                     }
                 )
             } else {
-                Toast.makeText(context, "Photo editor is not initialized", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context,
+                    context.getString(R.string.photo_editor_is_not_initialized), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -311,7 +314,7 @@ fun CreateScreen(
                         pendingImageUri = null
                         showReplacePhotoDialog = false
                     }) {
-                        Text("Replace")
+                        Text(stringResource(R.string.replace))
                     }
                 },
                 dismissButton = {
@@ -322,8 +325,8 @@ fun CreateScreen(
                         Text("Cancel")
                     }
                 },
-                title = { Text("Replace Image?") },
-                text = { Text("You will lose your progress if you haven't saved. Do you want to replace the image?") }
+                title = { Text(stringResource(R.string.replace_image)) },
+                text = { Text(stringResource(R.string.you_will_lose_your_progress_if_you_haven_t_saved_do_you_want_to_replace_the_image)) }
             )
         }
     }
@@ -371,14 +374,14 @@ fun FriendsSelectionBottomSheet(
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = "Send to friends",
+                    text = stringResource(R.string.send_to_friends),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp)
                 )
 
                 if (friends.isEmpty()) {
                     Text(
-                        text = "Looks like you have no friends",
+                        text = stringResource(R.string.looks_like_you_have_no_friends),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
@@ -438,7 +441,7 @@ fun FriendsSelectionBottomSheet(
                         } else {
                             Toast.makeText(
                                 context,
-                                "No friends were selected.",
+                                context.getString(R.string.no_friends_were_selected),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -449,7 +452,7 @@ fun FriendsSelectionBottomSheet(
                         .align(Alignment.CenterHorizontally)
                         .padding(16.dp)
                 ) {
-                    Text(text = "Send wallpaper")
+                    Text(text = stringResource(R.string.send_wallpaper))
                 }
             }
         }

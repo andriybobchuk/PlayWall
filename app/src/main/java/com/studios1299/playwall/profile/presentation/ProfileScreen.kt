@@ -92,6 +92,7 @@ import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
 import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
+import com.studios1299.playwall.feature.play.presentation.play.PlayAction
 import com.studios1299.playwall.monetization.presentation.AppState
 import com.studios1299.playwall.monetization.presentation.components.DiamondsDisplay
 import kotlinx.coroutines.CoroutineScope
@@ -115,6 +116,7 @@ fun ProfileScreenRoot(
     var showHelpLegalSheet by remember { mutableStateOf(false) }
     var showSocialMediaSheet by remember { mutableStateOf(false) }
     var showEditProfileDialog by remember { mutableStateOf(false) }
+    var showLogOutAlert by remember { mutableStateOf(false) }
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
@@ -154,10 +156,7 @@ fun ProfileScreenRoot(
                 ProfileAction.OnHelpClick -> showHelpLegalSheet = true
                 ProfileAction.OnSocialClick -> showSocialMediaSheet = true
                 ProfileAction.OnEditProfileClick -> showEditProfileDialog = true
-                ProfileAction.OnLogOut -> {
-                    onLogOut()
-                    viewModel.onAction(action)
-                }
+                ProfileAction.OnLogOut -> showLogOutAlert = true
                 else -> viewModel.onAction(action)
             }
         },
@@ -190,6 +189,34 @@ fun ProfileScreenRoot(
                 }
             },
             onDismiss = { showEditProfileDialog = false }
+        )
+    }
+
+    if (showLogOutAlert) {
+        AlertDialog(
+            onDismissRequest = { showLogOutAlert = false },
+            title = { Text(text = "Log out?") },
+            text = {
+                Text(stringResource(R.string.log_out_alert))
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onLogOut()
+                        viewModel.onAction(ProfileAction.OnLogOut)
+                        showLogOutAlert = false
+                    }
+                ) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showLogOutAlert = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
         )
     }
 }
@@ -290,7 +317,7 @@ fun ProfileScreen(
                         {
                             SettingMenuItem(
                                 icon = Icons.Default.Support,
-                                label = "Help & Legal info",
+                                label = context.getString(R.string.help_legal_info),
                                 onClick = { onAction(ProfileAction.OnHelpClick) }
                             )
                         },
