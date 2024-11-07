@@ -552,6 +552,7 @@ class ChatViewModel(
 
     fun addOrUpdateReaction(messageId: Int, reaction: Reaction?) {
         Log.e("addOrUpdateReaction", "Reacting with " + messageId)
+        WallpaperNotificationForChat.setNewWallpaperReceived(true)
         viewModelScope.launch {
             val result = if (reaction != null && reaction.emoji.isNotEmpty()) {
                 chatRepository.react(messageId, reaction.name)
@@ -579,6 +580,7 @@ class ChatViewModel(
 
     fun addOrUpdateComment(messageId: Int, comment: String?) {
         viewModelScope.launch {
+            WallpaperNotificationForChat.setNewWallpaperReceived(true)
             val result = if (!comment.isNullOrEmpty()) {
                 chatRepository.comment(messageId, comment)
             } else {

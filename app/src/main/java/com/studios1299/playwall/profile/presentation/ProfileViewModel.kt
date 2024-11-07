@@ -16,6 +16,7 @@ import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.app.di.AppModule
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.core.data.local.Preferences
+import com.studios1299.playwall.core.data.local.database.AppDatabase
 import com.studios1299.playwall.core.data.networking.NetworkMonitor
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.data.s3.uriToFile
@@ -26,9 +27,13 @@ import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.core.presentation.UiText
 import com.studios1299.playwall.core.presentation.asUiText
 import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import java.io.File
 
 @OptIn(ExperimentalFoundationApi::class)
 class ProfileViewModel(
@@ -146,7 +151,7 @@ class ProfileViewModel(
                 changePassword(oldPassword, newPassword)
             }
 
-            val result = repository.updateProfile(avatar, nick)
+            val result = repository.updateProfile(avatar, nick?:"")
             //loadUserProfile()
 
             if (result is SmartResult.Success) {
@@ -289,13 +294,56 @@ class ProfileViewModel(
     }
 
     fun clearAllAppData() {
+        Log.e("ProfileViewModel", "clearAllAppData() clearing data started")
         val context = MyApp.appModule.context
 
         Preferences.clear()
-        context.getDatabasePath("app_database").delete()
-        context.filesDir.deleteRecursively()
-        context.cacheDir.deleteRecursively()
-        context.getExternalFilesDir(null)?.deleteRecursively()
+        //context.getDatabasePath("app_database").delete()
+
+        //val dbName = "app_database"
+        //AppDatabase.closeDatabase()
+
+//        val scope = CoroutineScope(Dispatchers.IO)
+//        scope.launch {
+//            //AppDatabase.getDatabase(context).clearAllTables()
+//            AppDatabase.clearDatabaseFiles(context)
+//
+//        }
+//
+        viewModelScope.launch {
+            try {
+                AppDatabase.clearAllTables()
+                Log.d("ProfileViewModel", "All database tables cleared.")
+            } catch (e: Exception) {
+                Log.e("ProfileViewModel", "Failed to clear database tables: ${e.message}")
+            }
+        }
+
+
+
+//        val dbFiles = listOf("", "-shm", "-wal").map { suffix ->
+//            context.getDatabasePath("$dbName$suffix")
+//        }
+
+        //AppDatabase.getDatabase(context)
+
+        // Delete other app storage files
+        deleteRecursively(context.filesDir, "Files directory")
+        deleteRecursively(context.cacheDir, "Cache directory")
+        context.getExternalFilesDir(null)?.let {
+            deleteRecursively(it, "External files directory")
+        }
+
+        Log.e("ProfileViewModel", "clearAllAppData() completed")
+    }
+
+    private fun deleteRecursively(file: File, description: String) {
+        val deleted = file.deleteRecursively()
+        if (deleted) {
+            Log.e("ProfileViewModel", "$description cleared successfully.")
+        } else {
+            Log.e("ProfileViewModel", "Failed to clear $description.")
+        }
     }
 
     private fun logOut() {
