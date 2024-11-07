@@ -57,7 +57,7 @@ interface CoreRepository {
     // MONETIZATION
     suspend fun addDevils(count: Int): SmartResult<Unit>
     suspend fun getDevilCount(): Int
-    suspend fun isPremium(): Boolean
+    suspend fun isPremium(forceUpdate: Boolean): Boolean
     suspend fun updatePremiumStatus(isPremium: Boolean): SmartResult<Unit>
     suspend fun getLastCheckInDate(): String?
     suspend fun setLastCheckInDate(date: String): SmartResult<Unit>

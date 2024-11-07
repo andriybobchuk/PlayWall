@@ -491,7 +491,7 @@ class FirebaseCoreRepositoryImpl(
         return try {
             Log.v(LOG_TAG, "changeWallpaper, start")
 
-            if (AppState.devilCount.value <= 0) {
+            if (!AppState.isPremium.value && AppState.devilCount.value <= 0) {
                 return SmartResult.Error(600, "Not enough $EVIL_EMOJI to send wallpaper, get more by watching ads", "Not enough $EVIL_EMOJI to send wallpaper")
             }
 
@@ -509,7 +509,8 @@ class FirebaseCoreRepositoryImpl(
                     }
                     chatDao.insertMessages(listOf(response.data.data.toMessageEntity().copy(fileName = wallpaperUrl?:"")))
                 }
-                addDevils(-1)
+                if (!AppState.isPremium.value) addDevils(-1)
+
                 SmartResult.Success(response.data?.data)
             } else if (response is SmartResult.Error) {
                 Log.e(LOG_TAG, "changeWallpaper result: $response")
@@ -945,11 +946,11 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-    override suspend fun isPremium(): Boolean {
+    override suspend fun isPremium(forceUpdate: Boolean): Boolean {
         var isPremium = Preferences.isPremium()
-        val checkValue = Preferences.getDevilsCount()
+        val checkValue = Preferences.getDevilsCount() // This approach does not work
         Log.e(LOG_TAG, "isPremium from prefs: $isPremium")
-        if (checkValue == -1) {
+        if (checkValue == -1 || forceUpdate) {
             val result = performAuthRequest { token ->
                 RetrofitClient.userAppDataApi.getAppData(token)
             }
@@ -966,6 +967,7 @@ class FirebaseCoreRepositoryImpl(
             }
         }
         Log.e(LOG_TAG, "isPremium: $isPremium")
+        AppState.updatePremiumStatus(isPremium)
         return isPremium
     }
 

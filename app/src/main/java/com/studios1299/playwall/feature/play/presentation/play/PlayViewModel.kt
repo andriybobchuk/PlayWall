@@ -82,7 +82,7 @@ class PlayViewModel(
             AppState.updateDevilCount(repository.getDevilCount())
             AppState.updateHasCheckedInToday(repository.hasCheckedInToday())
             AppState.updateConsecutiveDays(repository.getConsecutiveDays())
-            AppState.updatePremiumStatus(repository.isPremium())
+            AppState.updatePremiumStatus(repository.isPremium(true))
         }
     }
 
