@@ -250,6 +250,7 @@ object TextFields {
                     ) {
                         Icon(
                             imageVector = LockIcon,
+                            modifier = Modifier.padding(vertical = 12.dp),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -269,13 +270,15 @@ object TextFields {
                             }
                             innerBox()
                         }
-                        IconButton(onClick = onTogglePasswordVisibility) {
-                            if (isShowPasswordButtonVisible) {
+                        if (isShowPasswordButtonVisible) {
+                            IconButton(
+                                onClick = onTogglePasswordVisibility
+                            ) {
                                 Icon(
                                     imageVector = if (!isPasswordVisible) {
                                         EyeClosedIcon
                                     } else EyeOpenedIcon,
-                                    contentDescription = if(isPasswordVisible) {
+                                    contentDescription = if (isPasswordVisible) {
                                         stringResource(id = R.string.show_password)
                                     } else {
                                         stringResource(id = R.string.hide_password)

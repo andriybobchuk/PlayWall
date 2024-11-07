@@ -513,8 +513,14 @@ class FirebaseCoreRepositoryImpl(
 
                 SmartResult.Success(response.data?.data)
             } else if (response is SmartResult.Error) {
-                Log.e(LOG_TAG, "changeWallpaper result: $response")
-                response
+                if (response.code == 404) {
+                    Log.e(LOG_TAG, "This user has no push token, probably uninstalled the app")
+                    val editedResponse = response.copy(errorBody = "This user restricted sending wallpapers", message = "This user restricted sending wallpapers, probably uninstalled the app")
+                    editedResponse
+                } else {
+                    Log.e(LOG_TAG, "changeWallpaper result: $response")
+                    response
+                }
             } else {
                 SmartResult.Error(600, "Runtime exception in $LOG_TAG.changeWallpaper():", "wallpaperApi could not change wallpaper")
             }
@@ -522,47 +528,6 @@ class FirebaseCoreRepositoryImpl(
             SmartResult.Error(600, "Runtime exception in $LOG_TAG.changeWallpaper():", "wallpaperApi could not change wallpaper")
         }
     }
-
-
-//
-//    override suspend fun getUserDataById(recipientId: String): SmartResult<UserDataResponse> {
-//        return try {
-//            val result = performAuthRequest { token ->
-//                RetrofitClient.wallpaperApi.getRecipientData(token, recipientId.toInt())
-//            }
-//            if (result is SmartResult.Success) {
-//                if (result.data == null) {
-//                    return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null")
-//                }
-//                val userData = result.data
-//                val avatarUrlResult = pathToLink(userData.avatarId)
-//                val avatarUrl = if (avatarUrlResult is SmartResult.Success) {
-//                    avatarUrlResult.data
-//                } else {
-//                    ""
-//                }
-//                SmartResult.Success(
-//                    UserDataResponse(
-//                        id = userData.id,
-//                        name = userData.name,
-//                        email = userData.email,
-//                        avatarId = avatarUrl?: "",
-//                        since = userData.since,
-//                        status = userData.status,
-//                        requesterId = userData.requesterId,
-//                        friendshipId = userData.friendshipId,
-//                        screenRatio = userData.screenRatio
-//                    )
-//                )
-//            } else {
-//                Log.e(LOG_TAG, "Error in getRecipientData(): " + result)
-//                return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null")
-//            }
-//        } catch (e: Exception) {
-//            Log.e(LOG_TAG, "Exception in getRecipientData(): " + e.message)
-//            return SmartResult.Error(600, "Runtime exception in $LOG_TAG.getUserDataById():", "Data is null: ${e.message}")
-//        }
-//    }
 
     override suspend fun getWallpaperHistory(
         userId: String,

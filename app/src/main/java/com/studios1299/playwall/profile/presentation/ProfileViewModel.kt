@@ -26,6 +26,8 @@ import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.model.WallpaperOption
 import com.studios1299.playwall.core.presentation.UiText
 import com.studios1299.playwall.core.presentation.asUiText
+import com.studios1299.playwall.explore.presentation.explore.ExploreState
+import com.studios1299.playwall.explore.presentation.explore.ExploreStateSingleton
 import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,8 +43,15 @@ class ProfileViewModel(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    var state by mutableStateOf(ProfileState())
-        private set
+//    var state by mutableStateOf(ProfileState())
+//        private set
+
+    val state: ProfileState
+        get() = ProfileStateSingleton.state
+
+    fun updateProfileState(newState: ProfileState) {
+        ProfileStateSingleton.updateState(newState)
+    }
 
     private val eventChannel = Channel<ProfileEvent>()
     val events = eventChannel.receiveAsFlow()
@@ -50,7 +59,7 @@ class ProfileViewModel(
     init {
         viewModelScope.launch {
             NetworkMonitor.isOnline.collect { online ->
-                state = state.copy(isOnline = online)
+                updateProfileState(state.copy(isOnline = online))
                 if (online) {
                     loadUserProfile()
                     loadSavedWallpapers(0, 10)
@@ -85,7 +94,7 @@ class ProfileViewModel(
             ProfileAction.OnCancelEditProfileClick -> cancelEditProfile()
             ProfileAction.OnDeletePhotoClick -> deletePhoto()
             is ProfileAction.OnPhotoSelected -> updatePhoto(action.uri)
-            is ProfileAction.OnNameChanged -> state = state.copy(userName = TextFieldState(action.name))
+            is ProfileAction.OnNameChanged -> updateProfileState(state.copy(userName = TextFieldState(action.name)))
 //            is ProfileAction.OnEmailChanged -> state = state.copy(password = TextFieldState(action.email))
 //            is ProfileAction.OnEmailChanged -> state = state.copy(password = TextFieldState(action.email))
             ProfileAction.OnEditProfileClick -> openEditProfileDialog()
@@ -97,17 +106,17 @@ class ProfileViewModel(
 
     private fun loadUserProfile() {
         viewModelScope.launch {
-            state = state.copy(isLoading = true)
+            updateProfileState(state.copy(isLoading = true))
             when (val profileResult = repository.getUserData()) {
                 is SmartResult.Success -> {
-                    state = state.copy(
+                    updateProfileState(state.copy(
                         userName = TextFieldState(profileResult.data!!.name),
                         email = TextFieldState(profileResult.data.email),
                         userAvatar = profileResult.data.avatarId,
                         selectedWallpaperOption = repository.getWallpaperDestination(),
                         isSaveWallpapersEnabled = repository.shouldSaveIncomingWallpapers(),
                         isLoading = false
-                    )
+                    ))
                     Log.d("loadUserProfile()", "email=" + profileResult.data.email)
                     Log.d("loadUserProfile()", "avatarId=" + profileResult.data.avatarId)
                 }
@@ -132,7 +141,7 @@ class ProfileViewModel(
                 // delete uri from db
                 if (avatarUri == Uri.EMPTY) {
                     avatar = ""
-                    state = state.copy(userAvatar = avatarUri.toString())
+                    updateProfileState(state.copy(userAvatar = avatarUri.toString()))
                 } else {
                     val avatarFile = uriToFile(context, avatarUri)
                     if (avatarFile == null || !avatarFile.exists()) {
@@ -142,7 +151,7 @@ class ProfileViewModel(
                     val avatarId = repository.uploadFile(avatarFile, S3Handler.Folder.AVATARS)
                     if (avatarId is SmartResult.Success) {
                         avatar = avatarId.data
-                        state = state.copy(userAvatar = avatarUri.toString())
+                        updateProfileState(state.copy(userAvatar = avatarUri.toString()))
                     }
                 }
             }
@@ -189,7 +198,7 @@ class ProfileViewModel(
     private fun deletePhoto() {
         viewModelScope.launch {
             // Logic to delete photo (e.g., state = state.copy(userAvatar = ""))
-            state = state.copy(userAvatar = "")
+            updateProfileState(state.copy(userAvatar = ""))
             eventChannel.send(ProfileEvent.ProfileUpdated)
         }
     }
@@ -197,18 +206,18 @@ class ProfileViewModel(
     private fun updatePhoto(uri: Uri) {
         viewModelScope.launch {
             // Logic to update the profile photo
-            state = state.copy(userAvatar = uri.toString())
+            updateProfileState(state.copy(userAvatar = uri.toString()))
             eventChannel.send(ProfileEvent.ProfileUpdated)
         }
     }
 
     private fun openEditProfileDialog() {
-        state = state.copy(isEditProfileDialogOpen = true)
+        updateProfileState(state.copy(isEditProfileDialogOpen = true))
     }
 
     fun loadSavedWallpapers(page: Int, pageSize: Int) {
         viewModelScope.launch {
-            state = state.copy(isLoading = true)
+            updateProfileState(state.copy(isLoading = true))
             val result = repository.loadSavedWallpapers(page, pageSize)
 
             if (result is SmartResult.Success) {
@@ -224,8 +233,7 @@ class ProfileViewModel(
                     )
                 }
                 Log.e("loadSavedWallpapers", "saved wpps: " + savedWallpapers.forEach{it.id})
-                Log.e("loadSavedWallpapers", "saved wpps: " + savedWallpapers.forEach{it.id})
-                state = state.copy(wallpapers = savedWallpapers, isLoading = false)
+                updateProfileState(state.copy(wallpapers = savedWallpapers, isLoading = false))
             } else {
                 Log.e("loadSavedWallpapers", "Shit saved wpps: " + result)
                 //state = state.copy(isLoading = false)
@@ -238,7 +246,6 @@ class ProfileViewModel(
      * @param photId is index?
      */
     private fun navigateToPhotoDetail(photoId: Int) {
-
         val photoIndex = state.wallpapers.indexOfFirst { it.id == photoId }
 //        if (photoIndex in state.wallpapers.indices) {
 //            updateExploreState(state.copy(currentPhotoIndex = photoIndex))
@@ -271,7 +278,7 @@ class ProfileViewModel(
 
     private fun changeWallpaper(option: WallpaperOption) {
         repository.setWallpaperDestination(option)
-        state = state.copy(selectedWallpaperOption = option)
+        updateProfileState(state.copy(selectedWallpaperOption = option))
     }
 
     private fun toggleSaveWallpapers() {
@@ -280,7 +287,7 @@ class ProfileViewModel(
         } else {
             repository.setSaveIncomingWallpapers(true)
         }
-        state = state.copy(isSaveWallpapersEnabled = !state.isSaveWallpapersEnabled)
+        updateProfileState(state.copy(isSaveWallpapersEnabled = !state.isSaveWallpapersEnabled))
         viewModelScope.launch {
             // Logic to save this preference in repository
             eventChannel.send(ProfileEvent.WallpapersSavedSettingToggled)
@@ -296,20 +303,7 @@ class ProfileViewModel(
     fun clearAllAppData() {
         Log.e("ProfileViewModel", "clearAllAppData() clearing data started")
         val context = MyApp.appModule.context
-
         Preferences.clear()
-        //context.getDatabasePath("app_database").delete()
-
-        //val dbName = "app_database"
-        //AppDatabase.closeDatabase()
-
-//        val scope = CoroutineScope(Dispatchers.IO)
-//        scope.launch {
-//            //AppDatabase.getDatabase(context).clearAllTables()
-//            AppDatabase.clearDatabaseFiles(context)
-//
-//        }
-//
         viewModelScope.launch {
             try {
                 AppDatabase.clearAllTables()
@@ -318,22 +312,12 @@ class ProfileViewModel(
                 Log.e("ProfileViewModel", "Failed to clear database tables: ${e.message}")
             }
         }
-
-
-
-//        val dbFiles = listOf("", "-shm", "-wal").map { suffix ->
-//            context.getDatabasePath("$dbName$suffix")
-//        }
-
-        //AppDatabase.getDatabase(context)
-
         // Delete other app storage files
         deleteRecursively(context.filesDir, "Files directory")
         deleteRecursively(context.cacheDir, "Cache directory")
         context.getExternalFilesDir(null)?.let {
             deleteRecursively(it, "External files directory")
         }
-
         Log.e("ProfileViewModel", "clearAllAppData() completed")
     }
 

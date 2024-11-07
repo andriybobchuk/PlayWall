@@ -5,4 +5,5 @@ import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
 abstract class ImageGridState {
     abstract val wallpapers: List<ExploreWallpaper>
     abstract val isLoading: Boolean
+    abstract val currentPhotoIndex: Int
 }

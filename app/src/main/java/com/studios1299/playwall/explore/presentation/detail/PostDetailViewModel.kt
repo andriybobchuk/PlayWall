@@ -2,44 +2,48 @@ package com.studios1299.playwall.explore.presentation.detail
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.studios1299.playwall.R
 import com.studios1299.playwall.core.data.ChangeWallpaperWorker
 import com.studios1299.playwall.core.data.local.Preferences
-import com.studios1299.playwall.core.data.networking.NetworkMonitor
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
-import com.studios1299.playwall.core.presentation.UiText
 import com.studios1299.playwall.explore.presentation.explore.ExploreState
 import com.studios1299.playwall.explore.presentation.explore.ExploreStateSingleton
-import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
 import com.studios1299.playwall.feature.play.presentation.play.Friend
+import com.studios1299.playwall.profile.presentation.ProfileState
+import com.studios1299.playwall.profile.presentation.ProfileStateSingleton
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalFoundationApi::class)
 class PostDetailViewModel(
     private val repository: CoreRepository,
     private val photoId: Int,
-    fromProfile: Boolean = false
+    val fromProfile: Boolean = false
 ) : ViewModel() {
 
-    val state: ExploreState
-    get() = ExploreStateSingleton.state
+    val exploreState: ExploreState
+        get() = ExploreStateSingleton.state
 
     // Function to update the singleton state
     fun updateExploreState(newState: ExploreState) {
         ExploreStateSingleton.updateState(newState)
+    }
+
+    val profileState: ProfileState
+        get() = ProfileStateSingleton.state
+
+    fun updateProfileState(newState: ProfileState) {
+        ProfileStateSingleton.updateState(newState)
     }
 
     private val eventChannel = Channel<PostDetailEvent>()
@@ -47,9 +51,12 @@ class PostDetailViewModel(
 
     init {
         Log.e("PostDetailViewModel", "Init of PostDetailViewModel with photo.id = $photoId")
+
+
         if (fromProfile) {
-            loadSavedWallpapers()
+            updateProfileState(profileState.copy(currentPhotoIndex = photoId))
         } else {
+            //updateExploreState(exploreState.copy(currentPhotoIndex = photoId))
             //loadAllWallpapers(true)
         }
 //        viewModelScope.launch {
@@ -112,53 +119,62 @@ class PostDetailViewModel(
 //        }
 //    }
 
-    fun loadSavedWallpapers() {
-        viewModelScope.launch {
-            updateExploreState(state.copy(isLoading = true))
-            val result = repository.loadSavedWallpapers(0, 18)
-
-            if (result is SmartResult.Success) {
-                updateExploreState(state.copy(wallpapers = result.data!!.map {
-                    ExploreWallpaper(
-                        id = it.id,
-                        fileName = it.fileName,
-                        type = it.type,
-                        sentCount = it.sentCount,
-                        savedCount = it.savedCount,
-                        isLiked = Preferences.isWallpaperLiked(it.id),
-                        dateCreated = it.dateCreated
-                    )
-                }, isLoading = false))
-                val initialPhotoIndex = state.wallpapers.indexOfFirst { it.id == photoId }
-                if (initialPhotoIndex != -1) {
-                    updateExploreState(state.copy(wallpapers = state.wallpapers, currentPhotoIndex = initialPhotoIndex, isLoading = false))
-                    Log.e("PostDetailViewModel", "Photos loaded successfully. Current photo index: $initialPhotoIndex")
-                } else {
-                    Log.e("PostDetailViewModel", "Photo not found for photoId: $photoId")
-                    eventChannel.send(PostDetailEvent.ShowError(UiText.StringResource(R.string.error_photo_not_found)))
-                }
-            } else {
-                Log.e("loadSavedWallpapers", "Shit saved wpps: " + result)
-                updateExploreState(state.copy(isLoading = false))
-                // Handle error, if needed
-            }
-        }
-    }
+//    fun loadSavedWallpapers() {
+//        viewModelScope.launch {
+//            updateExploreState(state.copy(isLoading = true))
+//            val result = repository.loadSavedWallpapers(0, 18)
+//
+//            if (result is SmartResult.Success) {
+//                updateExploreState(state.copy(wallpapers = result.data!!.map {
+//                    ExploreWallpaper(
+//                        id = it.id,
+//                        fileName = it.fileName,
+//                        type = it.type,
+//                        sentCount = it.sentCount,
+//                        savedCount = it.savedCount,
+//                        isLiked = Preferences.isWallpaperLiked(it.id),
+//                        dateCreated = it.dateCreated
+//                    )
+//                }, isLoading = false))
+//                val initialPhotoIndex = state.wallpapers.indexOfFirst { it.id == photoId }
+//                if (initialPhotoIndex != -1) {
+//                    updateExploreState(state.copy(wallpapers = state.wallpapers, currentPhotoIndex = initialPhotoIndex, isLoading = false))
+//                    Log.e("PostDetailViewModel", "Photos loaded successfully. Current photo index: $initialPhotoIndex")
+//                } else {
+//                    Log.e("PostDetailViewModel", "Photo not found for photoId: $photoId")
+//                    eventChannel.send(PostDetailEvent.ShowError(UiText.StringResource(R.string.error_photo_not_found)))
+//                }
+//            } else {
+//                Log.e("loadSavedWallpapers", "Shit saved wpps: " + result)
+//                updateExploreState(state.copy(isLoading = false))
+//                // Handle error, if needed
+//            }
+//        }
+//    }
 
     private fun loadFriends() {
         viewModelScope.launch {
             val result = repository.getFriends(true)
             if (result is SmartResult.Success) {
-                updateExploreState(state.copy(friends = result.data!!))
+                updateExploreState(exploreState.copy(friends = result.data!!))
             }
         }
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     private fun updateCurrentPhotoIndex(newIndex: Int) {
         Log.e("PostDetailViewModel", "updating current photo index to $newIndex")
-        if (newIndex in state.wallpapers.indices) {
-            updateExploreState(state.copy(currentPhotoIndex = newIndex))
+
+        if (fromProfile) {
+            if (newIndex in profileState.wallpapers.indices) {
+                updateProfileState(profileState.copy(currentPhotoIndex = newIndex))
+            }
+        } else {
+            if (newIndex in exploreState.wallpapers.indices) {
+                updateExploreState(exploreState.copy(currentPhotoIndex = newIndex))
+            }
         }
+
     }
 
     private fun exitImageDetail() {
@@ -168,7 +184,9 @@ class PostDetailViewModel(
     }
 
     private fun likeWallpaper(wallpaperId: Int) {
-        val updatedWallpapers = state.wallpapers.map { wallpaper ->
+        //val state = if (fromProfile) profileState else exploreState
+
+        val updatedExploreWallpapers = exploreState.wallpapers.map { wallpaper ->
             if (wallpaper.id == wallpaperId) {
                 val isLikedNow = !wallpaper.isLiked
                 val countIncrement = if (isLikedNow) 1 else -1
@@ -196,7 +214,44 @@ class PostDetailViewModel(
                 wallpaper
             }
         }
-        updateExploreState(state.copy(wallpapers = updatedWallpapers))
+        if (fromProfile) {
+            val updatedWallpapers = profileState.wallpapers.map { wallpaper ->
+                if (wallpaper.id == wallpaperId) {
+                    val isLikedNow = !wallpaper.isLiked
+                    val countIncrement = if (isLikedNow) 1 else -1
+                    wallpaper.copy(
+                        isLiked = isLikedNow,
+                        savedCount = wallpaper.savedCount + countIncrement
+                    ).also {
+                        Preferences.setWallpaperLiked(wallpaperId, isLikedNow)
+
+                        viewModelScope.launch {
+                            if (isLikedNow) {
+                                val result = repository.saveWallpaper(wallpaperId)
+                                if (result is SmartResult.Error) {
+                                    Log.e(
+                                        "likeWallpaper",
+                                        "Error saving wallpaper: ${result.errorBody}"
+                                    )
+                                }
+                            } else {
+                                val result = repository.removeSavedWallpaper(wallpaperId)
+                                if (result is SmartResult.Error) {
+                                    Log.e(
+                                        "likeWallpaper",
+                                        "Error removing saved wallpaper: ${result.errorBody}"
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    wallpaper
+                }
+            }
+            updateProfileState(profileState.copy(wallpapers = updatedWallpapers))
+        }
+        updateExploreState(exploreState.copy(wallpapers = updatedExploreWallpapers))
     }
 
     fun setAsWallpaper(s3Link: String, context: Context) {

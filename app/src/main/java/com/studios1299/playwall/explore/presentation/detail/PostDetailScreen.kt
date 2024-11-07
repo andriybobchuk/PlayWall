@@ -59,9 +59,8 @@ import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Banners
 import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.core.presentation.components.Toolbars
+import com.studios1299.playwall.core.presentation.components.image_grid.ImageGridState
 import com.studios1299.playwall.explore.presentation.explore.ExploreState
-import com.studios1299.playwall.explore.presentation.explore.ExploreStateSingleton
-import com.studios1299.playwall.explore.presentation.explore.ExploreViewModel
 import com.studios1299.playwall.feature.play.presentation.chat.util.timestampAsDateTime
 import com.studios1299.playwall.feature.play.presentation.play.Friend
 import kotlinx.coroutines.launch
@@ -71,7 +70,11 @@ fun PostDetailScreenRoot(
     viewModel: PostDetailViewModel,
     onExit: () -> Unit
 ) {
-    val state = viewModel.state
+    val state = if (viewModel.fromProfile) {
+        viewModel.profileState
+    } else {
+        viewModel.exploreState
+    }
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
@@ -84,7 +87,8 @@ fun PostDetailScreenRoot(
     }
 
     PostDetailScreen(
-        state = state,
+        exploreState = viewModel.exploreState,
+        primaryState = state,
         viewModel = viewModel,
         onSwipe = { newIndex ->
             viewModel.onAction(PostDetailAction.OnSwipePhoto(newIndex))
@@ -100,14 +104,15 @@ fun PostDetailScreenRoot(
 )
 @Composable
 fun PostDetailScreen(
-    state: ExploreState,
+    exploreState: ExploreState,
+    primaryState: ImageGridState,
     viewModel: PostDetailViewModel,
     onSwipe: (Int) -> Unit,
     onExit: () -> Unit
 ) {
     val context = LocalContext.current
-    Log.e("PostDetailScreen", "state.currentPhotoIndex: ${state.currentPhotoIndex}, wallpapers size: ${state.wallpapers.size}")
-    val pagerState = rememberPagerState(initialPage = state.currentPhotoIndex, pageCount = { state.wallpapers.size })
+    Log.e("PostDetailScreen", "state.currentPhotoIndex: ${primaryState.currentPhotoIndex}, wallpapers size: ${primaryState.wallpapers.size}")
+    val pagerState = rememberPagerState(initialPage = primaryState.currentPhotoIndex, pageCount = { primaryState.wallpapers.size })
 
     val isFriendsSheetOpen = remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
@@ -116,17 +121,17 @@ fun PostDetailScreen(
     FriendsSelectionBottomSheet(
         isSheetOpen = isFriendsSheetOpen,
         sheetState = friendsSheetState,
-        friends = state.friends,
+        friends = exploreState.friends,
         onFriendsSelected = { selectedFriends ->
             viewModel.sendWallpaperToFriends(
                 friends = selectedFriends,
-                fileName = state.wallpapers[pagerState.currentPage].fileName
+                fileName = primaryState.wallpapers[pagerState.currentPage].fileName
             )
         }
     )
 
-    LaunchedEffect(state.currentPhotoIndex) {
-        pagerState.scrollToPage(state.currentPhotoIndex.coerceAtMost(state.wallpapers.size - 1))
+    LaunchedEffect(primaryState.currentPhotoIndex) {
+        pagerState.scrollToPage(primaryState.currentPhotoIndex.coerceAtMost(primaryState.wallpapers.size - 1))
     }
 
     LaunchedEffect(pagerState.currentPage) {
@@ -142,7 +147,7 @@ fun PostDetailScreen(
             )
         },
         bottomBar = {
-            if (state.isOnline) {
+            if (exploreState.isOnline) {
                 BottomAppBar {
                     Button(
                         modifier = Modifier.padding(2.dp),
@@ -160,7 +165,7 @@ fun PostDetailScreen(
                             containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                         ),
                         onClick = {
-                            viewModel.setAsWallpaper(state.wallpapers[pagerState.currentPage].fileName, context)
+                            viewModel.setAsWallpaper(primaryState.wallpapers[pagerState.currentPage].fileName, context)
                             Toast.makeText(context,
                                 "Done!", Toast.LENGTH_SHORT).show()
                         }) {
@@ -170,8 +175,8 @@ fun PostDetailScreen(
             }
         },
         floatingActionButton = {
-            if (!state.isLoading && state.isOnline) {
-                val currentPhoto = state.wallpapers[pagerState.currentPage]
+            if (!exploreState.isLoading && exploreState.isOnline) {
+                val currentPhoto = primaryState.wallpapers[pagerState.currentPage]
                 LikeButton(
                     likeCount = currentPhoto.savedCount,
                     isLiked = currentPhoto.isLiked,
@@ -187,10 +192,10 @@ fun PostDetailScreen(
             .fillMaxSize()
             .padding(innerPadding)) {
 
-            if (!state.isOnline) {
+            if (!exploreState.isOnline) {
                 Banners.OfflineStatus()
             }
-            if (state.isLoading) {
+            if (exploreState.isLoading) {
 
                 CircularProgressIndicator(
                     //modifier = Modifier.align(Alignment.Center)
@@ -200,8 +205,8 @@ fun PostDetailScreen(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize()
             ) { page ->
-                if (!state.isLoading) {
-                    val photo = state.wallpapers[page]
+                if (!exploreState.isLoading) {
+                    val photo = primaryState.wallpapers[page]
                     Box {
                         GlideImage(
                             model = photo.fileName,
