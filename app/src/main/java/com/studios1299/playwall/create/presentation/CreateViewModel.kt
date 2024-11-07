@@ -14,6 +14,7 @@ import com.studios1299.playwall.core.data.s3.uriToFile
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.feature.play.presentation.play.Friend
+import com.studios1299.playwall.feature.play.presentation.play.WallpaperNotificationForPlay
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -123,6 +124,7 @@ class CreateViewModel(
                     Log.e("sendWallpaperToFriends", "couldnt send wallpapers" + result)
                 }
             }
+            WallpaperNotificationForPlay.setNewWallpaperReceived(true)
         }
     }
 

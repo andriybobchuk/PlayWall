@@ -42,7 +42,7 @@ fun DiamondsDisplay(diamondsCount: Int, isPremium: Boolean, onClick: () -> Unit)
     ) {
         Text(
             text = "\uD83D\uDE08 " + if (isPremium) "\u221e" else diamondsCount,
-            fontSize = 18.sp,
+            fontSize = if (isPremium) 20.sp else 18.sp,
             fontWeight = FontWeight.Bold,
             //color = ColorCarbon
         )
