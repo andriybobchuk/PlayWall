@@ -7,11 +7,11 @@ import com.studios1299.playwall.core.data.local.entity.UserEntity
 import com.studios1299.playwall.core.data.networking.response.user.UserDataResponse
 import com.studios1299.playwall.core.data.networking.response.wallpapers.ChangeWallpaperResponse
 import com.studios1299.playwall.core.data.networking.response.wallpapers.WallpaperHistoryResponse
-import com.studios1299.playwall.feature.play.data.model.Message
-import com.studios1299.playwall.feature.play.data.model.MessageStatus
-import com.studios1299.playwall.feature.play.data.model.Reaction
-import com.studios1299.playwall.feature.play.presentation.play.Friend
-import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
+import com.studios1299.playwall.play.data.model.Message
+import com.studios1299.playwall.play.data.model.MessageStatus
+import com.studios1299.playwall.play.data.model.Reaction
+import com.studios1299.playwall.play.presentation.play.Friend
+import com.studios1299.playwall.play.presentation.play.FriendshipStatus
 
 fun FriendEntity.toDomain(): Friend {
     return Friend(

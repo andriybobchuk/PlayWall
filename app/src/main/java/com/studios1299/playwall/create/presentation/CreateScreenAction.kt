@@ -3,7 +3,7 @@ package com.studios1299.playwall.create.presentation
 import android.content.Context
 import android.net.Uri
 import androidx.compose.ui.graphics.Color
-import com.studios1299.playwall.feature.play.presentation.play.Friend
+import com.studios1299.playwall.play.presentation.play.Friend
 
 sealed class CreateScreenAction {
     data class SelectImage(val uri: Uri) : CreateScreenAction()

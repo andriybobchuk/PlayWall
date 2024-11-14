@@ -17,8 +17,8 @@ import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.explore.presentation.explore.ExploreState
 import com.studios1299.playwall.explore.presentation.explore.ExploreStateSingleton
-import com.studios1299.playwall.feature.play.presentation.play.Friend
-import com.studios1299.playwall.feature.play.presentation.play.WallpaperNotificationForPlay
+import com.studios1299.playwall.play.presentation.play.Friend
+import com.studios1299.playwall.play.presentation.play.WallpaperNotificationForPlay
 import com.studios1299.playwall.profile.presentation.ProfileState
 import com.studios1299.playwall.profile.presentation.ProfileStateSingleton
 import kotlinx.coroutines.channels.Channel

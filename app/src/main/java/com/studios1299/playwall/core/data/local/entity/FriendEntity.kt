@@ -2,8 +2,8 @@ package com.studios1299.playwall.core.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.studios1299.playwall.feature.play.data.model.MessageStatus
-import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
+import com.studios1299.playwall.play.data.model.MessageStatus
+import com.studios1299.playwall.play.presentation.play.FriendshipStatus
 
 @Entity(tableName = "friends")
 data class FriendEntity(

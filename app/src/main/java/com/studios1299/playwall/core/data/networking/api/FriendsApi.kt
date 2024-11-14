@@ -6,7 +6,7 @@ import com.studios1299.playwall.core.data.networking.request.friendships.Decline
 import com.studios1299.playwall.core.data.networking.request.friendships.InviteRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.RemoveFriendRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.UnblockRequest
-import com.studios1299.playwall.feature.play.presentation.play.Friend
+import com.studios1299.playwall.play.presentation.play.Friend
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET

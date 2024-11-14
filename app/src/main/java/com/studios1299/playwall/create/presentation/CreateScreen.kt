@@ -55,8 +55,8 @@ import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.data.s3.uriToFile
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Images
-import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
-import com.studios1299.playwall.feature.play.presentation.play.Friend
+import com.studios1299.playwall.play.presentation.chat.util.rememberRequestPermissionAndPickImage
+import com.studios1299.playwall.play.presentation.play.Friend
 import ja.burhanrashid52.photoeditor.PhotoEditor
 import ja.burhanrashid52.photoeditor.PhotoEditorView
 import ja.burhanrashid52.photoeditor.TextStyleBuilder

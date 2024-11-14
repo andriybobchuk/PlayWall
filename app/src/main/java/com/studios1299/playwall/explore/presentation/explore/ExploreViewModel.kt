@@ -13,10 +13,10 @@ import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.error_handling.map
 import com.studios1299.playwall.core.presentation.UiText
-import com.studios1299.playwall.feature.play.data.DefaultPaginator
-import com.studios1299.playwall.feature.play.data.model.Message
-import com.studios1299.playwall.feature.play.data.model.MessageStatus
-import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.PaginationState
+import com.studios1299.playwall.play.data.DefaultPaginator
+import com.studios1299.playwall.play.data.model.Message
+import com.studios1299.playwall.play.data.model.MessageStatus
+import com.studios1299.playwall.play.presentation.chat.viewmodel.PaginationState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow

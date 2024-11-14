@@ -27,7 +27,7 @@ import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Banners
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.core.presentation.components.image_grid.ImageGrid
-import com.studios1299.playwall.feature.play.presentation.play.PlayAction
+import com.studios1299.playwall.play.presentation.play.PlayAction
 import com.studios1299.playwall.monetization.presentation.AppState
 import com.studios1299.playwall.monetization.presentation.components.DiamondsDisplay
 import kotlinx.coroutines.delay

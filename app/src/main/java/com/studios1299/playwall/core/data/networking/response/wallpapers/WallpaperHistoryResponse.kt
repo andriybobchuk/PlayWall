@@ -1,7 +1,7 @@
 package com.studios1299.playwall.core.data.networking.response.wallpapers
 
-import com.studios1299.playwall.feature.play.data.model.MessageStatus
-import com.studios1299.playwall.feature.play.data.model.Reaction
+import com.studios1299.playwall.play.data.model.MessageStatus
+import com.studios1299.playwall.play.data.model.Reaction
 
 data class WallpaperHistoryResponse(
     val id: Int,

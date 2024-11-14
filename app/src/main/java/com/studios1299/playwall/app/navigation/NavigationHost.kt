@@ -31,10 +31,10 @@ import com.studios1299.playwall.explore.presentation.explore.ExploreViewModel
 import com.studios1299.playwall.explore.presentation.detail.PostDetailScreenRoot
 import com.studios1299.playwall.explore.presentation.detail.PostDetailViewModel
 import com.studios1299.playwall.monetization.presentation.screens.DiamondsScreen
-import com.studios1299.playwall.feature.play.presentation.chat.MessengerScreen
-import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.ChatViewModel
-import com.studios1299.playwall.feature.play.presentation.play.PlayScreenRoot
-import com.studios1299.playwall.feature.play.presentation.play.PlayViewModel
+import com.studios1299.playwall.play.presentation.chat.MessengerScreen
+import com.studios1299.playwall.play.presentation.chat.viewmodel.ChatViewModel
+import com.studios1299.playwall.play.presentation.play.PlayScreenRoot
+import com.studios1299.playwall.play.presentation.play.PlayViewModel
 import com.studios1299.playwall.monetization.data.AdManager
 import com.studios1299.playwall.monetization.presentation.DiamondsViewModel
 import com.studios1299.playwall.monetization.presentation.LuckySpinViewModel

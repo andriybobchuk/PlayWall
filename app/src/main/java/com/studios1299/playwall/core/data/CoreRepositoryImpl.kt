@@ -38,11 +38,14 @@ import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.model.WallpaperOption
-import com.studios1299.playwall.feature.play.data.model.Message
-import com.studios1299.playwall.feature.play.presentation.play.Friend
-import com.studios1299.playwall.feature.play.presentation.play.FriendshipStatus
+import com.studios1299.playwall.play.data.model.Message
+import com.studios1299.playwall.play.presentation.play.Friend
+import com.studios1299.playwall.play.presentation.play.FriendshipStatus
 import com.studios1299.playwall.monetization.presentation.AppState
 import com.studios1299.playwall.monetization.presentation.screens.EVIL_EMOJI
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import retrofit2.Response
 import java.io.File
@@ -129,6 +132,7 @@ class FirebaseCoreRepositoryImpl(
     }
 
     override suspend fun inviteFriend(email: String): SmartResult<Unit> {
+
         return performAuthRequest { token ->
             if (getCurrentUserEmail() == email) {
                 return SmartResult.Error(600, "Runtime Exception", "You cannot add yourself as friend!")

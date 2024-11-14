@@ -12,8 +12,8 @@ import com.studios1299.playwall.core.domain.error_handling.DataError
 import com.studios1299.playwall.core.domain.error_handling.EmptyResult
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.domain.model.WallpaperOption
-import com.studios1299.playwall.feature.play.data.model.Message
-import com.studios1299.playwall.feature.play.presentation.play.Friend
+import com.studios1299.playwall.play.data.model.Message
+import com.studios1299.playwall.play.presentation.play.Friend
 import java.io.File
 
 interface CoreRepository {

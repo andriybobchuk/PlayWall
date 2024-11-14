@@ -62,8 +62,8 @@ import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.core.presentation.components.image_grid.ImageGridState
 import com.studios1299.playwall.explore.presentation.explore.ExploreState
-import com.studios1299.playwall.feature.play.presentation.chat.util.timestampAsDateTime
-import com.studios1299.playwall.feature.play.presentation.play.Friend
+import com.studios1299.playwall.play.presentation.chat.util.timestampAsDateTime
+import com.studios1299.playwall.play.presentation.play.Friend
 import kotlinx.coroutines.launch
 
 @Composable

@@ -91,8 +91,8 @@ import com.studios1299.playwall.core.presentation.components.ShimmerWallpaperGri
 import com.studios1299.playwall.core.presentation.components.TextFields
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
-import com.studios1299.playwall.feature.play.presentation.chat.util.rememberRequestPermissionAndPickImage
-import com.studios1299.playwall.feature.play.presentation.play.PlayAction
+import com.studios1299.playwall.play.presentation.chat.util.rememberRequestPermissionAndPickImage
+import com.studios1299.playwall.play.presentation.play.PlayAction
 import com.studios1299.playwall.monetization.presentation.AppState
 import com.studios1299.playwall.monetization.presentation.components.DiamondsDisplay
 import kotlinx.coroutines.CoroutineScope

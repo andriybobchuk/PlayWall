@@ -15,10 +15,10 @@ import com.studios1299.playwall.R
 import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.networking.response.wallpapers.WallpaperHistoryResponse
-import com.studios1299.playwall.feature.play.data.model.MessageStatus
-import com.studios1299.playwall.feature.play.data.model.Reaction
-import com.studios1299.playwall.feature.play.presentation.chat.viewmodel.WallpaperNotificationForChat
-import com.studios1299.playwall.feature.play.presentation.play.WallpaperNotificationForPlay
+import com.studios1299.playwall.play.data.model.MessageStatus
+import com.studios1299.playwall.play.data.model.Reaction
+import com.studios1299.playwall.play.presentation.chat.viewmodel.WallpaperNotificationForChat
+import com.studios1299.playwall.play.presentation.play.WallpaperNotificationForPlay
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

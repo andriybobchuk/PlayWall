@@ -36,12 +36,14 @@ class LoginViewModel(
     private val eventChannel = Channel<LoginEvent>()
     val events = eventChannel.receiveAsFlow()
 
+
     init {
         viewModelScope.launch {
             NetworkMonitor.isOnline.collect { online ->
                 state = state.copy(isOnline = online)
             }
         }
+
         combine(state.email.textAsFlow(), state.password.textAsFlow()) { email, password ->
             state = state.copy(
                 canLogin = userDataValidator.isValidEmail(
