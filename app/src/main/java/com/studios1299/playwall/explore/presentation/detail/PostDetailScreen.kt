@@ -1,5 +1,7 @@
 package com.studios1299.playwall.explore.presentation.detail
 
+import android.Manifest
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -21,6 +23,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.PhonelinkRing
+import androidx.compose.material.icons.rounded.QrCode
+import androidx.compose.material.icons.rounded.Smartphone
+import androidx.compose.material.icons.rounded.Wallpaper
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -55,13 +71,24 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.PermissionListener
 import com.studios1299.playwall.R
+import com.studios1299.playwall.app.MyApp
+import com.studios1299.playwall.core.data.downloadImageToDevice
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Banners
+import com.studios1299.playwall.core.presentation.components.ExpandableFab
+import com.studios1299.playwall.core.presentation.components.ExpendableFabItem
 import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.core.presentation.components.image_grid.ImageGridState
 import com.studios1299.playwall.explore.presentation.explore.ExploreState
+import com.studios1299.playwall.play.presentation.chat.util.timestampAsDate
 import com.studios1299.playwall.play.presentation.chat.util.timestampAsDateTime
 import com.studios1299.playwall.play.presentation.play.Friend
 import kotlinx.coroutines.launch
@@ -119,6 +146,8 @@ fun PostDetailScreen(
     val coroutineScope = rememberCoroutineScope()
     val friendsSheetState = rememberModalBottomSheetState()
 
+    val currentPhoto = primaryState.wallpapers[pagerState.currentPage]
+
     FriendsSelectionBottomSheet(
         isSheetOpen = isFriendsSheetOpen,
         sheetState = friendsSheetState,
@@ -138,6 +167,7 @@ fun PostDetailScreen(
     LaunchedEffect(pagerState.currentPage) {
         onSwipe(pagerState.currentPage)
     }
+
     Scaffold(
         topBar = {
             Toolbars.Primary(
@@ -147,46 +177,115 @@ fun PostDetailScreen(
                 scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
             )
         },
-        bottomBar = {
-            if (exploreState.isOnline) {
-                BottomAppBar {
-                    Button(
-                        modifier = Modifier.padding(2.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                        ),
-                        onClick = {
-                            coroutineScope.launch { isFriendsSheetOpen.value = true }
-                        }) {
-                        Text(text = stringResource(R.string.set_as_friend_s), color = MaterialTheme.colorScheme.primary)
-                    }
-                    Button(
-                        modifier = Modifier.padding(2.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                        ),
+        floatingActionButton = {
+            ExpandableFab(
+                icon = Icons.Rounded.KeyboardArrowUp,
+                iconExpanded = Icons.Rounded.KeyboardArrowDown,
+                text = "Options",
+                items = listOf(
+                    ExpendableFabItem(
+                        icon = Icons.Rounded.Smartphone,
+                        text = "Set wallpaper on friend's phone",
+                        onClick = { coroutineScope.launch { isFriendsSheetOpen.value = true } }
+                    ),
+                    ExpendableFabItem(
+                        icon = Icons.Rounded.Wallpaper,
+                        text = "Set wallpaper on my phone",
                         onClick = {
                             viewModel.setAsWallpaper(primaryState.wallpapers[pagerState.currentPage].fileName, context)
                             Toast.makeText(context,
                                 context.getString(R.string.done), Toast.LENGTH_SHORT).show()
-                        }) {
-                        Text(text = stringResource(R.string.set_as_mine), color = MaterialTheme.colorScheme.primary)
-                    }
+                        }
+                    ),
+                    ExpendableFabItem(
+                        icon = Icons.Rounded.Download,
+                        text = "Download wallpaper",
+                        onClick = {
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                                Dexter.withContext(context)
+                                    .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                    .withListener(object : PermissionListener {
+                                        override fun onPermissionGranted(permissionGrantedResponse: PermissionGrantedResponse?) {
+                                            downloadImageToDevice(MyApp.appModule.context, currentPhoto.fileName) { success ->
+                                                Toast.makeText(
+                                                    context,
+                                                    if (success) "Saved successfully" else "Saving failed",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+                                        override fun onPermissionDenied(permissionDeniedResponse: PermissionDeniedResponse?) {
+                                            Log.e("DownloadDebug", "Permission Denied: $permissionDeniedResponse")
+                                        }
+                                        override fun onPermissionRationaleShouldBeShown(permissionRequest: PermissionRequest?, token: PermissionToken?) {
+                                            token?.continuePermissionRequest()
+                                        }
+                                    }).check()
+                            } else {
+                                downloadImageToDevice(MyApp.appModule.context, currentPhoto.fileName) { success ->
+                                    Toast.makeText(
+                                        context,
+                                        if (success) "Saved successfully" else "Saving failed",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        }
+                    ),
+                    ExpendableFabItem(
+                        icon = if (currentPhoto.isLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                        text = if (currentPhoto.isLiked) "Unlike wallpaper" else "Like wallpaper",
+                        onClick = { viewModel.onAction(PostDetailAction.ToggleLike(currentPhoto.id)) }
+                    )
+                )
+            )
+        },
+        bottomBar = {
+            if (exploreState.isOnline) {
+                BottomAppBar {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        text = "${timestampAsDate(currentPhoto.dateCreated, context)}, ${currentPhoto.savedCount} likes",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+//                    Button(
+//                        modifier = Modifier.padding(2.dp),
+//                        colors = ButtonDefaults.buttonColors(
+//                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+//                        ),
+//                        onClick = {
+//                            coroutineScope.launch { isFriendsSheetOpen.value = true }
+//                        }) {
+//                        Text(text = stringResource(R.string.set_as_friend_s), color = MaterialTheme.colorScheme.primary)
+//                    }
+//                    Button(
+//                        modifier = Modifier.padding(2.dp),
+//                        colors = ButtonDefaults.buttonColors(
+//                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+//                        ),
+//                        onClick = {
+//                            viewModel.setAsWallpaper(primaryState.wallpapers[pagerState.currentPage].fileName, context)
+//                            Toast.makeText(context,
+//                                context.getString(R.string.done), Toast.LENGTH_SHORT).show()
+//                        }) {
+//                        Text(text = stringResource(R.string.set_as_mine), color = MaterialTheme.colorScheme.primary)
+//                    }
                 }
             }
         },
-        floatingActionButton = {
-            if (!exploreState.isLoading && exploreState.isOnline) {
-                val currentPhoto = primaryState.wallpapers[pagerState.currentPage]
-                LikeButton(
-                    likeCount = currentPhoto.savedCount,
-                    isLiked = currentPhoto.isLiked,
-                    onClick = {
-                        viewModel.onAction(PostDetailAction.ToggleLike(currentPhoto.id))
-                    }
-                )
-            }
-        },
+//        floatingActionButton = {
+//            if (!exploreState.isLoading && exploreState.isOnline) {
+//                val currentPhoto = primaryState.wallpapers[pagerState.currentPage]
+//                LikeButton(
+//                    likeCount = currentPhoto.savedCount,
+//                    isLiked = currentPhoto.isLiked,
+//                    onClick = {
+//                        viewModel.onAction(PostDetailAction.ToggleLike(currentPhoto.id))
+//                    }
+//                )
+//            }
+//        },
         floatingActionButtonPosition = FabPosition.EndOverlay
     ) { innerPadding ->
         Column(modifier = Modifier
@@ -228,22 +327,22 @@ fun PostDetailScreen(
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
-                        Box(
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .align(Alignment.BottomEnd)
-                                .background(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    shape = RoundedCornerShape(16.dp)
-                                )
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            Text(
-                                text = timestampAsDateTime(photo.dateCreated, context),
-                                color = Color.White,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
+//                        Box(
+//                            modifier = Modifier
+//                                .padding(16.dp)
+//                                .align(Alignment.BottomEnd)
+//                                .background(
+//                                    color = MaterialTheme.colorScheme.primary,
+//                                    shape = RoundedCornerShape(16.dp)
+//                                )
+//                                .padding(horizontal = 16.dp, vertical = 8.dp)
+//                        ) {
+//                            Text(
+//                                text = timestampAsDateTime(photo.dateCreated, context),
+//                                color = Color.White,
+//                                style = MaterialTheme.typography.bodyMedium
+//                            )
+//                        }
                     }
                 }
             }
@@ -268,7 +367,8 @@ fun LikeButton(
         IconButton(onClick = onClick) {
             Icon(
                 modifier = (if (shadow) Modifier.shadow(2.dp) else Modifier),
-                imageVector = if (isLiked) Icons.Filled.Bookmark else Icons.Default.BookmarkBorder,
+                imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Default.FavoriteBorder
+                ,
                 contentDescription = "Like",
                 tint = if (isLiked) MaterialTheme.colorScheme.error else iconColor ?: MaterialTheme.colorScheme.onSurface // Apply icon color or default
             )
@@ -344,7 +444,7 @@ fun FriendsSelectionBottomSheet(
                                     model = friend.avatarId
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(text = friend.email)
+                                Text(text = friend.nick?:friend.email)
                                 Spacer(modifier = Modifier.weight(1f))
                                 Checkbox(
                                     checked = isSelected,

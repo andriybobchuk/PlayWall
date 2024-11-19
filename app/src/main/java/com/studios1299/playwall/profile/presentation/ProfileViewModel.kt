@@ -161,14 +161,21 @@ class ProfileViewModel(
             }
 
             val result = repository.updateProfile(avatar, nick?:"")
-            //loadUserProfile()
 
             if (result is SmartResult.Success) {
                 Log.e("updateProfile", "Profile updated successfully")
                 eventChannel.send(ProfileEvent.ProfileUpdated)
-            } else {
+            } else if(result is SmartResult.Error) {
                 Log.e("updateProfile", "Error updating profile: $result")
-                eventChannel.send(ProfileEvent.ShowError(UiText.DynamicString(result.toString())))
+                if(result.code == 409) {
+                    eventChannel.send(ProfileEvent.ShowError(UiText.DynamicString(
+                        context.getString(
+                            R.string.this_username_already_exists
+                        ))))
+                } else {
+                    eventChannel.send(ProfileEvent.ShowError(UiText.DynamicString(result.message.toString())))
+                }
+                loadUserProfile()
             }
         }
     }

@@ -1,5 +1,7 @@
 package com.studios1299.playwall.play.presentation.chat
 
+import android.Manifest
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -46,7 +48,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.PermissionListener
 import com.studios1299.playwall.R
+import com.studios1299.playwall.app.MyApp
+import com.studios1299.playwall.core.data.downloadImageToDevice
+import com.studios1299.playwall.core.presentation.components.Buttons
 import com.studios1299.playwall.play.data.model.Message
 import com.studios1299.playwall.play.data.model.Reaction
 import com.studios1299.playwall.play.data.model.User
@@ -173,6 +184,38 @@ fun ReactSheet(
                 }
                 Spacer(modifier = Modifier.height(10.dp))
                 val context = LocalContext.current
+                Buttons.Primary(text = "Download wallpaper", isLoading = false, onClick = {
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                        Dexter.withContext(MyApp.appModule.context)
+                            .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                            .withListener(object : PermissionListener {
+                                override fun onPermissionGranted(permissionGrantedResponse: PermissionGrantedResponse?) {
+                                    downloadImageToDevice(MyApp.appModule.context, message.imageUrl) { success ->
+                                        Toast.makeText(
+                                            context,
+                                            if (success) "Saved successfully" else "Saving failed",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                                override fun onPermissionDenied(permissionDeniedResponse: PermissionDeniedResponse?) {
+                                    Log.e("DownloadDebug", "Permission Denied: $permissionDeniedResponse")
+                                }
+                                override fun onPermissionRationaleShouldBeShown(permissionRequest: PermissionRequest?, token: PermissionToken?) {
+                                    token?.continuePermissionRequest()
+                                }
+                            }).check()
+                    } else {
+                        downloadImageToDevice(MyApp.appModule.context, message.imageUrl) { success ->
+                            Toast.makeText(
+                                context,
+                                if (success) "Saved successfully" else "Saving failed",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                })
+                Spacer(modifier = Modifier.height(10.dp))
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -238,8 +281,10 @@ fun ReplyField(
                 modifier = Modifier
                     .weight(1f)
                     .background(MaterialTheme.colorScheme.primaryContainer, shape = roundedShape)
-                    .onFocusChanged { isFocused = it.isFocused
-                        onFocusChanged(it.isFocused) },
+                    .onFocusChanged {
+                        isFocused = it.isFocused
+                        onFocusChanged(it.isFocused)
+                    },
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,

@@ -7,6 +7,8 @@ import com.studios1299.playwall.auth.domain.PasswordValidationState
 data class RegisterState @OptIn(ExperimentalFoundationApi::class) constructor(
     val email: TextFieldState = TextFieldState(),
     val isEmailValid: Boolean = false,
+    val username: TextFieldState = TextFieldState(),
+    val isUsernameValid: Boolean = false,
     val password: TextFieldState = TextFieldState(),
     val isPasswordVisible: Boolean = false,
     val passwordValidationState: PasswordValidationState = PasswordValidationState(),

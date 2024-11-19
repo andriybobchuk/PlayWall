@@ -69,6 +69,7 @@ import com.studios1299.playwall.core.presentation.designsystem.poppins
 import com.studios1299.playwall.auth.domain.PasswordValidationState
 import com.studios1299.playwall.auth.data.UserDataValidator
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
+import com.studios1299.playwall.core.presentation.designsystem.PersonIcon
 
 private const val REQUEST_ID_TOKEN = "247858897065-pavj6enbck6erkubdlqo6p6vovne3utg.apps.googleusercontent.com"
 
@@ -196,7 +197,20 @@ private fun RegisterScreen(
                     }
                 }
             )
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(30.dp))
+            TextFields.Primary(
+                state = state.username,
+                startIcon = PersonIcon,
+                endIcon = if (state.isUsernameValid) {
+                    CheckIcon
+                } else null,
+                hint = stringResource(id = R.string.example_username),
+                title = stringResource(id = R.string.username),
+                modifier = Modifier.fillMaxWidth(),
+                additionalInfo = stringResource(id = R.string.must_be_a_valid_username),
+                keyboardType = KeyboardType.Text
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             TextFields.Primary(
                 state = state.email,
                 startIcon = EmailIcon,
@@ -307,17 +321,16 @@ private fun RegisterScreen(
             Text(
                 modifier = Modifier
                     .padding(
-                        top = 40.dp,
+                        top = 15.dp,
                     )
                     .align(Alignment.CenterHorizontally),
                 text = stringResource(id = R.string.or_connect_with),
                 fontWeight = FontWeight.Normal, fontFamily = poppins
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp), horizontalArrangement = Arrangement.Center
+                    .fillMaxWidth(), horizontalArrangement = Arrangement.Center
             ) {
                 CircularProgressIndicator(
                     modifier = Modifier

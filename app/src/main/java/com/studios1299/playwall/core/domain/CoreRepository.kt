@@ -38,7 +38,7 @@ interface CoreRepository {
 
     // WALLPAPER MANAGEMENT
     suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<ChangeWallpaperResponse?>
-    suspend fun getUserDataById(recipientId: String): SmartResult<UserDataResponse>
+    suspend fun getUserDataById(recipientId: String, forceUpdate: Boolean): SmartResult<UserDataResponse>
     suspend fun getWallpaperHistory(userId: String, page: Int, pageSize: Int, forceUpdate: Boolean): SmartResult<List<WallpaperHistoryResponse>>
     suspend fun react(wallpaperId: Int, reaction: String?): SmartResult<Unit>
     suspend fun comment(wallpaperId: Int, comment: String?): SmartResult<Unit>

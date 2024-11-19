@@ -17,21 +17,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text2.input.clearText
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.PersonAddAlt
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.Cancel
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.Link
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.PersonAdd
+import androidx.compose.material.icons.rounded.QrCode
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
@@ -59,6 +62,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -79,6 +83,8 @@ import com.studios1299.playwall.core.data.s3.uriToFile
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Banners
 import com.studios1299.playwall.core.presentation.components.Buttons
+import com.studios1299.playwall.core.presentation.components.ExpandableFab
+import com.studios1299.playwall.core.presentation.components.ExpendableFabItem
 import com.studios1299.playwall.monetization.presentation.components.DiamondsDisplay
 import com.studios1299.playwall.core.presentation.components.Images
 import com.studios1299.playwall.core.presentation.components.KeyboardAware
@@ -113,7 +119,8 @@ fun PlayScreenRoot(
                 if (state.isOnline) {
                     Toast.makeText(context, event.error.asString(context), Toast.LENGTH_LONG).show()
                 } else {
-                    Toast.makeText(context, "No internet", Toast.LENGTH_LONG).show()
+                    // I dont want anything in this case as i have the banner to show internet status anyways
+                    //Toast.makeText(context, "No internet", Toast.LENGTH_LONG).show()
                 }
             }
             is PlayEvent.NavigateToChat -> {
@@ -278,6 +285,7 @@ fun PlayScreen(
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val isPremium = AppState.isPremium.collectAsState().value
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -297,21 +305,21 @@ fun PlayScreen(
                 )
             } else {
                 Toolbars.Primary(
-                    title = "Play",
-                    actions = listOf(
-                        Toolbars.ToolBarAction(
-                            icon = Icons.Default.CheckCircleOutline,
-                            contentDescription = "Select friends",
-                            onClick = { onAction(PlayAction.OnEnterSelectMode) },
-                            enabled = state.isOnline && state.friends.isNotEmpty()
-                        ),
-                        Toolbars.ToolBarAction(
-                            icon = Icons.Default.PersonAddAlt,
-                            contentDescription = "Invite friend",
-                            onClick = { isInviteSheetOpen.value = true },
-                            enabled = state.isOnline
-                        )
-                    ),
+                    title = "",
+//                    actions = listOf(
+//                        Toolbars.ToolBarAction(
+//                            icon = Icons.Default.CheckCircleOutline,
+//                            contentDescription = "Select friends",
+//                            onClick = { onAction(PlayAction.OnEnterSelectMode) },
+//                            enabled = state.isOnline && state.friends.isNotEmpty()
+//                        ),
+//                        Toolbars.ToolBarAction(
+//                            icon = Icons.Default.PersonAddAlt,
+//                            contentDescription = "Invite friend",
+//                            onClick = { isInviteSheetOpen.value = true },
+//                            enabled = state.isOnline
+//                        )
+//                    ),
                     scrollBehavior = scrollBehavior,
                     customContent = {
                         DiamondsDisplay(
@@ -326,6 +334,29 @@ fun PlayScreen(
                     }
                 )
             }
+        },
+        floatingActionButton = {
+            ExpandableFab(
+                icon = Icons.Rounded.Add,
+                text = "Invite friend by",
+                items = listOf(
+                    ExpendableFabItem(
+                        icon = Icons.Rounded.ContentCopy,
+                        text = "link",
+                        onClick = {}
+                        ),
+                    ExpendableFabItem(
+                        icon = Icons.Rounded.QrCode,
+                        text = "QR-code",
+                        onClick = {}
+                    ),
+                    ExpendableFabItem(
+                        icon = Icons.Rounded.Person,
+                        text = "username",
+                        onClick = { isInviteSheetOpen.value = true }
+                    )
+                )
+            )
         },
         bottomBar = {
             if (state.isSelectMode) {
@@ -430,7 +461,6 @@ fun PlayScreen(
                         }
                     }
                     items(state.friends) { friend ->
-                        Log.e("UI", "friend: $friend")
                         if (friend.status != FriendshipStatus.blocked) {
                             // Swipe actions (mute and unfriend) will only be available when online
                             val mute = SwipeAction(
@@ -534,6 +564,7 @@ fun PlayScreen(
                             ) {
                                 FriendItem(
                                     friend = friend,
+                                    isMuted = true,
                                     onClick = {
                                         //onAction(PlayAction.OnFriendClick(friend.id))
                                     },
@@ -552,6 +583,7 @@ fun PlayScreen(
 @Composable
 fun FriendItem(
     friend: Friend,
+    isMuted: Boolean = false,
     onClick: (friendId: Int) -> Unit,
     modifier: Modifier = Modifier,
     isSelectable: Boolean = false,
@@ -570,7 +602,7 @@ fun FriendItem(
     }
 
     val senderCaption = if (friend.lastMessageSender == friend.id) "Sent you a wallpaper" else "Got your wallpaper"
-    val caption = "$senderCaption • ${timestampAsDateTime(friend.lastMessageDate?:"", LocalContext.current)}"
+    val caption = if (isMuted) "This user is muted" else "$senderCaption • ${timestampAsDateTime(friend.lastMessageDate?:"", LocalContext.current)}"
     val status = if (friend.lastMessageSender != friend.id) MessageStatus.read else friend.lastMessageStatus
 
     Row(
@@ -590,7 +622,7 @@ fun FriendItem(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = friend.email,
+                text = friend.nick?:friend.email,
                 style = MaterialTheme.typography.titleSmall,
                 color = textColor
             )
@@ -650,7 +682,7 @@ fun FriendRequestItem(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = stringResource(R.string.sent_a_friend_request, friendRequest.email),
+                text = stringResource(R.string.sent_a_friend_request, friendRequest.nick?:friendRequest.email),
                 style = MaterialTheme.typography.bodyMedium
             )
         }

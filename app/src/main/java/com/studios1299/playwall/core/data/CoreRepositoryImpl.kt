@@ -339,14 +339,16 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-    override suspend fun getUserDataById(recipientId: String): SmartResult<UserDataResponse> {
+    override suspend fun getUserDataById(recipientId: String, forceUpdate: Boolean): SmartResult<UserDataResponse> {
         return try {
-            // Check if the user data is available in the local database
-            val cachedUser = userDao.getUserById(recipientId.toInt())
-            Log.e(LOG_TAG, "getUserDataById, cached data: $cachedUser")
-            if (cachedUser != null) {
-                Log.e(LOG_TAG, "getUserDataById, cached data: ${cachedUser.toUserDataResponse()}")
-                return SmartResult.Success(cachedUser.toUserDataResponse())
+            if(!forceUpdate) {
+                // Check if the user data is available in the local database
+                val cachedUser = userDao.getUserById(recipientId.toInt())
+                Log.e(LOG_TAG, "getUserDataById, cached data: $cachedUser")
+                if (cachedUser != null) {
+                    Log.e(LOG_TAG, "getUserDataById, cached data: ${cachedUser.toUserDataResponse()}")
+                    return SmartResult.Success(cachedUser.toUserDataResponse())
+                }
             }
 
             // If no local data, make a remote request

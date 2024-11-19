@@ -17,6 +17,7 @@ import com.studios1299.playwall.core.presentation.UiText
 import com.studios1299.playwall.core.presentation.asUiText
 import com.studios1299.playwall.auth.domain.AuthRepository
 import com.studios1299.playwall.auth.data.UserDataValidator
+import com.studios1299.playwall.auth.data.UsernamePatternValidator
 import com.studios1299.playwall.auth.presentation.getScreenRatio
 import com.studios1299.playwall.auth.presentation.login.LoginEvent
 import com.studios1299.playwall.core.data.networking.NetworkMonitor
@@ -31,8 +32,10 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalFoundationApi::class)
 class RegisterViewModel(
     private val repository: AuthRepository,
-    private val userDataValidator: UserDataValidator
+    private val emailDataValidator: UserDataValidator,
 ): ViewModel() {
+
+    val usernameValidator = UserDataValidator(UsernamePatternValidator)
 
     var state by mutableStateOf(RegisterState())
         private set
@@ -48,10 +51,21 @@ class RegisterViewModel(
         }
         state.email.textAsFlow()
             .onEach { email ->
-                val isValidEmail = userDataValidator.isValidEmail(email.toString())
+                val isValidEmail = emailDataValidator.isValidEmail(email.toString())
                 state = state.copy(
                     isEmailValid = isValidEmail,
-                    canRegister = isValidEmail && state.passwordValidationState.isValidPassword
+                    canRegister = isValidEmail && state.isUsernameValid && state.passwordValidationState.isValidPassword
+                            && !state.isRegistering && state.isTermsAccepted
+                )
+            }
+            .launchIn(viewModelScope)
+
+        state.username.textAsFlow()
+            .onEach { username ->
+                val isValidUsername = usernameValidator.isValidUsername(username.toString())
+                state = state.copy(
+                    isUsernameValid = isValidUsername,
+                    canRegister = isValidUsername && state.isEmailValid && state.passwordValidationState.isValidPassword
                             && !state.isRegistering && state.isTermsAccepted
                 )
             }
@@ -59,10 +73,10 @@ class RegisterViewModel(
 
         state.password.textAsFlow()
             .onEach { password ->
-                val passwordValidationState = userDataValidator.validatePassword(password.toString())
+                val passwordValidationState = emailDataValidator.validatePassword(password.toString())
                 state = state.copy(
                     passwordValidationState = passwordValidationState,
-                    canRegister = state.isEmailValid && passwordValidationState.isValidPassword
+                    canRegister = state.isEmailValid && state.isUsernameValid && passwordValidationState.isValidPassword
                             && !state.isRegistering && state.isTermsAccepted
                 )
             }
@@ -71,7 +85,7 @@ class RegisterViewModel(
         snapshotFlow { state.isTermsAccepted }
             .onEach { isTermsAccepted ->
                 state = state.copy(
-                    canRegister = state.isEmailValid && state.passwordValidationState.isValidPassword
+                    canRegister = state.isEmailValid && state.isUsernameValid && state.passwordValidationState.isValidPassword
                             && !state.isRegistering && isTermsAccepted
                 )
             }
@@ -98,6 +112,7 @@ class RegisterViewModel(
             state = state.copy(isRegistering = true)
             val result = repository.register(
                 email = state.email.text.toString().trim(),
+                username = state.username.text.toString().trim(),
                 password = state.password.text.toString(),
                 screenRatio = getScreenRatio(context)
             )
@@ -146,7 +161,9 @@ class RegisterViewModel(
     fun googleRegister(credential: AuthCredential, context: Context) {
         viewModelScope.launch {
             state = state.copy(isRegistering = true)
-            val result = repository.googleRegister(credential, getScreenRatio(context))
+            val result = repository.googleRegister(
+                credential = credential,
+                screenRatio = getScreenRatio(context))
             state = state.copy(isRegistering = false)
 
             when(result) {

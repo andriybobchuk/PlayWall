@@ -3,7 +3,7 @@
     <string name="back">Back</string>
     <string name="recipient_profile_picture">Recipient Profile Picture</string>
     <string name="last_online">"Last online "</string>
-    <string name="pick_image">Pick Image</string>
+    <string name="pick_image">Set Wallpaper</string>
     <string name="send_image">Send Image</string>
     <string name="down">Down</string>
     <string name="reply">Reply</string>
@@ -40,7 +40,7 @@
     <string name="already_have_an_account">Already have an account?</string>
     <string name="show_password">Show password</string>
     <string name="hide_password">Hide password</string>
-    <string name="example_email">example@gmail.com</string>
+    <string name="example_email">john.smith@gmail.com</string>
     <string name="email">Email</string>
     <string name="must_be_a_valid_email">Must be a valid email</string>
     <string name="password">Password</string>
@@ -135,4 +135,8 @@
     <string name="set_as_mine">Set as mine</string>
     <string name="explore">Explore</string>
     <string name="help_legal_info"><![CDATA[Help & Legal info]]></string>
+    <string name="example_username">john.smith1299</string>
+    <string name="username">Username</string>
+    <string name="must_be_a_valid_username">5 symbols, no spaces</string>
+    <string name="this_username_already_exists">This username already exists</string>
 </resources>

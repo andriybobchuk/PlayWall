@@ -122,7 +122,7 @@ fun timestampAsDateTime(timestamp: String, context: Context): String {
         val today = now.clone() as Calendar
         val yesterday = (now.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -1) }
         val dateFormatCurrentYear = SimpleDateFormat(
-            "MMMM d, HH:mm",
+            "MMM d, HH:mm",
             Locale.getDefault()
         ) // Date and Time for the current year
         val dateFormatOtherYear = SimpleDateFormat(

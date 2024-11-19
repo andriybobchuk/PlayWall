@@ -172,6 +172,7 @@ class ChatViewModel(
             try {
                 Log.e(LOG_TAG, "Loading messages after reset")
                 loadMessages()
+                loadRecipientData(forceUpdate = true)
             } catch (e: Exception) {
                 Log.e(LOG_TAG, "Error loading messages: ${e.localizedMessage}")
                 sendErrorMessage("Failed to load messages.")
@@ -318,11 +319,10 @@ class ChatViewModel(
         }
     }
 
-    private fun loadRecipientData() {
+    private fun loadRecipientData(forceUpdate: Boolean = false) {
         viewModelScope.launch {
-            when (val result = chatRepository.getUserDataById(friendId)) {
+            when (val result = chatRepository.getUserDataById(friendId, forceUpdate)) {
                 is SmartResult.Success -> {
-                    Log.e(LOG_TAG, "ImagePicker: rat in VW ${result.data?.screenRatio}")
                     _uiState.update { currentState ->
                         currentState.copy(
                             recipient = result.data?.let {

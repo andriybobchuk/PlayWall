@@ -409,7 +409,7 @@ fun FriendsSelectionBottomSheet(
                                     model = friend.avatarId
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(text = friend.email)
+                                Text(text = friend.nick?:friend.email)
                                 Spacer(modifier = Modifier.weight(1f))
                                 Checkbox(
                                     checked = isSelected,

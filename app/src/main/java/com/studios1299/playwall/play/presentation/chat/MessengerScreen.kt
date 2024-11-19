@@ -414,10 +414,11 @@ fun MessengerScreenHeader(
 
             Row(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 8.dp),
+                    .fillMaxHeight()
+                    .align(Alignment.CenterStart)
+                    .padding(start = 48.dp, end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                //horizontalArrangement = Arrangement.Start
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -428,7 +429,7 @@ fun MessengerScreenHeader(
 
                     Column {
                         Text(
-                            text = recipient.email,
+                            text = recipient.name?:recipient.email,
                             style = MaterialTheme.typography.titleSmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis

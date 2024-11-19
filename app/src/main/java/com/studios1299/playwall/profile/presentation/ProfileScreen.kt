@@ -77,6 +77,7 @@ import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.R
 import com.studios1299.playwall.auth.data.EmailPatternValidator
 import com.studios1299.playwall.auth.data.UserDataValidator
+import com.studios1299.playwall.auth.data.UsernamePatternValidator
 import com.studios1299.playwall.auth.domain.PatternValidator
 import com.studios1299.playwall.core.data.ChangeWallpaperWorker
 import com.studios1299.playwall.core.data.local.Preferences
@@ -337,7 +338,7 @@ fun ProfileScreen(
                         {
                             SelectorMenuItem(
                                 icon = Icons.Default.Wallpaper,
-                                label = "Change Wallpaper on",
+                                label = "Set my wallpapers on",
                                 enabled = state.isOnline,
                                 selectedOption = state.selectedWallpaperOption,
                                 options = WallpaperOption.getDisplayNames(), // Pass the enum options directly
@@ -359,7 +360,7 @@ fun ProfileScreen(
                             SettingMenuItem(
                                 icon = Icons.Default.Restore,
                                 enabled = state.isOnline,
-                                label = "Rollback to previous wallpaper",
+                                label = "Set previous wallpaper",
                                 onClick = {
                                     val workData = workDataOf("file_name" to Preferences.getPreviousWallpaperId())
                                     val changeWallpaperWork = OneTimeWorkRequestBuilder<ChangeWallpaperWorker>()
@@ -374,7 +375,7 @@ fun ProfileScreen(
                             SettingMenuItem(
                                 icon = Icons.Default.Restore,
                                 enabled = state.isOnline,
-                                label = "Rollback to default wallpaper",
+                                label = "Set default wallpaper",
                                 onClick = {
                                     CoroutineScope(Dispatchers.IO).launch {
                                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -423,11 +424,15 @@ fun EditProfileDialog(
         onDismissRequest = { onDismiss() },
         confirmButton = {
             TextButton(onClick = {
-                if (oldPassword.text.toString().isNotEmpty() && newPassword.text.toString().isNotEmpty()) {
+                if(oldPassword.text.toString().isNotEmpty() && newPassword.text.toString().isNotEmpty()) {
                     if (!UserDataValidator(EmailPatternValidator).validatePassword(newPassword.text.toString()).isValidPassword) {
                         Toast.makeText(context, "New password is too weak!", Toast.LENGTH_SHORT).show()
                         return@TextButton
                     }
+                }
+                if(name.text.toString().isNotEmpty() && !UserDataValidator(UsernamePatternValidator).isValidUsername(name.text.toString())) {
+                    Toast.makeText(context, "Username must be min 5 symbols with no spaces!", Toast.LENGTH_SHORT).show()
+                    return@TextButton
                 }
                 onAction(ProfileAction.OnSaveProfileClick(
                     context,
@@ -533,13 +538,9 @@ fun PhotoGridRow(
 
         if (state.isLoading) {
             //ShimmerLoadingForWallpaperGrid()
-Log.e("PPPP", "PPP")
             repeat(3) {
                 ShimmerWallpaperGridItem()
             }
-//            repeat(3 - 18) {
-//                Spacer(modifier = Modifier.weight(1f))
-//            }
         } else if (state.wallpapers.isEmpty()) {
         Text(
             text = "No photos available",
@@ -597,7 +598,7 @@ fun SettingMenuItem(
                     .size(24.dp)
                     .padding(start = 4.dp)
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,
@@ -647,13 +648,14 @@ fun SelectorMenuItem(
                         .size(24.dp)
                         .padding(start = 4.dp)
                 )
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (enabled) { MaterialTheme.colorScheme.onSurface} else {MaterialTheme.colorScheme.onSurface.copy(0.5f)}
                 )
             }
+            Spacer(modifier = Modifier.width(3.dp))
             Text(
                 text = selectedOption.toString(),
                 style = MaterialTheme.typography.bodyMedium,
@@ -733,7 +735,7 @@ fun SwitchMenuItem(
     ) {
         Row(
             modifier = Modifier
-                .padding(12.dp)
+                .padding(horizontal = 12.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -748,7 +750,7 @@ fun SwitchMenuItem(
                         .size(24.dp)
                         .padding(start = 4.dp)
                 )
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyMedium,
@@ -772,7 +774,7 @@ fun Group(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(12.dp)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
         if(label.isNotEmpty()) {
             Text(

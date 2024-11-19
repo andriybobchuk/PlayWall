@@ -66,6 +66,7 @@ class AuthRepositoryImpl(
 
     override suspend fun register(
         email: String,
+        username: String,
         password: String,
         screenRatio: Float
     ): EmptyResult {
@@ -88,6 +89,7 @@ class AuthRepositoryImpl(
             val createUserResult = createUser(
                 userId = user.uid,
                 email = email,
+                username = username,
                 firebaseIdToken = firebaseIdToken,
                 screenRatio = screenRatio
             )
@@ -122,6 +124,7 @@ class AuthRepositoryImpl(
     suspend fun createUser(
         userId: String,
         email: String,
+        username: String,
         firebaseIdToken: String,
         screenRatio: Float
     ): EmptyResult {
@@ -130,6 +133,7 @@ class AuthRepositoryImpl(
 
             val requestBody = CreateUserRequest(
                 email = email,
+                nick = username,
                 firebaseId = userId,
                 screenRatio = screenRatio
             )
@@ -258,6 +262,7 @@ class AuthRepositoryImpl(
             val createUserResult = createUser(
                 userId = user.uid,
                 email = user.email ?: "",
+                username = user.email ?: "",
                 firebaseIdToken = firebaseIdToken,
                 screenRatio = screenRatio
             )
