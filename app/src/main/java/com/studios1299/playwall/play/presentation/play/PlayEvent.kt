@@ -8,5 +8,6 @@ sealed interface PlayEvent {
     data object NavigateToDiamonds: PlayEvent
     data object FriendRequestAccepted: PlayEvent
     data object FriendRequestRejected: PlayEvent
+    data object InviteLinkParsedSuccessfully: PlayEvent
     data object WallpaperSent : PlayEvent
 }

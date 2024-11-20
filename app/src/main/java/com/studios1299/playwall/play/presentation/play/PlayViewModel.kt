@@ -15,7 +15,9 @@ import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.networking.NetworkMonitor
 import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.DeclineRequest
+import com.studios1299.playwall.core.data.networking.request.friendships.LinkFriendshipRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
+import com.studios1299.playwall.core.data.networking.response.friendships.LinkRequestData
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
@@ -129,6 +131,8 @@ class PlayViewModel(
             is PlayAction.OnFriendUnMute -> unblockFriend(action.friendshipId, action.friendshipId)
             is PlayAction.UpdateSelectedFriends -> state = state.copy(selectedFriends = action.updatedSelectedFriends)
             PlayAction.OnNavigateToDiamonds -> navigateDiamonds()
+            is PlayAction.OnCreateFriendshipWithLink -> createFriendshipWithLink(action.requestId, action.code)
+            is PlayAction.OnReceiveInviteLink -> validateInviteLink(action.requestId, action.code)
         }
     }
 
@@ -250,6 +254,37 @@ fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
                 loadFriendsAndRequests(forceUpdate = true)
             } else {
                 eventChannel.send(PlayEvent.ShowError(UiText.DynamicString("Error declining request")))
+            }
+        }
+    }
+
+    private fun createFriendshipWithLink(requestId: Int, code: Int) {
+        viewModelScope.launch {
+            val result = repository.createFriendshipWithLink(LinkFriendshipRequest(requestId, code))
+            if (result is SmartResult.Success) {
+                eventChannel.send(PlayEvent.FriendRequestAccepted)
+                loadFriendsAndRequests(forceUpdate = true)
+            } else if(result is SmartResult.Error) {
+                eventChannel.send(PlayEvent.ShowError(UiText.DynamicString(result.errorBody.toString())))
+            }
+        }
+    }
+
+    private fun validateInviteLink(requestId: Int, code: Int) {
+        viewModelScope.launch {
+            val result = repository.getLinkRequestData(LinkFriendshipRequest(requestId, code))
+            if (result is SmartResult.Success && result.data != null) {
+                eventChannel.send(PlayEvent.InviteLinkParsedSuccessfully)
+                state = state.copy(
+                    linkInvite = LinkRequestData(
+                        nick = result.data.nick,
+                        email = result.data.email,
+                        avatarId = result.data.avatarId
+                    ),
+                )
+                //loadFriendsAndRequests(forceUpdate = true)
+            } else if(result is SmartResult.Error) {
+                eventChannel.send(PlayEvent.ShowError(UiText.DynamicString(result.errorBody.toString())))
             }
         }
     }

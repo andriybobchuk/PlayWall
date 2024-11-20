@@ -20,6 +20,7 @@ import com.studios1299.playwall.core.data.networking.request.friendships.AcceptR
 import com.studios1299.playwall.core.data.networking.request.friendships.BlockRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.DeclineRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.InviteRequest
+import com.studios1299.playwall.core.data.networking.request.friendships.LinkFriendshipRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.RemoveFriendRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.UnblockRequest
 import com.studios1299.playwall.core.data.networking.request.user.UpdateProfileRequest
@@ -30,6 +31,7 @@ import com.studios1299.playwall.core.data.networking.request.wallpapers.Reaction
 import com.studios1299.playwall.core.data.networking.request.wallpapers.RemoveSavedWallpaperRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ReportRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.SaveWallpaperRequest
+import com.studios1299.playwall.core.data.networking.response.friendships.LinkRequestData
 import com.studios1299.playwall.core.data.networking.response.wallpapers.ExploreWallpaperResponse
 import com.studios1299.playwall.core.data.networking.response.user.UserDataResponse
 import com.studios1299.playwall.core.data.networking.response.wallpapers.ChangeWallpaperResponse
@@ -263,6 +265,19 @@ class FirebaseCoreRepositoryImpl(
     override suspend fun declineFriendRequest(declineRequest: DeclineRequest): SmartResult<Unit> {
         return performAuthRequest { token ->
             RetrofitClient.friendsApi.declineFriendRequest(token, declineRequest)
+        }
+    }
+
+    override suspend fun createFriendshipWithLink(linkFriendshipRequest: LinkFriendshipRequest): SmartResult<Unit> {
+        return performAuthRequest { token ->
+            RetrofitClient.friendsApi.createFriendshipWithLink(token, linkFriendshipRequest)
+        }
+    }
+
+    override suspend fun getLinkRequestData(linkFriendshipRequest: LinkFriendshipRequest): SmartResult<LinkRequestData> {
+        Log.e(RetrofitClientExt.LOG_TAG, "Request: ${linkFriendshipRequest}")
+        return performAuthRequest { token ->
+            RetrofitClient.friendsApi.getLinkRequestData(token, linkFriendshipRequest)
         }
     }
 

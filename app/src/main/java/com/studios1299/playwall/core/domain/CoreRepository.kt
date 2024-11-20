@@ -2,7 +2,9 @@ package com.studios1299.playwall.core.domain
 
 import com.studios1299.playwall.core.data.networking.request.friendships.AcceptRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.DeclineRequest
+import com.studios1299.playwall.core.data.networking.request.friendships.LinkFriendshipRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
+import com.studios1299.playwall.core.data.networking.response.friendships.LinkRequestData
 import com.studios1299.playwall.core.data.networking.response.wallpapers.ExploreWallpaperResponse
 import com.studios1299.playwall.core.data.networking.response.user.UserDataResponse
 import com.studios1299.playwall.core.data.networking.response.wallpapers.ChangeWallpaperResponse
@@ -32,6 +34,8 @@ interface CoreRepository {
     suspend fun getFriendRequests(forceUpdate: Boolean): SmartResult<List<Friend>>
     suspend fun acceptFriendRequest(acceptRequest: AcceptRequest): SmartResult<Unit>
     suspend fun declineFriendRequest(declineRequest: DeclineRequest): SmartResult<Unit>
+    suspend fun createFriendshipWithLink(linkFriendshipRequest: LinkFriendshipRequest): SmartResult<Unit>
+    suspend fun getLinkRequestData(linkFriendshipRequest: LinkFriendshipRequest): SmartResult<LinkRequestData>
     suspend fun removeUser(friendshipId: Int): SmartResult<Unit>
     suspend fun blockUser(friendshipId: Int, userId: Int): SmartResult<Unit>
     suspend fun unblockUser(friendshipId: Int, userId: Int): SmartResult<Unit>

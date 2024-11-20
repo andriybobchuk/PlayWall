@@ -2,6 +2,7 @@ package com.studios1299.playwall.play.presentation.play
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text2.input.TextFieldState
+import com.studios1299.playwall.core.data.networking.response.friendships.LinkRequestData
 import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
 import com.studios1299.playwall.play.data.model.MessageStatus
 import com.studios1299.playwall.play.data.model.User
@@ -15,6 +16,7 @@ data class PlayState @OptIn(ExperimentalFoundationApi::class) constructor(
     val isSelectMode: Boolean = false,
     val selectedFriends: List<Int> = emptyList(),
     val exploreWallpapers: List<ExploreWallpaper> = emptyList(),
+    val linkInvite: LinkRequestData = LinkRequestData("", "", ""),
     val isOnline: Boolean = true
 )
 

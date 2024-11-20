@@ -1,5 +1,8 @@
 package com.studios1299.playwall.app.navigation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.ChatBubble
@@ -20,6 +23,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 
 @Composable
@@ -31,13 +39,33 @@ fun BottomNavigationBar(navController: NavHostController, selectedItemIndex: Int
         BottomNavigationItem("Profile", Icons.Filled.Person, Icons.Outlined.Person, false)
     )
 
-    NavigationBar {
+    NavigationBar(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                // Apply gradient background
+                Brush.radialGradient(
+                    colors = listOf(
+                        Color(0xFFFF006E), // Bright Pink (peak color)
+                        Color(0xFF4A1C59), // Deep Magenta
+                        Color(0xFF000000)  // Black (edges)
+                    ),
+                    center = Offset(
+                        x = 0.5f, // Center horizontally
+                        y = 1.0f  // Shift the peak to the bottom center
+                    ),
+                    radius = 400f // Adjust to control the spread of the gradient
+                )
+            ),
+        containerColor = Color.Transparent, // Make the container transparent
+        contentColor = Color.White
+    ) {
         items.forEachIndexed { index, item ->
             NavigationBarItem(
                 selected = selectedItemIndex == index,
                 onClick = {
                     when (index) {
-                        0 -> navController.navigate(Graphs.Main.Screens.play) { popUpTo(Graphs.Main.root) }
+                        0 -> navController.navigate("${Graphs.Main.Screens.play}/${-1}/${-1}") { popUpTo(Graphs.Main.root) }
                         1 -> navController.navigate(Graphs.Main.Screens.explore) { popUpTo(Graphs.Main.root) }
                         2 -> navController.navigate(Graphs.Main.Screens.create) { popUpTo(Graphs.Main.root) }
                         3 -> navController.navigate(Graphs.Main.Screens.profile) { popUpTo(Graphs.Main.root) }

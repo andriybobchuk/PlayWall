@@ -139,4 +139,5 @@
     <string name="username">Username</string>
     <string name="must_be_a_valid_username">5 symbols, no spaces</string>
     <string name="this_username_already_exists">This username already exists</string>
+    <string name="request_accepted">Friend request was accepted</string>
 </resources>

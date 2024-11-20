@@ -4,8 +4,10 @@ import com.studios1299.playwall.core.data.networking.request.friendships.AcceptR
 import com.studios1299.playwall.core.data.networking.request.friendships.BlockRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.DeclineRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.InviteRequest
+import com.studios1299.playwall.core.data.networking.request.friendships.LinkFriendshipRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.RemoveFriendRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.UnblockRequest
+import com.studios1299.playwall.core.data.networking.response.friendships.LinkRequestData
 import com.studios1299.playwall.play.presentation.play.Friend
 import retrofit2.Response
 import retrofit2.http.Body
@@ -38,6 +40,18 @@ interface FriendsApi {
         @Header("Authorization") authHeader: String,
         @Body declineRequest: DeclineRequest
     ): Response<Unit>
+
+    @POST("api/friendship/create-friendship-with-link")
+    suspend fun createFriendshipWithLink(
+        @Header("Authorization") authHeader: String,
+        @Body acceptRequest: LinkFriendshipRequest
+    ): Response<Unit>
+
+    @POST("api/friendship/getLinkRequestData")
+    suspend fun getLinkRequestData(
+        @Header("Authorization") authHeader: String,
+        @Body acceptRequest: LinkFriendshipRequest
+    ): Response<LinkRequestData>
 
     @POST("api/friendship/removeFriend")
     suspend fun removeFriend(

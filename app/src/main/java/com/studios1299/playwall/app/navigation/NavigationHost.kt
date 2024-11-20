@@ -1,9 +1,7 @@
 package com.studios1299.playwall.app.navigation
 
 import android.util.Log
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -12,6 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
 import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.presentation.viewModelFactory
@@ -151,10 +150,30 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
 
 private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManager: AdManager) {
     navigation(
-        startDestination = Graphs.Main.Screens.play,
+        startDestination = "${Graphs.Main.Screens.play}/${-1}/${-1}",
         route = Graphs.Main.root
     ) {
-        composable(Graphs.Main.Screens.play) {
+        composable(
+            route = "${Graphs.Main.Screens.play}/{requesterId}/{code}",
+            arguments = listOf(
+                navArgument("requesterId") {
+                    type = NavType.IntType
+                    defaultValue = -1
+                    nullable = false
+                },
+                navArgument("code") {
+                    type = NavType.IntType
+                    defaultValue = -1
+                    nullable = false
+                }
+            ),
+            deepLinks = listOf(navDeepLink {
+                uriPattern = "https://andriybobchuk.netlify.app/invite?requesterId={requesterId}?code={code}"
+            })
+        ) { backStackEntry ->
+            val requesterId = backStackEntry.arguments?.getInt("requesterId")?:-1
+            val requestCode = backStackEntry.arguments?.getInt("code")?:-1
+
             PlayScreenRoot(
                 viewModel = viewModel<PlayViewModel>(
                     factory = viewModelFactory {
@@ -169,9 +188,30 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
                 onNavigateToDiamonds = {
                     navController.navigate(Graphs.Main.Screens.diamonds)
                 },
-                bottomNavbar = { BottomNavigationBar(navController, 0) }
+                bottomNavbar = { BottomNavigationBar(navController, 0) },
+                requesterId = requesterId,
+                requestCode = requestCode
             )
         }
+
+//        composable(Graphs.Main.Screens.play) {
+//            PlayScreenRoot(
+//                viewModel = viewModel<PlayViewModel>(
+//                    factory = viewModelFactory {
+//                        PlayViewModel(
+//                            MyApp.appModule.coreRepository
+//                        )
+//                    }
+//                ),
+//                onNavigateToChat = { friendId ->
+//                    navController.navigate("${Graphs.Main.Screens.play_chat}/$friendId")
+//                },
+//                onNavigateToDiamonds = {
+//                    navController.navigate(Graphs.Main.Screens.diamonds)
+//                },
+//                bottomNavbar = { BottomNavigationBar(navController, 0) }
+//            )
+//        }
         composable(Graphs.Main.Screens.diamonds) {
             DiamondsScreen(
                 onNavigateToLuckySpin = { navController.navigate(Graphs.Main.Screens.lucky_spin) },

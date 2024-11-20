@@ -22,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text2.input.clearText
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -31,9 +30,7 @@ import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ContentCopy
-import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.material.icons.rounded.QrCode
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
@@ -62,7 +59,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -78,6 +74,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.studios1299.playwall.R
+import com.studios1299.playwall.core.data.networking.response.friendships.LinkRequestData
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.data.s3.uriToFile
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
@@ -108,7 +105,9 @@ fun PlayScreenRoot(
     viewModel: PlayViewModel,
     onNavigateToChat: (Int) -> Unit,
     onNavigateToDiamonds: () -> Unit,
-    bottomNavbar: @Composable () -> Unit
+    requesterId: Int?,
+    requestCode: Int?,
+    bottomNavbar: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
     val state = viewModel.state
@@ -128,11 +127,12 @@ fun PlayScreenRoot(
             }
             PlayEvent.NavigateToDiamonds -> onNavigateToDiamonds()
             PlayEvent.FriendRequestAccepted, PlayEvent.FriendRequestRejected -> {
-                Toast.makeText(context, R.string.action_successful, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, R.string.request_accepted, Toast.LENGTH_SHORT).show()
             }
             PlayEvent.WallpaperSent -> {
                 Toast.makeText(context, R.string.action_successful, Toast.LENGTH_SHORT).show()
             }
+            PlayEvent.InviteLinkParsedSuccessfully -> TODO()
         }
     }
 
@@ -161,13 +161,15 @@ fun PlayScreenRoot(
         state = rememberSwipeRefreshState(isRefreshing = refreshing),
         onRefresh = {
             refreshing = true
-            viewModel.loadFriendsAndRequests(forceUpdate = true)        },
+            viewModel.loadFriendsAndRequests(forceUpdate = true)},
     ) {
         PlayScreen(
             state = state,
             onAction = { action ->
                 viewModel.onAction(action)
             },
+            requesterId = requesterId,
+            requestCode = requestCode,
             bottomNavbar = bottomNavbar
         )
     }
@@ -180,6 +182,8 @@ fun PlayScreenRoot(
 fun PlayScreen(
     state: PlayState,
     onAction: (PlayAction) -> Unit,
+    requesterId: Int?,
+    requestCode: Int?,
     bottomNavbar: @Composable () -> Unit
 ) {
     val isInviteSheetOpen = remember { mutableStateOf(false) }
@@ -195,7 +199,13 @@ fun PlayScreen(
     var selectedFriendshipId by remember { mutableStateOf<Int>(-1) }
     var selectedFriendId by remember { mutableStateOf<Int>(-1) }
 
+    val showInviteDialog = remember { mutableStateOf(state.linkInvite.nick=="") }
+
     requestNotificationPermissionWithDexter(LocalContext.current)
+
+    if(requesterId!=null && requesterId!=-1 && requestCode!=null && requestCode!=-1) {
+        onAction(PlayAction.OnReceiveInviteLink(requesterId, requestCode))
+    }
 
     KeyboardAware {
         InviteSheet(
@@ -271,6 +281,19 @@ fun PlayScreen(
                 ) {
                     Text("Cancel")
                 }
+            }
+        )
+    }
+
+    if (showInviteDialog.value) {
+        FriendRequestDialog(
+            linkInviteData = state.linkInvite,
+            onAccept = {
+                onAction(PlayAction.OnCreateFriendshipWithLink(requesterId!!, requestCode!!))
+                showInviteDialog.value = false
+            },
+            onReject = {
+                showInviteDialog.value = false
             }
         )
     }
@@ -711,8 +734,6 @@ fun FriendRequestItem(
     }
 }
 
-
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
 )
 @Composable
@@ -840,46 +861,6 @@ fun SavedWallpaperSheet(
     }
 }
 
-//@Composable
-//@OptIn(ExperimentalGlideComposeApi::class)
-//fun ImageGrid(
-//    innerPadding: PaddingValues,
-//    state: PlayState,
-//    onWallpaperSelected: (Int) -> Unit
-//) {
-//    Box(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .padding(innerPadding)
-//    ) {
-//        if (!state.isLoading) {
-//            LazyVerticalGrid(
-//                columns = GridCells.Fixed(3),
-//                modifier = Modifier.fillMaxSize()
-//            ) {
-//                items(state.exploreWallpapers.size) { index ->
-//                    val photo = state.exploreWallpapers[index]
-//                    GlideImage(
-//                        model = "",
-//                        contentDescription = "wallpaper",
-//                        modifier = Modifier
-//                            .aspectRatio(1f)
-//                            .clickable {
-//                                if (state.exploreWallpapers.isNotEmpty()) {
-//                                    //downloadAndUploadImage(photo.url)
-//                                    onWallpaperSelected(photo.id)
-//                                }
-//                            }
-//                            .padding(1.dp)
-//                            .background(MaterialTheme.colorScheme.outline),
-//                        contentScale = ContentScale.Crop,
-//                    )
-//                }
-//            }
-//        }
-//    }
-//}
-
 @Composable
 fun PhotoGridRow(
     exploreWallpapers: List<ExploreWallpaper>,
@@ -915,67 +896,30 @@ fun PhotoGridRow(
     Log.e("PhotoGridRow", "Finished rendering PhotoGridRow.")
 }
 
+@Composable
+fun FriendRequestDialog(
+    linkInviteData: LinkRequestData?,
+    onAccept: () -> Unit,
+    onReject: () -> Unit
+) {
+    if (linkInviteData != null) {
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text("Friend Request") },
+            text = { Text("${linkInviteData.nick} requests to be your friend. Do you wish to accept?") },
+            confirmButton = {
+                Button(onClick = onAccept) {
+                    Text("Accept")
+                }
+            },
+            dismissButton = {
+                Button(onClick = onReject) {
+                    Text("Reject")
+                }
+            }
+        )
+    }
+}
 
-//fun downloadAndUploadImage(imageUrl: String) {
-//    CoroutineScope(Dispatchers.IO).launch {
-//        try {
-//            Log.e("WALL", "Downloading image from URL: $imageUrl")
-//            val file = downloadImageFromUrl(imageUrl)
-//            Log.e("WALL", "Downloaded image, now uploading...")
-//
-//            val key = uploadWallpaper(file)
-//            Log.e("WALL", "Image uploaded with key: $key")
-//
-//        } catch (e: Exception) {
-//            Log.e("WALL", "Error during download or upload: ${e.message}")
-//        }
-//    }
-//}
-//
-//fun downloadImageFromUrl(imageUrl: String): File {
-//    Log.e("WALL", "Starting image download from: $imageUrl")
-//    val url = URL(imageUrl)
-//    val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
-//    connection.doInput = true
-//    connection.connect()
-//
-//    val inputStream: InputStream = connection.inputStream
-//    val tempFile = File.createTempFile("downloaded_image", ".jpg") // Save as temp file
-//    tempFile.outputStream().use { outputStream ->
-//        inputStream.copyTo(outputStream)
-//    }
-//    inputStream.close()
-//
-//    Log.e("WALL", "Image successfully downloaded and saved to temp file: ${tempFile.absolutePath}")
-//    return tempFile
-//}
-//
-//fun uploadWallpaper(file: File): String {
-//    val uuid = UUID.randomUUID().toString() // Use UUID v4 or v7
-//    val key = "wallpapers/$uuid v4"
-//    Log.e("WALL", "Uploading file with key: $key")
-//
-//    val putObjectRequest = PutObjectRequest.builder()
-//        .bucket("playwall-dev")
-//        .key(key)
-//        .build()
-//
-//    S3ClientProvider.s3Client.putObject(putObjectRequest, RequestBody.fromFile(file))
-//
-//    Log.e("WALL", "File uploaded successfully with key: $key")
-//    return key // Return the key for future reference
-//}
-//
-//fun downloadWallpaper(key: String, downloadPath: String) {
-//    Log.e("WALL", "Downloading wallpaper with key: $key to path: $downloadPath")
-//
-//    val getObjectRequest = GetObjectRequest.builder()
-//        .bucket("playwall-dev")
-//        .key(key)
-//        .build()
-//
-//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//        S3ClientProvider.s3Client.getObject(getObjectRequest, Paths.get(downloadPath))
-//        Log.e("WALL", "Wallpaper successfully downloaded to: $downloadPath")
-//    }
-//}
+
+

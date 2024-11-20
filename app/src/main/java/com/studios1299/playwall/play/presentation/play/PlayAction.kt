@@ -13,6 +13,8 @@ sealed interface PlayAction {
 
     data class OnAcceptFriendRequest(val requestId: Int): PlayAction
     data class OnRejectFriendRequest(val requestId: Int): PlayAction
+    data class OnCreateFriendshipWithLink(val requestId: Int, val code: Int): PlayAction
+    data class OnReceiveInviteLink(val requestId: Int, val code: Int): PlayAction
     data object Refresh: PlayAction
 
     data class OnInviteFriend(val userEmail: String): PlayAction

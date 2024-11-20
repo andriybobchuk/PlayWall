@@ -20,8 +20,8 @@ object RetrofitClientExt {
             responseToSmartResult(response)
         } catch (e: Exception) {
             Firebase.crashlytics.recordException(e)
-            Log.e(LOG_TAG, "This should virtually never happen: responseToSmartResult couldn't convert response to SmartResult")
-            SmartResult.Error(600, "Runtime Exception", "Originated from $LOG_TAG: \n${e.message}")
+            Log.e(LOG_TAG, "Request failed: ${e.message}")
+            SmartResult.Error(600, "Runtime Exception", "${e.message}")
         }
     }
 
