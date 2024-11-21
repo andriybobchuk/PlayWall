@@ -351,7 +351,7 @@ fun DateHeader(date: String) {
     ) {
         Text(
             text = date,
-            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.secondary)
+            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSecondaryContainer)
         )
     }
 }
@@ -408,7 +408,6 @@ fun MessengerScreenHeader(
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(R.string.back),
-                    tint = MaterialTheme.colorScheme.primary
                 )
             }
 
@@ -441,7 +440,7 @@ fun MessengerScreenHeader(
                                     LocalContext.current
                                 )
                             }",
-                            color = MaterialTheme.colorScheme.secondary,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -462,7 +461,6 @@ fun MessengerScreenHeader(
                         Icon(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = "More options",
-                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -511,14 +509,14 @@ fun SendImageButton(onClick: () -> Unit, recipient: User, uiState: MessengerUiSt
     ) {
         Text(
             text = stringResource(R.string.pick_image),
-            color = MaterialTheme.colorScheme.background,
+            color = MaterialTheme.colorScheme.onPrimary,
             fontSize = 16.sp
         )
         Spacer(modifier = Modifier.width(8.dp))
         Icon(
             imageVector = Icons.AutoMirrored.Filled.Send,
             contentDescription = stringResource(R.string.send_image),
-            tint = MaterialTheme.colorScheme.background
+            tint = MaterialTheme.colorScheme.onPrimary
         )
     }
 }

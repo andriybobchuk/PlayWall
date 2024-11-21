@@ -199,7 +199,8 @@ fun PlayScreen(
     var selectedFriendshipId by remember { mutableStateOf<Int>(-1) }
     var selectedFriendId by remember { mutableStateOf<Int>(-1) }
 
-    val showInviteDialog = remember { mutableStateOf(state.linkInvite.nick=="") }
+    //val showInviteDialog = remember { mutableStateOf(state.linkInvite.nick=="") }
+    val showInviteDialog = remember { mutableStateOf(false) }
 
     requestNotificationPermissionWithDexter(LocalContext.current)
 
@@ -361,11 +362,11 @@ fun PlayScreen(
         floatingActionButton = {
             ExpandableFab(
                 icon = Icons.Rounded.Add,
-                text = "Invite friend by",
+                text = "Add friend",
                 items = listOf(
                     ExpendableFabItem(
                         icon = Icons.Rounded.ContentCopy,
-                        text = "link",
+                        text = "Link",
                         onClick = {}
                         ),
                     ExpendableFabItem(
@@ -375,7 +376,7 @@ fun PlayScreen(
                     ),
                     ExpendableFabItem(
                         icon = Icons.Rounded.Person,
-                        text = "username",
+                        text = "Username",
                         onClick = { isInviteSheetOpen.value = true }
                     )
                 )

@@ -15,6 +15,7 @@ import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,7 +32,6 @@ import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.designsystem.ArrowLeftIcon
 
 object Toolbars {
-
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -60,6 +60,7 @@ object Toolbars {
                 }
             },
             actions = {
+                customContent?.invoke()
                 actions.take(3).forEach { actionIcon ->
                     IconButton(
                         onClick = actionIcon.onClick,
@@ -71,8 +72,14 @@ object Toolbars {
                         )
                     }
                 }
-                customContent?.invoke()
-            }
+            },
+//            colors = TopAppBarColors(
+//                containerColor = MaterialTheme.colorScheme.background,
+//                scrolledContainerColor = MaterialTheme.colorScheme.primary.copy(0.1f),
+//                navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+//                titleContentColor = MaterialTheme.colorScheme.onBackground,
+//                actionIconContentColor = MaterialTheme.colorScheme.onBackground,
+//            )
         )
     }
 

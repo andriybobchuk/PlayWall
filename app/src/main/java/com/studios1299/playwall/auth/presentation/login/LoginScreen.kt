@@ -145,12 +145,11 @@ private fun LoginScreen(
                 modifier = Modifier.padding(vertical = 16.dp),
                 text = stringResource(id = R.string.hi_there),
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.onBackground
             )
             Text(
                 text = stringResource(id = R.string.welcome_text),
                 fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(48.dp))

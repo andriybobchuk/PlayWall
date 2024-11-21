@@ -7,6 +7,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
@@ -62,7 +63,7 @@ fun ExpandableFab(
         modifier = modifier,
         elevation = CardDefaults.elevatedCardElevation(4.dp)
     ) {
-        Column {
+        Column(modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)) {
             // The Expandable Sheet layout
             AnimatedVisibility(
                 visible = buttonClicked,

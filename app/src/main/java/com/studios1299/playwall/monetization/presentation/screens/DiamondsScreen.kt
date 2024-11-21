@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.AdUnits
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -84,7 +85,9 @@ fun DiamondsScreen(
     val billingManager = BillingManager(context)
 
     val colorStops = arrayOf(
-        0.3f to Color(0xFF8A2BE2), // Purple, like BlueViolet
+        //0.3f to Color(0xFF8A2BE2), // Purple, like BlueViolet
+        0.4f to MaterialTheme.colorScheme.background, // Purple, like BlueViolet
+        //1.0f to Color(0xFFFF00FF)  // Magenta
         1.0f to Color(0xFFFF00FF)  // Magenta
     )
 
@@ -112,7 +115,7 @@ fun DiamondsScreen(
         DiamondsScreenTopBar(onBackClick, isLoading)
         Column(
             modifier = Modifier
-                .padding(horizontal = 8.dp, vertical = 12.dp)
+                .padding(horizontal = 10.dp, vertical = 12.dp)
 
         ) {
             DiamondsCount(diamondsCount = diamondsCount.value)
@@ -123,17 +126,17 @@ fun DiamondsScreen(
             Spacer(modifier = Modifier.size(spacing))
             WatchVideoButton(isLoading) {
                 if (!isLoading) {
-                    analytics.logEvent("ds_watch_ads_to_get_diamonds_button",null)
+                    analytics.logEvent("ds_watch_ads_to_get_diamonds_button", null)
                     isLoading = true
                     adManager.loadRewardedAd(
                         onAdLoaded = { adLoaded ->
-                            if(adLoaded) {
+                            if (adLoaded) {
                                 adManager.showRewardedAdIfLoaded(
                                     onRewardEarned = {
                                         viewModel.addDevils(1)
                                     },
                                     onAdClosed = {
-                                       // viewModel.showNextDiamondSheet()
+                                        // viewModel.showNextDiamondSheet()
                                         AppState.updateNextDiamondSheetShow(true)
                                     }
                                 )
@@ -189,7 +192,7 @@ fun DiamondsScreen(
 //                Text(text = "reset checkin")
 //            }
 
-            if(showNextDiamondSheet.value) {
+            if (showNextDiamondSheet.value) {
                 NextDiamondSheet(
                     viewModel = viewModel,
                     adManager = adManager
@@ -209,7 +212,7 @@ fun DiamondsScreenTopBar(onBackClick: () -> Unit, isLoading: Boolean) {
         title = "Get Devils",
         showBackButton = true,
         onBackClick = {
-            if(!isLoading) {
+            if (!isLoading) {
                 onBackClick()
             }
         },
@@ -220,10 +223,12 @@ fun DiamondsScreenTopBar(onBackClick: () -> Unit, isLoading: Boolean) {
 @Composable
 fun DiamondsCount(diamondsCount: Int) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-        Box(modifier = Modifier
-            //.clip(RoundedCornerShape(8.dp))
-            //.background(DIAMONDS_SCREEN_PANEL.copy(alpha = 0.5f))
-            .padding(vertical = 16.dp, horizontal = 24.dp)) {
+        Box(
+            modifier = Modifier
+                //.clip(RoundedCornerShape(8.dp))
+                //.background(DIAMONDS_SCREEN_PANEL.copy(alpha = 0.5f))
+                .padding(vertical = 16.dp, horizontal = 24.dp)
+        ) {
             Text(
                 text = "$EVIL_EMOJI $diamondsCount",
                 fontSize = 40.sp,
@@ -257,18 +262,18 @@ fun DailyCheckIn(
 
     Column(
         modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(color = Color.White)
+            .clip(RoundedCornerShape(20.dp))
+            .background(color = MaterialTheme.colorScheme.primaryContainer)
             .fillMaxWidth()
-            .padding(10.dp)
+            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 20.dp)
     ) {
         Text(
             text = "Daily Check-In",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = DIAMONDS_SCREEN_PANEL
+            color = MaterialTheme.colorScheme.onBackground
         )
-        Spacer(modifier = Modifier.size(12.dp))
+        Spacer(modifier = Modifier.size(20.dp))
         LazyRow(
             state = listState,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -278,14 +283,14 @@ fun DailyCheckIn(
             }
         }
 
-       // if(!hasCheckedInToday) {
-        if(!hasCheckedInToday.value) {
+        // if(!hasCheckedInToday) {
+        if (!hasCheckedInToday.value) {
             Spacer(modifier = Modifier.size(16.dp))
             Button(
                 modifier = Modifier
                     .fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = DIAMONDS_SCREEN_PANEL),
-                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                shape = RoundedCornerShape(10.dp),
                 onClick = {
                     viewModel.checkIn()
                 }
@@ -309,8 +314,15 @@ fun LuckySpinButton(onLuckySpinClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 70.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = DIAMONDS_SCREEN_PANEL),
-        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+        shape = RoundedCornerShape(10.dp),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 8.dp,
+            pressedElevation = 8.dp,
+            focusedElevation = 8.dp,
+            hoveredElevation = 8.dp,
+            disabledElevation = 8.dp
+        ),
         onClick = onLuckySpinClick
     ) {
         Text(
@@ -327,9 +339,16 @@ fun UnlimitedDiamondsButton(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 70.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = DIAMONDS_SCREEN_PANEL),
-        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+        shape = RoundedCornerShape(10.dp),
         onClick = onClick,
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 8.dp,
+            pressedElevation = 8.dp,
+            focusedElevation = 8.dp,
+            hoveredElevation = 8.dp,
+            disabledElevation = 8.dp
+        ),
         //border = BorderStroke(width = 4.dp, color = ColorCarbon)
     ) {
         Text(
@@ -349,11 +368,18 @@ fun WatchVideoButton(isLoading: Boolean, onClick: () -> Unit) {
             .fillMaxWidth()
             .defaultMinSize(minHeight = 40.dp)
             .heightIn(min = 70.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = DIAMONDS_SCREEN_PANEL),
-        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+        shape = RoundedCornerShape(10.dp),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 8.dp,
+            pressedElevation = 8.dp,
+            focusedElevation = 8.dp,
+            hoveredElevation = 8.dp,
+            disabledElevation = 8.dp
+        ),
         onClick = onClick
     ) {
-        if(isLoading) {
+        if (isLoading) {
             CircularProgressIndicator(
                 color = Color.White,
                 modifier = Modifier.size(20.dp),
@@ -376,15 +402,17 @@ fun WatchVideoButton(isLoading: Boolean, onClick: () -> Unit) {
 fun DailyCheckInCard(
     data: DailyCheckinData
 ) {
-    val textColor = if(data.checked) Color.White else DIAMONDS_SCREEN_PANEL
-    val bgColor = if(data.checked) DIAMONDS_SCREEN_PANEL else Color.White
+    val bgColor =
+        if (data.checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer
+    val textColor =
+        if (data.checked) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
             .background(color = bgColor)
             .border(
                 2.dp,
-                color = DIAMONDS_SCREEN_PANEL,
+                color = MaterialTheme.colorScheme.primary,
                 shape = RoundedCornerShape(6.dp)
             )
             .padding(vertical = 4.dp, horizontal = 10.dp),
@@ -447,7 +475,11 @@ fun BuyDialog(
                     Button(
                         onClick = {
                             coroutineScope.launch {
-                                billingManager.startPurchaseFlow(context as Activity, "weekly_subscription", BillingClient.ProductType.SUBS)
+                                billingManager.startPurchaseFlow(
+                                    context as Activity,
+                                    "weekly_subscription",
+                                    BillingClient.ProductType.SUBS
+                                )
                             }
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -461,7 +493,11 @@ fun BuyDialog(
                     Button(
                         onClick = {
                             coroutineScope.launch {
-                                billingManager.startPurchaseFlow(context as Activity, "premium_lifetime", BillingClient.ProductType.INAPP)
+                                billingManager.startPurchaseFlow(
+                                    context as Activity,
+                                    "premium_lifetime",
+                                    BillingClient.ProductType.INAPP
+                                )
                             }
                         },
                         modifier = Modifier.fillMaxWidth()

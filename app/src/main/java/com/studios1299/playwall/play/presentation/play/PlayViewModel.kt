@@ -271,22 +271,22 @@ fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
     }
 
     private fun validateInviteLink(requestId: Int, code: Int) {
-        viewModelScope.launch {
-            val result = repository.getLinkRequestData(LinkFriendshipRequest(requestId, code))
-            if (result is SmartResult.Success && result.data != null) {
-                eventChannel.send(PlayEvent.InviteLinkParsedSuccessfully)
-                state = state.copy(
-                    linkInvite = LinkRequestData(
-                        nick = result.data.nick,
-                        email = result.data.email,
-                        avatarId = result.data.avatarId
-                    ),
-                )
-                //loadFriendsAndRequests(forceUpdate = true)
-            } else if(result is SmartResult.Error) {
-                eventChannel.send(PlayEvent.ShowError(UiText.DynamicString(result.errorBody.toString())))
-            }
-        }
+//        viewModelScope.launch {
+//            val result = repository.getLinkRequestData(LinkFriendshipRequest(requestId, code))
+//            if (result is SmartResult.Success && result.data != null) {
+//                eventChannel.send(PlayEvent.InviteLinkParsedSuccessfully)
+//                state = state.copy(
+//                    linkInvite = LinkRequestData(
+//                        nick = result.data.nick,
+//                        email = result.data.email,
+//                        avatarId = result.data.avatarId
+//                    ),
+//                )
+//                //loadFriendsAndRequests(forceUpdate = true)
+//            } else if(result is SmartResult.Error) {
+//                eventChannel.send(PlayEvent.ShowError(UiText.DynamicString(result.errorBody.toString())))
+//            }
+//        }
     }
 
     fun blockFriend(friendshipId: Int, userId: Int) {

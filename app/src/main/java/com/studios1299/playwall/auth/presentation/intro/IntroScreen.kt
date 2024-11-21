@@ -74,7 +74,7 @@ fun IntroScreen(
                 Text(
                     text = stringResource(R.string.an_incredible_app_that_allows_you_to_send_wallpapers),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
                 Spacer(modifier = Modifier.height(32.dp))
                 Buttons.Primary(
@@ -109,9 +109,9 @@ private fun LogoVertical(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(id = R.drawable.pw),
+            painter = painterResource(id = R.drawable.ic_pw),
             contentDescription = null,
-            modifier = Modifier.size(172.dp)
+            modifier = Modifier.size(320.dp)
         )
     }
 }

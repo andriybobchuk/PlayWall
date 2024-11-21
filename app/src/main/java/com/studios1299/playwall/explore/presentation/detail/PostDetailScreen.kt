@@ -246,7 +246,7 @@ fun PostDetailScreen(
                     Text(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         text = "${timestampAsDate(currentPhoto.dateCreated, context)}, ${currentPhoto.savedCount} likes",
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         style = MaterialTheme.typography.bodyMedium
                     )
 //                    Button(

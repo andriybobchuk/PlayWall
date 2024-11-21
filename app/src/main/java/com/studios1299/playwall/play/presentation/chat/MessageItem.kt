@@ -195,7 +195,6 @@ fun MessageContent(
         if (isLastMessage && isCurrentUser) {
             Text(
                 text = formatStatus(message.status, LocalContext.current),
-                color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier
                     .align(Alignment.End)
@@ -476,7 +475,7 @@ fun CaptionAndTimestamp(
             Text(
                 text = timestampAsTime(message.timestamp),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(bottom = 8.dp, start = 8.dp, end = 8.dp)
             )
         }

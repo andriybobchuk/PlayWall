@@ -273,7 +273,7 @@ fun ProfileScreen(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)),
+                .background(MaterialTheme.colorScheme.background),
         ) {
             item {
                 if (!state.isOnline) {
@@ -583,7 +583,7 @@ fun SettingMenuItem(
                     onClick()
                 }
             })
-            .background(MaterialTheme.colorScheme.surface),
+            .background(MaterialTheme.colorScheme.primaryContainer),
     ) {
         Row(
             modifier = Modifier
@@ -622,13 +622,13 @@ fun SelectorMenuItem(
 
     Surface(
         modifier = Modifier
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .fillMaxWidth()
             .clickable {
                 if (enabled) {
                     isSheetOpen = true
                 }
-            }
-            .background(MaterialTheme.colorScheme.surface),
+            },
         shape = RoundedCornerShape(14.dp),
     ) {
         Row(
@@ -730,7 +730,7 @@ fun SwitchMenuItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = { onCheckedChange(!isChecked) })
-            .background(MaterialTheme.colorScheme.surface),
+            .background(MaterialTheme.colorScheme.primaryContainer),
         shape = RoundedCornerShape(14.dp),
     ) {
         Row(

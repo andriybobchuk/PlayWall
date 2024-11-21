@@ -184,7 +184,7 @@ fun ReactSheet(
                 }
                 Spacer(modifier = Modifier.height(10.dp))
                 val context = LocalContext.current
-                Buttons.Primary(text = "Download wallpaper", isLoading = false, onClick = {
+                Buttons.Secondary(text = "Download wallpaper", isLoading = false, onClick = {
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                         Dexter.withContext(MyApp.appModule.context)
                             .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -301,10 +301,10 @@ fun ReplyField(
                     viewModel.addOrUpdateComment(message.id, trimmedText)
                     isSheetOpen.value = false
                 },
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(13.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text(stringResource(R.string.comment), color = MaterialTheme.colorScheme.background)
+                Text(stringResource(R.string.comment), color = MaterialTheme.colorScheme.onPrimary)
             }
         }
     }
