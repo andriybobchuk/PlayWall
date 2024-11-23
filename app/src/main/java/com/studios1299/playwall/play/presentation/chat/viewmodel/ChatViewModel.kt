@@ -512,7 +512,8 @@ class ChatViewModel(
                     currentState.copy(messages = updatedMessages)
                 }
             } else if (response is SmartResult.Error) {
-                sendErrorMessage(response.message?:response.errorBody?:"Wallpaper could not be sent")
+                Log.e(LOG_TAG, response.errorBody.toString())
+                sendErrorMessage(response.errorBody?:"Wallpaper could not be sent")
                 // Remove the optimistic message if the request fails
                 _uiState.update { currentState ->
                     val filteredMessages =

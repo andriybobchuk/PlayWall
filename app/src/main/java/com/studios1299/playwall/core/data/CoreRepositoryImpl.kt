@@ -903,25 +903,25 @@ class FirebaseCoreRepositoryImpl(
         AppState.updatePremiumStatus(isPremium)
         return isPremium
     }
-
-    override suspend fun getLastCheckInDate(): String? {
-        var lastDate = Preferences.getLastCheckInDate()
-        Log.e(LOG_TAG, "getLastCheckInDate from prefs: $lastDate")
-        if (lastDate.isNullOrEmpty()) {
-            val result = performAuthRequest { token ->
-                RetrofitClient.userAppDataApi.getAppData(token)
-            }
-            if (result is SmartResult.Success) {
-                lastDate = result.data?.lastCheckInDate
-                Log.e(LOG_TAG, "getLastCheckInDate from remote: $lastDate")
-                if (lastDate != null) {
-                    Preferences.setLastCheckInDate(lastDate)
-                }
-            }
-        }
-        Log.e(LOG_TAG, "final getLastCheckInDate: $lastDate")
-        return lastDate
-    }
+//
+//    override suspend fun getLastCheckInDate(): String? {
+//        var lastDate = Preferences.getLastCheckInDate()
+//        Log.e(LOG_TAG, "getLastCheckInDate from prefs: $lastDate")
+//        if (lastDate.isNullOrEmpty()) {
+//            val result = performAuthRequest { token ->
+//                RetrofitClient.userAppDataApi.getAppData(token)
+//            }
+//            if (result is SmartResult.Success) {
+//                lastDate = result.data?.lastCheckInDate
+//                Log.e(LOG_TAG, "getLastCheckInDate from remote: $lastDate")
+//                if (lastDate != null) {
+//                    Preferences.setLastCheckInDate(lastDate)
+//                }
+//            }
+//        }
+//        Log.e(LOG_TAG, "final getLastCheckInDate: $lastDate")
+//        return lastDate
+//    }
 
     override suspend fun setLastCheckInDate(date: String): SmartResult<Unit> {
         return try {
@@ -941,31 +941,35 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-    override suspend fun hasCheckedInToday(): Boolean {
-        val lastCheckInDate = getLastCheckInDate()
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val hasCheckedIn = lastCheckInDate == today
-        Log.e(LOG_TAG, "hasCheckedInToday: Checked in today? $hasCheckedIn")
-        return hasCheckedIn
-    }
+//    override suspend fun hasCheckedInToday(): Boolean {
+//        val lastCheckInDate = getLastCheckInDate()
+//        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+//        val hasCheckedIn = lastCheckInDate == today
+//        Log.e(LOG_TAG, "hasCheckedInToday: Checked in today? $hasCheckedIn")
+//        return hasCheckedIn
+//    }
 
-    override suspend fun getConsecutiveDays(): Int {
-        var consecutiveDays = Preferences.getConsecutiveDays()
-        Log.e(LOG_TAG, "getConsecutiveDays from prefs: $consecutiveDays")
-        if (consecutiveDays == -1) {  // Assuming -1 indicates no local data available
-            val result = performAuthRequest { token ->
-                RetrofitClient.userAppDataApi.getAppData(token)
-            }
-            if (result is SmartResult.Success) {
-                consecutiveDays = result.data?.consecutiveDays ?: 0
-                Log.e(LOG_TAG, "getConsecutiveDays from remote: $consecutiveDays")
-                Preferences.setConsecutiveDays(consecutiveDays)
-                AppState.updateConsecutiveDays(consecutiveDays)
-            }
-        }
-        Log.e(LOG_TAG, "getConsecutiveDays: $consecutiveDays")
-        return consecutiveDays
-    }
+    override suspend fun getLastCheckInDate() = "2024-11-18"
+    override suspend fun getConsecutiveDays() = 4
+    override suspend fun hasCheckedInToday() = false
+
+//    override suspend fun getConsecutiveDays(): Int {
+//        var consecutiveDays = Preferences.getConsecutiveDays()
+//        Log.e(LOG_TAG, "getConsecutiveDays from prefs: $consecutiveDays")
+//        if (consecutiveDays == -1) {  // Assuming -1 indicates no local data available
+//            val result = performAuthRequest { token ->
+//                RetrofitClient.userAppDataApi.getAppData(token)
+//            }
+//            if (result is SmartResult.Success) {
+//                consecutiveDays = result.data?.consecutiveDays ?: 0
+//                Log.e(LOG_TAG, "getConsecutiveDays from remote: $consecutiveDays")
+//                Preferences.setConsecutiveDays(consecutiveDays)
+//                AppState.updateConsecutiveDays(consecutiveDays)
+//            }
+//        }
+//        Log.e(LOG_TAG, "getConsecutiveDays: $consecutiveDays")
+//        return consecutiveDays
+//    }
 
     override suspend fun setConsecutiveDays(days: Int): SmartResult<Unit> {
         return try {

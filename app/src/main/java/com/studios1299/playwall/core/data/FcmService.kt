@@ -143,7 +143,7 @@ class FcmService : FirebaseMessagingService() {
                         recipientId = recipientId,
                         friendshipId = friendshipId
                     )
-                    emitFriendUpdate(friendEvent)
+                    //emitFriendUpdate(friendEvent)
                 }
                 "friend_unblock" -> {
                     Log.e("FcmService", "Friend unblocked")

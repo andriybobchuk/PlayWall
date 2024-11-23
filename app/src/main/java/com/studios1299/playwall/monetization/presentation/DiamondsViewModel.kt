@@ -99,6 +99,7 @@ class DiamondsViewModel(
         }
     }
 
+
     fun checkIn() {
         viewModelScope.launch {
             Log.e(LOG_TAG, "checkIn(), start")
