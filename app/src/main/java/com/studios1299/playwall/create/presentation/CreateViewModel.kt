@@ -16,8 +16,10 @@ import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.play.presentation.play.Friend
 import com.studios1299.playwall.play.presentation.play.WallpaperNotificationForPlay
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
@@ -26,6 +28,14 @@ import kotlinx.coroutines.launch
 class CreateViewModel(
     private val repository: CoreRepository
 ) : ViewModel() {
+
+    private val _errorMessages = MutableSharedFlow<String>()
+    val errorMessages = _errorMessages.asSharedFlow()
+    fun sendErrorMessage(message: String) {
+        viewModelScope.launch {
+            _errorMessages.emit(message)
+        }
+    }
 
     private val _state = MutableStateFlow(CreateScreenState())
     val state: StateFlow<CreateScreenState> = _state.asStateFlow()
@@ -118,10 +128,9 @@ class CreateViewModel(
                 )
                 if (result is SmartResult.Success) {
                     Log.e("sendWallpaperToFriends", "Wallpapers sent to ${friends.size} friends!!")
-
-                } else {
-                    Log.e("sendWallpaperToFriends", "filename:" + pathTobeSent)
-                    Log.e("sendWallpaperToFriends", "couldnt send wallpapers" + result)
+                    sendErrorMessage("Wallpaper sent!")
+                } else if (result is SmartResult.Error) {
+                    sendErrorMessage(result.errorBody?:"Wallpaper could not be sent")
                 }
             }
             WallpaperNotificationForPlay.setNewWallpaperReceived(true)

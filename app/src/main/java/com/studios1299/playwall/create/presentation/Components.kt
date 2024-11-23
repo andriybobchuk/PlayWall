@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -214,13 +215,13 @@ private fun saveImageForOlderVersions(
     photoEditor?.saveAsFile(filePath, object : PhotoEditor.OnSaveListener {
         override fun onSuccess(imagePath: String) {
             MediaScannerConnection.scanFile(context, arrayOf(filePath), null) { path, uri ->
-                Toast.makeText(context, "Image saved successfully: $path", Toast.LENGTH_SHORT).show()
+                Log.e("CreateScreen", "saveImageForOlderVersions(): Image saved successfully")
                 onSuccess(uri)
             }
         }
 
         override fun onFailure(exception: Exception) {
-            Toast.makeText(context, "Failed to save image: ${exception.message}", Toast.LENGTH_SHORT).show()
+            Log.e("CreateScreen", "saveImageForOlderVersions(): Failed to save image: ${exception.message}")
             onFailure()
         }
     })

@@ -22,7 +22,10 @@ import com.studios1299.playwall.play.presentation.play.WallpaperNotificationForP
 import com.studios1299.playwall.profile.presentation.ProfileState
 import com.studios1299.playwall.profile.presentation.ProfileStateSingleton
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -31,6 +34,14 @@ class PostDetailViewModel(
     private val photoId: Int,
     val fromProfile: Boolean = false
 ) : ViewModel() {
+
+    private val _errorMessages = MutableSharedFlow<String>()
+    val errorMessages = _errorMessages.asSharedFlow()
+    fun sendErrorMessage(message: String) {
+        viewModelScope.launch {
+            _errorMessages.emit(message)
+        }
+    }
 
     val exploreState: ExploreState
         get() = ExploreStateSingleton.state
@@ -208,9 +219,8 @@ class PostDetailViewModel(
                 if (result is SmartResult.Success) {
                     Log.e("sendWallpaperToFriends", "Wallpapers sent to ${friends.size} friends!!")
 
-                } else {
-                    Log.e("sendWallpaperToFriends", "filename:" + pathTobeSent)
-                    Log.e("sendWallpaperToFriends", "couldnt send wallpapers" + result)
+                } else if (result is SmartResult.Error) {
+                    sendErrorMessage(result.errorBody?:"Wallpaper could not be sent")
                 }
             }
             WallpaperNotificationForPlay.setNewWallpaperReceived(true)

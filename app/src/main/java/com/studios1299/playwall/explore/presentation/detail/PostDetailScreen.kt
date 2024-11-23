@@ -103,6 +103,13 @@ fun PostDetailScreenRoot(
     } else {
         viewModel.exploreState
     }
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.errorMessages.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
+    }
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {

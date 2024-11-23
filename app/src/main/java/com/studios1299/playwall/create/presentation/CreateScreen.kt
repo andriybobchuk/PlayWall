@@ -75,6 +75,12 @@ fun CreateScreenRoot(
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
 
+    LaunchedEffect(Unit) {
+        viewModel.errorMessages.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
+    }
+
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is CreateScreenEvent.ImageSaved -> {
@@ -156,13 +162,14 @@ fun CreateScreen(
         sheetState = friendsSheetState,
         friends = state.friends,
         onFriendsSelected = { selectedFriends ->
-
+            Log.e("CreateScreen", "onFriendsSelected: = ${selectedFriends.size}")
             CoroutineScope(Dispatchers.Main).launch {
                 if (photoEditor != null && photoEditorView != null) {
                     saveImageToGallery(
                         context = context,
                         photoEditor = photoEditor,
                         onSuccess = { savedUri ->
+                            Log.e("CreateScreen", "saveImageToGallery.onSuccess: = ${savedUri}")
                             CoroutineScope(Dispatchers.IO).launch {
                                 setAsWallpaper(S3Handler.uploadToS3(uriToFile(context, savedUri)!!, S3Handler.Folder.WALLPAPERS)?:"", context)
                                 selectedImageUri = savedUri
@@ -433,11 +440,7 @@ fun FriendsSelectionBottomSheet(
                             selectedFriends.contains(friend.id.toInt())
                         }
                         if (selectedFriendList.isNotEmpty()) {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.sent_to_friend),
-                                Toast.LENGTH_SHORT
-                            ).show()
+
                         } else {
                             Toast.makeText(
                                 context,
