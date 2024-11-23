@@ -1,5 +1,6 @@
 package com.studios1299.playwall.play.presentation.play
 
+import androidx.browser.customtabs.CustomTabsIntent.ShareState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text2.input.TextFieldState
 import com.studios1299.playwall.core.data.networking.response.friendships.LinkRequestData
@@ -17,6 +18,7 @@ data class PlayState @OptIn(ExperimentalFoundationApi::class) constructor(
     val selectedFriends: List<Int> = emptyList(),
     val exploreWallpapers: List<ExploreWallpaper> = emptyList(),
     val linkInvite: LinkRequestData = LinkRequestData("", "", ""),
+    //val inviteLink: String = "",
     val isOnline: Boolean = true
 )
 

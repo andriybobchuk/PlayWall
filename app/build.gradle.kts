@@ -200,4 +200,16 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.8")
 
+    // QR codes
+    implementation("com.journeyapps:zxing-android-embedded:4.1.0")
+
+    // Camera to scan code
+    implementation ("androidx.camera:camera-core:1.1.0-alpha05")
+    implementation ("androidx.camera:camera-camera2:1.1.0-alpha05")
+    implementation ("androidx.camera:camera-lifecycle:1.1.0-alpha05")
+    implementation ("androidx.camera:camera-view:1.0.0-alpha26")
+
+    implementation ("com.google.mlkit:barcode-scanning:17.0.3")
+
+
 }

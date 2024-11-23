@@ -14,6 +14,7 @@ sealed class Graphs {
         const val root = "main"
         object Screens {
             const val play = "play"
+            const val qr_invite = "qr-invite"
             const val diamonds = "diamonds"
             const val lucky_spin = "lucky-spin"
             const val play_chat = "play-chat"

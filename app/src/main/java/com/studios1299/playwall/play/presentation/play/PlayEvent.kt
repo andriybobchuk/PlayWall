@@ -10,4 +10,6 @@ sealed interface PlayEvent {
     data object FriendRequestRejected: PlayEvent
     data object InviteLinkParsedSuccessfully: PlayEvent
     data object WallpaperSent : PlayEvent
+    data class InviteLinkReady(val inviteLink: String) : PlayEvent
+    data class QrInviteReady(val inviteLink: String) : PlayEvent
 }

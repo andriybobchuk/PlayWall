@@ -22,6 +22,7 @@ import com.studios1299.playwall.core.data.networking.request.friendships.Decline
 import com.studios1299.playwall.core.data.networking.request.friendships.InviteRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.LinkFriendshipRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.RemoveFriendRequest
+import com.studios1299.playwall.core.data.networking.request.friendships.SendCodeRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.UnblockRequest
 import com.studios1299.playwall.core.data.networking.request.user.UpdateProfileRequest
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
@@ -278,6 +279,16 @@ class FirebaseCoreRepositoryImpl(
         Log.e(RetrofitClientExt.LOG_TAG, "Request: ${linkFriendshipRequest}")
         return performAuthRequest { token ->
             RetrofitClient.friendsApi.getLinkRequestData(token, linkFriendshipRequest)
+        }
+    }
+
+    override suspend fun sendOneTimeCode(oneTimeCode: Int): SmartResult<Unit> {
+        return try {
+            performAuthRequest { token ->
+                RetrofitClient.friendsApi.sendOneTimeCode(token, SendCodeRequest(oneTimeCode))
+            }
+        } catch (e: Exception) {
+            SmartResult.Error(600, "Runtime exception in $LOG_TAG:", e.message)
         }
     }
 

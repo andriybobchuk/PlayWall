@@ -1,6 +1,8 @@
 package com.studios1299.playwall.play.presentation.play
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -74,6 +76,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.studios1299.playwall.R
+import com.studios1299.playwall.app.MyApp
+import com.studios1299.playwall.app.di.AppModule
 import com.studios1299.playwall.core.data.networking.response.friendships.LinkRequestData
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.data.s3.uriToFile
@@ -105,6 +109,7 @@ fun PlayScreenRoot(
     viewModel: PlayViewModel,
     onNavigateToChat: (Int) -> Unit,
     onNavigateToDiamonds: () -> Unit,
+    onNavigateToInviteScreen: (String) -> Unit,
     requesterId: Int?,
     requestCode: Int?,
     bottomNavbar: @Composable () -> Unit,
@@ -132,7 +137,9 @@ fun PlayScreenRoot(
             PlayEvent.WallpaperSent -> {
                 Toast.makeText(context, R.string.action_successful, Toast.LENGTH_SHORT).show()
             }
-            PlayEvent.InviteLinkParsedSuccessfully -> TODO()
+            PlayEvent.InviteLinkParsedSuccessfully -> {}
+            is PlayEvent.InviteLinkReady -> shareText(context, event.inviteLink)
+            is PlayEvent.QrInviteReady -> onNavigateToInviteScreen(event.inviteLink)
         }
     }
 
@@ -201,11 +208,14 @@ fun PlayScreen(
 
     //val showInviteDialog = remember { mutableStateOf(state.linkInvite.nick=="") }
     val showInviteDialog = remember { mutableStateOf(false) }
+    val inviteLinkShouldBeParsed = remember { mutableStateOf(true) }
 
     requestNotificationPermissionWithDexter(LocalContext.current)
 
-    if(requesterId!=null && requesterId!=-1 && requestCode!=null && requestCode!=-1) {
-        onAction(PlayAction.OnReceiveInviteLink(requesterId, requestCode))
+    if(requesterId!=-1 && inviteLinkShouldBeParsed.value) {
+        Log.e("PlayScreen", "PlayAction.OnReceiveInviteLink was initiated, requesterId = $requesterId")
+        onAction(PlayAction.OnReceiveInviteLink(requesterId?:-1, requestCode?:-1))
+        inviteLinkShouldBeParsed.value = false
     }
 
     KeyboardAware {
@@ -216,6 +226,13 @@ fun PlayScreen(
             coroutineScope = coroutineScope,
             onAction = onAction
         )
+    }
+
+    LaunchedEffect(state.linkInvite) {
+        Log.e("PlayScreen", "link invite data: ${state.linkInvite}")
+        if(state.linkInvite.email != "") {
+            showInviteDialog.value = true
+        }
     }
 
     SavedWallpaperSheet(
@@ -367,12 +384,14 @@ fun PlayScreen(
                     ExpendableFabItem(
                         icon = Icons.Rounded.ContentCopy,
                         text = "Link",
-                        onClick = {}
+                        onClick = {
+                            onAction(PlayAction.RequestInviteLink)
+                        }
                         ),
                     ExpendableFabItem(
                         icon = Icons.Rounded.QrCode,
                         text = "QR-code",
-                        onClick = {}
+                        onClick = { onAction(PlayAction.RequestQrInvite) }
                     ),
                     ExpendableFabItem(
                         icon = Icons.Rounded.Person,
@@ -782,8 +801,8 @@ fun InviteSheet(
                     state = state.friendId,
                     startIcon = Icons.Default.Search,
                     endIcon = null,
-                    hint = "jane.doe@gmail.com",
-                    title = stringResource(R.string.enter_email),
+                    hint = "john.smith1299",
+                    title = stringResource(R.string.enter_username),
                     keyboardType = KeyboardType.Email,
                     onFocusChanged = { isFocused -> focusState.value = isFocused }
                 )
@@ -920,6 +939,18 @@ fun FriendRequestDialog(
             }
         )
     }
+}
+
+fun shareText(context: Context, text: String, subject: String = "Invite Link") {
+    val intent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_TEXT, text)
+        putExtra(Intent.EXTRA_SUBJECT, subject)
+        type = "text/plain"
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+    }
+    val shareIntent = Intent.createChooser(intent, null)
+    context.startActivity(shareIntent)
 }
 
 

@@ -41,6 +41,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -357,7 +359,25 @@ private fun bubbleModifier(isCurrentUser: Boolean) = Modifier
         )
     )
     .background(
-        color = if (isCurrentUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
+        brush = if (isCurrentUser) {
+            // Use a solid color for current user
+            Brush.linearGradient(
+                colors = listOf(
+                    MaterialTheme.colorScheme.primaryContainer,
+                    MaterialTheme.colorScheme.primaryContainer
+                )
+            )
+        } else {
+            // Use a gradient for other users
+            Brush.linearGradient(
+                colors = listOf(
+                    MaterialTheme.colorScheme.primary,
+                    MaterialTheme.colorScheme.secondaryContainer,
+                ),
+                start = Offset(0f, 0f), // Start at the left
+                end = Offset(Float.POSITIVE_INFINITY, 0f) // End at the right
+            )
+        }
     )
     .wrapContentWidth(align = Alignment.End)
 

@@ -57,7 +57,7 @@ fun ExpandableFab(
         mutableStateOf(false)
     }
 
-    val interactionSource = MutableInteractionSource()
+    //val interactionSource = MutableInteractionSource()
 
     Card(
         modifier = modifier,
@@ -80,8 +80,6 @@ fun ExpandableFab(
                         Row(modifier = Modifier
                             .padding(vertical = 10.dp)
                             .clickable(
-                                interactionSource = interactionSource,
-                                indication = null,
                                 onClick = {
                                     item.onClick()
                                     buttonClicked = false
@@ -102,8 +100,6 @@ fun ExpandableFab(
             // The FAB main button
             Card(
                 modifier = Modifier.clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
                     onClick = {
                         buttonClicked = !buttonClicked
                     }

@@ -36,6 +36,7 @@ interface CoreRepository {
     suspend fun declineFriendRequest(declineRequest: DeclineRequest): SmartResult<Unit>
     suspend fun createFriendshipWithLink(linkFriendshipRequest: LinkFriendshipRequest): SmartResult<Unit>
     suspend fun getLinkRequestData(linkFriendshipRequest: LinkFriendshipRequest): SmartResult<LinkRequestData>
+    suspend fun sendOneTimeCode(oneTimeCode: Int): SmartResult<Unit>
     suspend fun removeUser(friendshipId: Int): SmartResult<Unit>
     suspend fun blockUser(friendshipId: Int, userId: Int): SmartResult<Unit>
     suspend fun unblockUser(friendshipId: Int, userId: Int): SmartResult<Unit>

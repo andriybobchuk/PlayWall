@@ -1,6 +1,7 @@
 package com.studios1299.playwall.play.presentation.play
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.mutableStateOf
@@ -8,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.data.FriendEvent
 import com.studios1299.playwall.core.data.WallpaperEventManager
@@ -35,6 +37,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import java.util.Random
 import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -133,6 +136,26 @@ class PlayViewModel(
             PlayAction.OnNavigateToDiamonds -> navigateDiamonds()
             is PlayAction.OnCreateFriendshipWithLink -> createFriendshipWithLink(action.requestId, action.code)
             is PlayAction.OnReceiveInviteLink -> validateInviteLink(action.requestId, action.code)
+            PlayAction.RequestInviteLink -> {
+                withInviteLink {
+                    viewModelScope.launch {
+                        val uri = Uri.parse(it)
+                        val code = uri.getQueryParameter("code") ?: "-1"
+                        generateOneTimeCode(code.toInt())
+                        eventChannel.send(PlayEvent.InviteLinkReady(inviteLink = it))
+                    }
+                }
+            }
+            PlayAction.RequestQrInvite -> {
+                withInviteLink {
+                    viewModelScope.launch {
+                        val uri = Uri.parse(it)
+                        val code = uri.getQueryParameter("code") ?: "-1"
+                        generateOneTimeCode(code.toInt())
+                        eventChannel.send(PlayEvent.QrInviteReady(inviteLink = it))
+                    }
+                }
+            }
         }
     }
 
@@ -271,22 +294,37 @@ fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
     }
 
     private fun validateInviteLink(requestId: Int, code: Int) {
-//        viewModelScope.launch {
-//            val result = repository.getLinkRequestData(LinkFriendshipRequest(requestId, code))
-//            if (result is SmartResult.Success && result.data != null) {
-//                eventChannel.send(PlayEvent.InviteLinkParsedSuccessfully)
-//                state = state.copy(
-//                    linkInvite = LinkRequestData(
-//                        nick = result.data.nick,
-//                        email = result.data.email,
-//                        avatarId = result.data.avatarId
-//                    ),
-//                )
-//                //loadFriendsAndRequests(forceUpdate = true)
-//            } else if(result is SmartResult.Error) {
-//                eventChannel.send(PlayEvent.ShowError(UiText.DynamicString(result.errorBody.toString())))
-//            }
-//        }
+        if(requestId == -1 || code == -1) return
+
+        viewModelScope.launch {
+            val result = repository.getLinkRequestData(LinkFriendshipRequest(requestId, code))
+            if (result is SmartResult.Success && result.data != null) {
+                eventChannel.send(PlayEvent.InviteLinkParsedSuccessfully)
+                state = state.copy(
+                    linkInvite = LinkRequestData(
+                        nick = result.data.nick,
+                        email = result.data.email,
+                        avatarId = result.data.avatarId
+                    ),
+                )
+                //loadFriendsAndRequests(forceUpdate = true)
+            } else if(result is SmartResult.Error) {
+                eventChannel.send(PlayEvent.ShowError(UiText.DynamicString(result.errorBody.toString())))
+            }
+        }
+    }
+
+    private fun withInviteLink(doStuff: (String) -> Unit) {
+        viewModelScope.launch {
+            val random = Random()
+            val code = (1000 + random.nextInt(9000)).toString()
+            val baseUrl = "https://andriybobchuk.netlify.app/invite"
+            val userData = repository.getUserData()
+            if(userData is SmartResult.Success) {
+                val link = "$baseUrl?requesterId=${userData.data?.id}&code=$code"
+                doStuff(link)
+            }
+        }
     }
 
     fun blockFriend(friendshipId: Int, userId: Int) {
@@ -389,6 +427,17 @@ fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
             } else {
                 Log.e("loadSavedWallpapers", result.toString())
                 state = state.copy(isLoading = false)
+            }
+        }
+    }
+
+    fun generateOneTimeCode(oneTimeCode: Int) {
+        viewModelScope.launch {
+            val result = repository.sendOneTimeCode(oneTimeCode)
+            if (result is SmartResult.Success) {
+                Log.d("UserViewModel", "Successfully sent code to server")
+            } else if(result is SmartResult.Error) {
+                Log.e("UserViewModel", "Error: ${result.errorBody}")
             }
         }
     }

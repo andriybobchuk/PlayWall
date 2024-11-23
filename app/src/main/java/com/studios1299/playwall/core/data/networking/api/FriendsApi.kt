@@ -6,6 +6,7 @@ import com.studios1299.playwall.core.data.networking.request.friendships.Decline
 import com.studios1299.playwall.core.data.networking.request.friendships.InviteRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.LinkFriendshipRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.RemoveFriendRequest
+import com.studios1299.playwall.core.data.networking.request.friendships.SendCodeRequest
 import com.studios1299.playwall.core.data.networking.request.friendships.UnblockRequest
 import com.studios1299.playwall.core.data.networking.response.friendships.LinkRequestData
 import com.studios1299.playwall.play.presentation.play.Friend
@@ -52,6 +53,12 @@ interface FriendsApi {
         @Header("Authorization") authHeader: String,
         @Body acceptRequest: LinkFriendshipRequest
     ): Response<LinkRequestData>
+
+    @POST("api/friendship/sendOneTimeCode")
+    suspend fun sendOneTimeCode(
+        @Header("Authorization") authHeader: String,
+        @Body acceptRequest: SendCodeRequest
+    ): Response<Unit>
 
     @POST("api/friendship/removeFriend")
     suspend fun removeFriend(

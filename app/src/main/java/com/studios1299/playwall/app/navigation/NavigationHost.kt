@@ -1,5 +1,8 @@
 package com.studios1299.playwall.app.navigation
 
+import InviteScreen
+import InviteViewModel
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,6 +43,15 @@ import com.studios1299.playwall.monetization.presentation.LuckySpinViewModel
 import com.studios1299.playwall.profile.presentation.ProfileDestination
 import com.studios1299.playwall.profile.presentation.ProfileScreenRoot
 import com.studios1299.playwall.profile.presentation.ProfileViewModel
+import com.studios1299.playwall.qrcodeinvite.domain.decodeUrl
+import com.studios1299.playwall.qrcodeinvite.domain.encodeFullUrl
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 
 @Composable
@@ -50,10 +62,10 @@ fun NavigationHostLegacy(
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = if(isLoggedIn) Graphs.Main.root else Graphs.Auth.root
+        startDestination = if (isLoggedIn) Graphs.Main.root else Graphs.Auth.root
     ) {
         authGraph(navController)
-        mainGraph(navController, adManager)
+        mainGraph(navController, adManager, isLoggedIn)
         sharedGraph(navController)
     }
 }
@@ -72,13 +84,28 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
                     navController.navigate("login")
                 },
                 onTermsClick = {
-                    navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TOS.name))
+                    navController.navigate(
+                        Graphs.Shared.Screens.web.replace(
+                            "{webType}",
+                            WebContent.TOS.name
+                        )
+                    )
                 },
                 onPrivacyClick = {
-                    navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.PP.name))
+                    navController.navigate(
+                        Graphs.Shared.Screens.web.replace(
+                            "{webType}",
+                            WebContent.PP.name
+                        )
+                    )
                 },
                 onContentPolicyClick = {
-                    navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.CP.name))
+                    navController.navigate(
+                        Graphs.Shared.Screens.web.replace(
+                            "{webType}",
+                            WebContent.CP.name
+                        )
+                    )
                 }
 
             )
@@ -102,10 +129,20 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
                     }
                 },
                 onTermsOfServiceClick = {
-                    navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TOS.name))
+                    navController.navigate(
+                        Graphs.Shared.Screens.web.replace(
+                            "{webType}",
+                            WebContent.TOS.name
+                        )
+                    )
                 },
                 onPrivacyPolicyClick = {
-                    navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.PP.name))
+                    navController.navigate(
+                        Graphs.Shared.Screens.web.replace(
+                            "{webType}",
+                            WebContent.PP.name
+                        )
+                    )
                 },
                 viewModel = viewModel<RegisterViewModel>(
                     factory = viewModelFactory {
@@ -148,7 +185,11 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
     }
 }
 
-private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManager: AdManager) {
+private fun NavGraphBuilder.mainGraph(
+    navController: NavHostController,
+    adManager: AdManager,
+    isLoggedIn: Boolean,
+) {
     navigation(
         startDestination = "${Graphs.Main.Screens.play}/${-1}/${-1}",
         route = Graphs.Main.root
@@ -168,50 +209,71 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
                 }
             ),
             deepLinks = listOf(navDeepLink {
-                uriPattern = "https://andriybobchuk.netlify.app/invite?requesterId={requesterId}?code={code}"
+                uriPattern =
+                    "https://andriybobchuk.netlify.app/invite?requesterId={requesterId}&code={code}"
             })
         ) { backStackEntry ->
-            val requesterId = backStackEntry.arguments?.getInt("requesterId")?:-1
-            val requestCode = backStackEntry.arguments?.getInt("code")?:-1
+            val requesterId = backStackEntry.arguments?.getInt("requesterId") ?: -1
+            val requestCode = backStackEntry.arguments?.getInt("code") ?: -1
 
-            PlayScreenRoot(
-                viewModel = viewModel<PlayViewModel>(
-                    factory = viewModelFactory {
-                        PlayViewModel(
-                            MyApp.appModule.coreRepository
-                        )
-                    }
+            if (requesterId != -1 && !isLoggedIn) {
+                navController.navigate(Graphs.Auth.Screens.login)
+            } else {
+                PlayScreenRoot(
+                    viewModel = viewModel<PlayViewModel>(
+                        factory = viewModelFactory {
+                            PlayViewModel(
+                                MyApp.appModule.coreRepository
+                            )
+                        }
+                    ),
+                    onNavigateToChat = { friendId ->
+                        navController.navigate("${Graphs.Main.Screens.play_chat}/$friendId")
+                    },
+                    onNavigateToDiamonds = {
+                        navController.navigate(Graphs.Main.Screens.diamonds)
+                    },
+                    onNavigateToInviteScreen = { linkToDisplay ->
+                        val encodedUrl = encodeFullUrl(linkToDisplay)
+                        navController.navigate("${Graphs.Main.Screens.qr_invite}/${encodedUrl}")
+
+                    },
+                    bottomNavbar = { BottomNavigationBar(navController, 0) },
+                    requesterId = requesterId,
+                    requestCode = requestCode
+                )
+            }
+        }
+
+        composable(
+            "${Graphs.Main.Screens.qr_invite}/{link}",
+            arguments = listOf(
+                navArgument("link") { type = NavType.StringType },
+            )
+        ) { backStackEntry ->
+            val encodedLink = backStackEntry.arguments?.getString("link") ?: run {
+                return@composable
+            }
+            val decodedLink = encodedLink.let { decodeUrl(it) }
+
+            InviteScreen(
+                viewModel = viewModel<InviteViewModel>(
+                    factory = viewModelFactory { InviteViewModel(decodedLink) }
                 ),
-                onNavigateToChat = { friendId ->
-                    navController.navigate("${Graphs.Main.Screens.play_chat}/$friendId")
+                onNavigateToPlay = { encodedLink ->
+                    val link = decodeUrl(encodedLink)
+                    val uri = Uri.parse(link)
+                    val requesterId = uri.getQueryParameter("requesterId") ?: "-1"
+                    val code = uri.getQueryParameter("code") ?: "-1"
+
+                    navController.navigate("${Graphs.Main.Screens.play}/${requesterId}/${code}") {
+                        popUpTo(Graphs.Main.root)
+                    }
                 },
-                onNavigateToDiamonds = {
-                    navController.navigate(Graphs.Main.Screens.diamonds)
-                },
-                bottomNavbar = { BottomNavigationBar(navController, 0) },
-                requesterId = requesterId,
-                requestCode = requestCode
+                onNavigateBack = { navController.navigateUp() }
             )
         }
 
-//        composable(Graphs.Main.Screens.play) {
-//            PlayScreenRoot(
-//                viewModel = viewModel<PlayViewModel>(
-//                    factory = viewModelFactory {
-//                        PlayViewModel(
-//                            MyApp.appModule.coreRepository
-//                        )
-//                    }
-//                ),
-//                onNavigateToChat = { friendId ->
-//                    navController.navigate("${Graphs.Main.Screens.play_chat}/$friendId")
-//                },
-//                onNavigateToDiamonds = {
-//                    navController.navigate(Graphs.Main.Screens.diamonds)
-//                },
-//                bottomNavbar = { BottomNavigationBar(navController, 0) }
-//            )
-//        }
         composable(Graphs.Main.Screens.diamonds) {
             DiamondsScreen(
                 onNavigateToLuckySpin = { navController.navigate(Graphs.Main.Screens.lucky_spin) },
@@ -253,23 +315,25 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
                     val fromProfile = false
                     Log.e("Rerouting", "rereouting...")
                     navController.navigate("${Graphs.Main.Screens.explore_image}/${selectedPhoto}/$fromProfile")
-                    Log.e("Rerouting", "Rereouted with " +selectedPhoto)
+                    Log.e("Rerouting", "Rereouted with " + selectedPhoto)
                 },
                 onNavigateToDiamonds = {
                     navController.navigate(Graphs.Main.Screens.diamonds)
                 },
-                bottomNavbar = { BottomNavigationBar(
-                    navController = navController,
-                    selectedItemIndex = 1
-                ) }
+                bottomNavbar = {
+                    BottomNavigationBar(
+                        navController = navController,
+                        selectedItemIndex = 1
+                    )
+                }
             )
         }
         composable(
             "${Graphs.Main.Screens.explore_image}/{photoId}/{fromProfile}",
             arguments = listOf(
                 navArgument("photoId") { type = NavType.IntType },
-                navArgument("fromProfile") {type = NavType.BoolType }
-                )
+                navArgument("fromProfile") { type = NavType.BoolType }
+            )
         ) { backStackEntry ->
             val photoId = backStackEntry.arguments?.getInt("photoId") ?: run {
                 return@composable
@@ -288,7 +352,7 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
                         )
                     }
                 ),
-                 onExit = { navController.navigateUp() }
+                onExit = { navController.navigateUp() }
             )
         }
 
@@ -304,10 +368,12 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
                 onNavigateToDiamonds = {
                     navController.navigate(Graphs.Main.Screens.diamonds)
                 },
-                bottomNavbar = { BottomNavigationBar(
-                    navController = navController,
-                    selectedItemIndex = 2
-                ) }
+                bottomNavbar = {
+                    BottomNavigationBar(
+                        navController = navController,
+                        selectedItemIndex = 2
+                    )
+                }
             )
         }
         composable(Graphs.Main.Screens.profile) {
@@ -326,22 +392,57 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
                 onNavigateTo = { destination ->
                     when (destination) {
                         ProfileDestination.TermsOfService -> {
-                            navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TOS.name))
+                            navController.navigate(
+                                Graphs.Shared.Screens.web.replace(
+                                    "{webType}",
+                                    WebContent.TOS.name
+                                )
+                            )
                         }
+
                         ProfileDestination.PrivacyPolicy -> {
-                            navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.PP.name))
+                            navController.navigate(
+                                Graphs.Shared.Screens.web.replace(
+                                    "{webType}",
+                                    WebContent.PP.name
+                                )
+                            )
                         }
+
                         ProfileDestination.ContentPolicy -> {
-                            navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.CP.name))
+                            navController.navigate(
+                                Graphs.Shared.Screens.web.replace(
+                                    "{webType}",
+                                    WebContent.CP.name
+                                )
+                            )
                         }
+
                         ProfileDestination.Faq -> {
-                            navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.FAQ.name))
+                            navController.navigate(
+                                Graphs.Shared.Screens.web.replace(
+                                    "{webType}",
+                                    WebContent.FAQ.name
+                                )
+                            )
                         }
+
                         ProfileDestination.Instagram -> {
-                            navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.IG.name))
+                            navController.navigate(
+                                Graphs.Shared.Screens.web.replace(
+                                    "{webType}",
+                                    WebContent.IG.name
+                                )
+                            )
                         }
+
                         ProfileDestination.TikTok -> {
-                            navController.navigate(Graphs.Shared.Screens.web.replace("{webType}", WebContent.TIKTOK.name))
+                            navController.navigate(
+                                Graphs.Shared.Screens.web.replace(
+                                    "{webType}",
+                                    WebContent.TIKTOK.name
+                                )
+                            )
                         }
                     }
                 },
@@ -354,10 +455,12 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
                         popUpTo(0)
                     }
                 },
-                bottomNavbar = { BottomNavigationBar(
-                    navController = navController,
-                    selectedItemIndex = 3
-                ) }
+                bottomNavbar = {
+                    BottomNavigationBar(
+                        navController = navController,
+                        selectedItemIndex = 3
+                    )
+                }
             )
         }
         composable("${Graphs.Main.Screens.play_chat}/{friendId}") { backStackEntry ->
@@ -381,7 +484,9 @@ private fun NavGraphBuilder.mainGraph(navController: NavHostController, adManage
 
 private fun NavGraphBuilder.sharedGraph(navController: NavHostController) {
     composable(Graphs.Shared.Screens.web) { backStackEntry ->
-        val policyType = WebContent.valueOf(backStackEntry.arguments?.getString("webType") ?: WebContent.TOS.name)
+        val policyType = WebContent.valueOf(
+            backStackEntry.arguments?.getString("webType") ?: WebContent.TOS.name
+        )
         WebViewScreen(
             policyType = policyType,
             onBackClick = { navController.navigateUp() }
