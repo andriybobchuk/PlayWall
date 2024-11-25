@@ -1,10 +1,7 @@
 package com.studios1299.playwall.play.presentation.chat
 
-import android.net.Uri
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import com.studios1299.playwall.play.presentation.chat.viewmodel.ChatViewModel
 import androidx.compose.foundation.background
@@ -20,27 +17,20 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.components.Banners
 import com.studios1299.playwall.core.presentation.components.Images
@@ -48,16 +38,13 @@ import com.studios1299.playwall.monetization.presentation.screens.EVIL_EMOJI
 import com.studios1299.playwall.play.data.model.MessageStatus
 import com.studios1299.playwall.play.presentation.chat.util.rememberRequestPermissionAndPickImage
 import com.studios1299.playwall.play.data.model.User
-import com.studios1299.playwall.play.presentation.chat.util.BuildCounterDisplay
 import com.studios1299.playwall.play.presentation.chat.util.ConnectivityStatus
 import com.studios1299.playwall.play.presentation.chat.overlays.ImageViewer
 import com.studios1299.playwall.play.presentation.chat.viewmodel.MessengerUiState
 import com.studios1299.playwall.play.presentation.chat.util.isSameDay
 import com.studios1299.playwall.play.presentation.chat.util.timestampAsDate
 import com.studios1299.playwall.play.presentation.play.FriendshipStatus
-import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.launch
-import java.io.File
 
 private const val LOG_TAG = "MessengerScreen"
 
@@ -282,7 +269,9 @@ fun MessagesList(
                     .padding(bottom = 100.dp)
             ) {
                 Image(
-                    modifier = Modifier.align(Alignment.CenterHorizontally).size(200.dp),
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .size(200.dp),
                     painter = painterResource(id = R.drawable.ic_pw),
                     contentDescription = "Logo"
                 )
@@ -326,7 +315,9 @@ fun MessagesList(
                     "Message sender=${uiState.currentUser?.id}, recipient.id=${message.recipientId}, message.id=${message.id}, meagestatus=${message.status}"
                 )
 
-                if (uiState.currentUser?.id == message.recipientId
+                val isMine = uiState.currentUser?.id != message.recipientId
+
+                if (!isMine
                     && message.id != -1
                     && message.status == MessageStatus.unread
                 ) {
@@ -336,25 +327,35 @@ fun MessagesList(
                 }
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                   // modifier = Modifier.fillMaxWidth(),
+                  //  horizontalArrangement = Arrangement.End
                 ) {
-                    MessageItem(
-                        recipient = uiState.recipient ?: User(
-                            -1,
-                            "",
-                            "",
-                            since = "",
-                            status = FriendshipStatus.accepted,
-                            requesterId = -1,
-                            friendshipId = -1,
-                            screenRatio = 2f
-                        ),
-                        viewModel = viewModel,
-                        message = message,
-                        uiState = uiState,
-                        isLastMessage = isLastMessage
-                    )
+                    Column {
+                        if (isLastMessage && !isMine && message.reaction == null) {
+                            EmojiHint(message.id) { reaction ->
+                                viewModel.addOrUpdateReaction(
+                                    message.id,
+                                    reaction
+                                )
+                            }
+                        }
+                        MessageItem(
+                            recipient = uiState.recipient ?: User(
+                                -1,
+                                "",
+                                "",
+                                since = "",
+                                status = FriendshipStatus.accepted,
+                                requesterId = -1,
+                                friendshipId = -1,
+                                screenRatio = 2f
+                            ),
+                            viewModel = viewModel,
+                            message = message,
+                            uiState = uiState,
+                            isLastMessage = isLastMessage
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(6.dp))
 

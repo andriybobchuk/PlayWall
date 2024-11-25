@@ -15,16 +15,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
@@ -41,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -62,7 +58,6 @@ import com.studios1299.playwall.play.data.model.Message
 import com.studios1299.playwall.play.data.model.Reaction
 import com.studios1299.playwall.play.data.model.User
 import com.studios1299.playwall.play.presentation.chat.viewmodel.ChatViewModel
-import com.studios1299.playwall.play.presentation.chat.viewmodel.MessengerUiState
 import com.studios1299.playwall.play.presentation.play.FriendshipStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -322,3 +317,38 @@ fun ReplyField(
     }
 }
 
+@Composable
+fun EmojiHint(
+    messageId: Int,
+    onAddReaction: (Reaction) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer)
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Reaction.entries.forEach { reaction ->
+                Text(
+                    text = reaction.toString(),
+                    fontSize = 22.sp,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(
+                            Color.Transparent,
+                            shape = CircleShape
+                        )
+                        .clickable {
+                            onAddReaction(reaction)
+                        }
+                        .padding(horizontal = 10.dp)
+                )
+            }
+        }
+    }
+}
