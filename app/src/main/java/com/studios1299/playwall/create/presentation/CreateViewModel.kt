@@ -44,6 +44,23 @@ class CreateViewModel(
     val events = _events.receiveAsFlow()
 
     init {
+
+
+        // TODO
+        viewModelScope.launch {
+            repository.debugClearCheckInShit()
+        }
+
+
+
+
+
+
+
+
+
+
+
         loadFriends()
         viewModelScope.launch {
             NetworkMonitor.isOnline.collect { online ->

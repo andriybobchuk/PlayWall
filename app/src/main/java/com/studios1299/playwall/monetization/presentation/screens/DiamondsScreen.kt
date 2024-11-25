@@ -260,7 +260,8 @@ fun DailyCheckIn(
     val lastCheckedIndex = dailyCheckinData.value.indexOfLast { it.checked }
 
     LaunchedEffect(key1 = dailyCheckinData) {
-        if (lastCheckedIndex != -1) {
+        //TODO
+        if (lastCheckedIndex != -1 && lastCheckedIndex != 1) {
             listState.animateScrollToItem(index = lastCheckedIndex)
         }
     }

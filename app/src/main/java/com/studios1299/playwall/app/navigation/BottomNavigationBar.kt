@@ -57,23 +57,23 @@ fun BottomNavigationBar(navController: NavHostController, selectedItemIndex: Int
     NavigationBar(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.Transparent),
-//            .background(
-//                // Apply gradient background
-//                Brush.radialGradient(
-//                    colors = listOf(
-//
-//                        Color(0xFFFF006E),
-//                        Color(0xFF4A1C59),
-//                        ZEDGE_BLACK,
-//                    ),
-//                    center = Offset(
-//                        x = 500f, // Center horizontally
-//                        y = 400f  // Shift the peak to the bottom center
-//                    ),
-//                    radius = 400f // Adjust to control the spread of the gradient
-//                )
-//            ),
+            //.background(Color.Transparent),
+            .background(
+                // Apply gradient background
+                Brush.radialGradient(
+                    colors = listOf(
+
+                        Color(0xFFFF006E),
+                        Color(0xFF4A1C59),
+                        ZEDGE_BLACK,
+                    ),
+                    center = Offset(
+                        x = 500f, // Center horizontally
+                        y = 400f  // Shift the peak to the bottom center
+                    ),
+                    radius = 400f // Adjust to control the spread of the gradient
+                )
+            ),
         containerColor = Color.Transparent, // Make the container transparent
         contentColor = Color.White
     ) {

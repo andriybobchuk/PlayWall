@@ -68,6 +68,7 @@ interface CoreRepository {
     suspend fun getConsecutiveDays(): Int
     suspend fun setConsecutiveDays(days: Int): SmartResult<Unit>
     suspend fun hasCheckedInToday(): Boolean
+    suspend fun debugClearCheckInShit()
 
     // PREFERENCE MANAGEMENT (DEPRECATED)
     fun getWallpaperDestination(): WallpaperOption

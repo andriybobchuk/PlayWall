@@ -506,7 +506,7 @@ fun PlayScreen(
         } else {
             Box(modifier = Modifier.fillMaxSize()) {
                 Image(
-                    painter = painterResource(id = R.drawable.flames_bg),
+                    painter = painterResource(id = R.drawable.minimal_bg),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop

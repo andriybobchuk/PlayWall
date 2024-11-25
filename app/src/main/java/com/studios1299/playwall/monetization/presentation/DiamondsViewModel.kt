@@ -1,8 +1,6 @@
 package com.studios1299.playwall.monetization.presentation
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
@@ -15,8 +13,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
@@ -99,7 +95,6 @@ class DiamondsViewModel(
         }
     }
 
-
     fun checkIn() {
         viewModelScope.launch {
             Log.e(LOG_TAG, "checkIn(), start")
@@ -108,18 +103,14 @@ class DiamondsViewModel(
             val todayStr = sdf.format(today) // Formats today's date to a String
             Log.e(LOG_TAG, "checkIn(), todayStr=$todayStr")
 
-            val lastCheckInDateStr = repository.getLastCheckInDate() ?: "2024-10-31"
+            val lastCheckInDateStr = repository.getLastCheckInDate() ?: ""
             Log.e(LOG_TAG, "checkIn(), lastCheckInDateStr=$lastCheckInDateStr")
 
             if (lastCheckInDateStr != todayStr) {
-                Log.e(LOG_TAG, "checkIn(), lastCheckInDateStr != todayStr")
-
-                // Parse the last check-in date
-                val lastCheckInDate = sdf.parse(lastCheckInDateStr) ?: today
+                val lastCheckInDate = if (lastCheckInDateStr.isNotEmpty()) sdf.parse(lastCheckInDateStr) else null
                 val yesterday = Date(today.time - 86400000) // Calculate yesterday's date
 
-                // Check if the last check-in was yesterday
-                val wasYesterday = sdf.format(lastCheckInDate) == sdf.format(yesterday)
+                val wasYesterday = lastCheckInDate != null && sdf.format(lastCheckInDate) == sdf.format(yesterday)
                 val consecutiveDays = if (wasYesterday) {
                     repository.getConsecutiveDays() + 1
                 } else {
@@ -145,30 +136,83 @@ class DiamondsViewModel(
             }
         }
     }
-
     private fun loadDailyCheckinData() {
         Log.e(LOG_TAG, "loadDailyCheckinData(), start")
         viewModelScope.launch {
-            val consecutiveDaysCheckedIn = repository.getConsecutiveDays()
-            val hasCheckedInToday = repository.hasCheckedInToday()
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val today = Date()
+            val todayStr = sdf.format(today)
+            val yesterday = Date(today.time - 86400000) // Calculate yesterday's date
 
-            Log.e(LOG_TAG, "loadDailyCheckinData(), consecutiveDaysCheckedIn: $consecutiveDaysCheckedIn")
+            val lastCheckInDateStr = repository.getLastCheckInDate() ?: ""
+            val lastCheckInDate = if (lastCheckInDateStr.isNotEmpty()) sdf.parse(lastCheckInDateStr) else null
+
+            // Check if streak is broken
+            val isStreakBroken = lastCheckInDate != null && sdf.format(lastCheckInDate) != sdf.format(yesterday) && lastCheckInDateStr != todayStr
+
+            if (isStreakBroken) {
+                Log.e(LOG_TAG, "Streak is broken. Resetting to 0.")
+                repository.setConsecutiveDays(0)
+            }
+
+            val numberOfConsecutiveDays = repository.getConsecutiveDays()
+            val hasCheckedInToday = lastCheckInDateStr == todayStr
+
+            Log.e(LOG_TAG, "loadDailyCheckinData(), consecutiveDaysCheckedIn: $numberOfConsecutiveDays")
             Log.e(LOG_TAG, "loadDailyCheckinData(), hasCheckedInToday: $hasCheckedInToday")
 
-            val updatedDailyCheckinData = dailyCheckinData.mapIndexed { index, data ->
-                val isPastCheckin = (index + 1) < consecutiveDaysCheckedIn
-                val isTodayCheckin = (index + 1) == consecutiveDaysCheckedIn
-                // Mark as checked if the day corresponds to a past day within the consecutive days or if it's today and checked in today
-                data.copy(checked = isPastCheckin || (isTodayCheckin && hasCheckedInToday))
+            val updatedDailyCheckinData = dailyCheckinData.mapIndexed { indexOfDay, data ->
+                val dayNumber = indexOfDay + 1
+
+                val isPastCheckin = dayNumber <= numberOfConsecutiveDays
+                val isTodayCheckin = dayNumber == numberOfConsecutiveDays && hasCheckedInToday
+
+                data.copy(checked = isPastCheckin || isTodayCheckin)
             }
 
             AppState.updateDailyCheckinState(updatedDailyCheckinData)
 
-            // Log the new state for verification
+            // Log the updated data
             updatedDailyCheckinData.forEach { day ->
                 Log.e(LOG_TAG, "Day: ${day.label}, Diamonds: ${day.diamonds}, Checked: ${day.checked}")
             }
         }
     }
+
+
+//    private fun loadDailyCheckinData() {
+//        Log.e(LOG_TAG, "loadDailyCheckinData(), start")
+//        viewModelScope.launch {
+//            val numberOfConsecutiveDays = repository.getConsecutiveDays()
+//            val hasCheckedInToday = repository.hasCheckedInToday()
+//
+//            Log.e(LOG_TAG, "loadDailyCheckinData(), consecutiveDaysCheckedIn: $numberOfConsecutiveDays")
+//            Log.e(LOG_TAG, "loadDailyCheckinData(), hasCheckedInToday: $hasCheckedInToday")
+//
+//            val updatedDailyCheckinData = dailyCheckinData.mapIndexed { indexOfDay, data ->
+//                val dayNumber = indexOfDay + 1
+//
+//                val isPastCheckin = dayNumber <= numberOfConsecutiveDays
+//                val isTodayCheckin = dayNumber == numberOfConsecutiveDays && hasCheckedInToday
+//
+//                data.copy(checked = isPastCheckin || isTodayCheckin)
+//            }
+//
+//            // Ensure reset if the streak is broken
+//            if (!hasCheckedInToday && numberOfConsecutiveDays == 0) {
+//                updatedDailyCheckinData.forEach { day ->
+//                    Log.e(LOG_TAG, "Streak Reset - Day: ${day.label}, Checked: ${day.checked}")
+//                }
+//            }
+//
+//            AppState.updateDailyCheckinState(updatedDailyCheckinData)
+//
+//            // Log the new state for verification
+//            updatedDailyCheckinData.forEach { day ->
+//                Log.e(LOG_TAG, "Day: ${day.label}, Diamonds: ${day.diamonds}, Checked: ${day.checked}")
+//            }
+//        }
+//    }
+
 
 }
