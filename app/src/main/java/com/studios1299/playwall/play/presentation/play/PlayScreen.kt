@@ -131,8 +131,11 @@ fun PlayScreenRoot(
                 onNavigateToChat(event.friendId)
             }
             PlayEvent.NavigateToDiamonds -> onNavigateToDiamonds()
-            PlayEvent.FriendRequestAccepted, PlayEvent.FriendRequestRejected -> {
+            PlayEvent.FriendRequestAccepted -> {
                 Toast.makeText(context, R.string.request_accepted, Toast.LENGTH_SHORT).show()
+            }
+            PlayEvent.FriendRequestRejected  -> {
+                Toast.makeText(context, R.string.request_declined, Toast.LENGTH_SHORT).show()
             }
             PlayEvent.WallpaperSent -> {
                 Toast.makeText(context, R.string.action_successful, Toast.LENGTH_SHORT).show()
@@ -181,7 +184,6 @@ fun PlayScreenRoot(
         )
     }
 }
-
 
 @SuppressLint("RememberReturnType")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -496,15 +498,17 @@ fun PlayScreen(
                 } else {
                     if (!state.isSelectMode) {
                         items(state.friendRequests) { request ->
-                            FriendRequestItem(
-                                friendRequest = request,
-                                onAccept = { onAction(PlayAction.OnAcceptFriendRequest(request.id)) },
-                                onReject = { onAction(PlayAction.OnRejectFriendRequest(request.id)) }
-                            )
+                            if(request.requesterId != request.id) {
+                                FriendRequestItem(
+                                    friendRequest = request,
+                                    onAccept = { onAction(PlayAction.OnAcceptFriendRequest(request.id)) },
+                                    onReject = { onAction(PlayAction.OnRejectFriendRequest(request.id)) }
+                                )
+                            }
                         }
                     }
                     items(state.friends) { friend ->
-                        if (friend.status != FriendshipStatus.blocked) {
+                        if (friend.status != FriendshipStatus.blocked && friend.status != FriendshipStatus.pending) {
                             // Swipe actions (mute and unfriend) will only be available when online
                             val mute = SwipeAction(
                                 icon = {
@@ -617,6 +621,20 @@ fun PlayScreen(
                             }
                         }
                     }
+
+                    items(state.friends) { friend ->
+                        if(!state.isSelectMode
+                            && friend.status == FriendshipStatus.pending
+                        ) {
+                            FriendItem(
+                                friend = friend,
+                                isMuted = false,
+                                onClick = {},
+                                isSelectable = false,
+                                isSelected = false
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -635,6 +653,7 @@ fun FriendItem(
     val backgroundColor = when {
         isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
         friend.status == FriendshipStatus.blocked -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+        friend.status == FriendshipStatus.pending -> MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
         else -> MaterialTheme.colorScheme.background
     }
 
@@ -644,15 +663,29 @@ fun FriendItem(
         MaterialTheme.colorScheme.onBackground
     }
 
-    val senderCaption = if (friend.lastMessageSender == friend.id) "Sent you a wallpaper" else "Got your wallpaper"
-    val caption = if (isMuted) "This user is muted" else "$senderCaption • ${timestampAsDateTime(friend.lastMessageDate?:"", LocalContext.current)}"
+    var senderCaption = ""
+    if (friend.lastMessageSender != null) {
+         if (friend.lastMessageSender == friend.id) senderCaption = "Sent you a wallpaper  • " else senderCaption = "Got your wallpaper • "
+    }
+    val caption = if (isMuted) {
+        "This user is muted"
+    } else if (friend.status == FriendshipStatus.pending) {
+        "Friend request sent"
+    } else {
+        "$senderCaption${timestampAsDateTime(friend.lastMessageDate?:"", LocalContext.current)}"
+    }
     val status = if (friend.lastMessageSender != friend.id) MessageStatus.read else friend.lastMessageStatus
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .background(backgroundColor)
-            .clickable { onClick(friend.id) }
+            .clickable {
+
+                //if(friend.requesterId != friend.id)
+
+                onClick(friend.id)
+            }
             .padding(horizontal = 12.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -669,7 +702,7 @@ fun FriendItem(
                 style = MaterialTheme.typography.titleSmall,
                 color = textColor
             )
-            if (friend.lastMessageDate != null) {
+            //if (friend.lastMessageDate != null) {
                 Text(
                     text = caption,
                     style = MaterialTheme.typography.bodyMedium,
@@ -678,7 +711,7 @@ fun FriendItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-            }
+            //}
         }
 //        if (status == MessageStatus.unread) {
 //            Box(

@@ -197,6 +197,7 @@ class PlayViewModel(
             val inviteFriend = repository.inviteFriend(email)
             if (inviteFriend is SmartResult.Success) {
                 // say success
+                loadFriendsAndRequests(forceUpdate = true)
                 eventChannel.send(PlayEvent.ShowError(UiText.DynamicString("Friend invited successfully!")))
             } else {
                 // say error

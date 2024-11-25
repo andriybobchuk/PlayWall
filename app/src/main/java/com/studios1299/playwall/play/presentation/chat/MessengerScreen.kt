@@ -5,6 +5,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import com.studios1299.playwall.play.presentation.chat.viewmodel.ChatViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,13 +35,16 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.components.Banners
 import com.studios1299.playwall.core.presentation.components.Images
+import com.studios1299.playwall.monetization.presentation.screens.EVIL_EMOJI
 import com.studios1299.playwall.play.data.model.MessageStatus
 import com.studios1299.playwall.play.presentation.chat.util.rememberRequestPermissionAndPickImage
 import com.studios1299.playwall.play.data.model.User
@@ -193,39 +197,39 @@ private fun FullscreenOverlays(
     val context = LocalContext.current
 
     // Define UCrop launcher
-    val cropLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val resultUri = UCrop.getOutput(result.data ?: return@rememberLauncherForActivityResult)
-        if (resultUri != null) {
-            // Send the cropped image
-            viewModel.sendWallpaper(
-                context = context,
-                uri = resultUri,
-                comment = null,
-                reaction = null,
-            )
-            viewModel.setPickedImage(null) // Clear the picked image after sending
-        }
-    }
-
-    // Launch UCrop directly
-    fun launchUCrop(sourceUri: Uri, screenRatio: Float?) {
-        val destinationUri =
-            Uri.fromFile(File(context.cacheDir, "cropped_image_${System.currentTimeMillis()}.jpg"))
-
-        val uCrop = UCrop.of(sourceUri, destinationUri)
-            .withAspectRatio(screenRatio ?: 1f, 1f) // Set the aspect ratio based on screen ratio
-            .withMaxResultSize(4096, 4096) // Optional: Adjust to your requirements
-            .withOptions(UCrop.Options().apply {
-                setCompressionQuality(100) // Keep the quality high
-                setFreeStyleCropEnabled(false) // Allow free-style cropping if needed
-                setHideBottomControls(true) // Hide controls for a cleaner UI
-                setToolbarTitle("Adjust wallpaper") // Set title for UCrop
-            })
-
-        cropLauncher.launch(uCrop.getIntent(context))
-    }
+//    val cropLauncher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.StartActivityForResult()
+//    ) { result ->
+//        val resultUri = UCrop.getOutput(result.data ?: return@rememberLauncherForActivityResult)
+//        if (resultUri != null) {
+//            // Send the cropped image
+//            viewModel.sendWallpaper(
+//                context = context,
+//                uri = resultUri,
+//                comment = null,
+//                reaction = null,
+//            )
+//            viewModel.setPickedImage(null) // Clear the picked image after sending
+//        }
+//    }
+//
+//    // Launch UCrop directly
+//    fun launchUCrop(sourceUri: Uri, screenRatio: Float?) {
+//        val destinationUri =
+//            Uri.fromFile(File(context.cacheDir, "cropped_image_${System.currentTimeMillis()}.jpg"))
+//
+//        val uCrop = UCrop.of(sourceUri, destinationUri)
+//            .withAspectRatio(screenRatio ?: 1f, 1f) // Set the aspect ratio based on screen ratio
+//            .withMaxResultSize(4096, 4096) // Optional: Adjust to your requirements
+//            .withOptions(UCrop.Options().apply {
+//                setCompressionQuality(100) // Keep the quality high
+//                setFreeStyleCropEnabled(false) // Allow free-style cropping if needed
+//                setHideBottomControls(true) // Hide controls for a cleaner UI
+//                setToolbarTitle("Adjust wallpaper") // Set title for UCrop
+//            })
+//
+//        cropLauncher.launch(uCrop.getIntent(context))
+//    }
 
     if (selectedMessage != null) {
         ImageViewer(
@@ -234,10 +238,18 @@ private fun FullscreenOverlays(
             onDismiss = { viewModel.setSelectedMessage(null) },
         )
     } else if (pickedImageUri != null) {
-        launchUCrop(
-            sourceUri = pickedImageUri,
-            screenRatio = 1 / (uiState.recipient?.screenRatio ?: 2f)
+        viewModel.sendWallpaper(
+            context = context,
+            uri = pickedImageUri,
+            comment = null,
+            reaction = null,
         )
+        viewModel.setPickedImage(null) // Clear the picked image after sending
+
+//        launchUCrop(
+//            sourceUri = pickedImageUri,
+//            screenRatio = 1 / (uiState.recipient?.screenRatio ?: 2f)
+//        )
     }
 }
 
@@ -256,82 +268,118 @@ fun MessagesList(
     scrollState: LazyListState
 ) {
     val messages = uiState.messages
-    if (messages.isEmpty()) return
+    if (messages.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(),
 
-    LazyColumn(
-        state = scrollState,
-        reverseLayout = true,
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        item {
-            Spacer(modifier = Modifier.height(64.dp))
-        }
-        items(messages, key = { it.id }) { message ->
-            if (messages.indexOf(message) >= messages.size - 1 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
-                viewModel.loadMessages()
-            }
-            val isLastMessage = message.id == messages[0].id
-
-            Log.v(
-                LOG_TAG,
-                "Message sender=${uiState.currentUser?.id}, recipient.id=${message.recipientId}, message.id=${message.id}, meagestatus=${message.status}"
-            )
-
-            if (uiState.currentUser?.id == message.recipientId
-                && message.id != -1
-                && message.status == MessageStatus.unread
             ) {
-                // Mark the last message as read if it's the recipient's message
-                Log.v(LOG_TAG, "Marking message as read because it should be marked as read")
-                viewModel.markMessagesAsRead(uiState.recipient?.friendshipId ?: -1, message.id)
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(32.dp)
+                    .padding(bottom = 100.dp)
             ) {
-                MessageItem(
-                    recipient = uiState.recipient ?: User(
-                        -1,
-                        "",
-                        "",
-                        since = "",
-                        status = FriendshipStatus.accepted,
-                        requesterId = -1,
-                        friendshipId = -1,
-                        screenRatio = 2f
-                    ),
-                    viewModel = viewModel,
-                    message = message,
-                    uiState = uiState,
-                    isLastMessage = isLastMessage
+                Image(
+                    modifier = Modifier.align(Alignment.CenterHorizontally).size(200.dp),
+                    painter = painterResource(id = R.drawable.ic_pw),
+                    contentDescription = "Logo"
+                )
+                Text(
+                    text = "No wallpapers yet?",
+                    style = MaterialTheme.typography.headlineMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "Start by setting your friend the first wallpaper! $EVIL_EMOJI",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
                 )
             }
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // Determine if a date header should be shown before this message
-            val showDateHeader = if (messages.indexOf(message) == messages.size - 1) {
-                true
-            } else {
-                !isSameDay(message.timestamp, messages[messages.indexOf(message) + 1].timestamp)
-            }
-
-            if (showDateHeader) {
-                DateHeader(date = timestampAsDate(message.timestamp, LocalContext.current))
-            }
         }
+    } else {
+        LazyColumn(
+            state = scrollState,
+            reverseLayout = true,
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            item {
+                Spacer(modifier = Modifier.height(64.dp))
+            }
+            items(messages, key = { it.id }) { message ->
+                if (messages.indexOf(message) >= messages.size - 1 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
+                    viewModel.loadMessages()
+                }
+                val isLastMessage = message.id == messages[0].id
 
-        item {
-            if (viewModel.paginationState.isLoading) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.Center
+                Log.v(
+                    LOG_TAG,
+                    "Message sender=${uiState.currentUser?.id}, recipient.id=${message.recipientId}, message.id=${message.id}, meagestatus=${message.status}"
+                )
+
+                if (uiState.currentUser?.id == message.recipientId
+                    && message.id != -1
+                    && message.status == MessageStatus.unread
                 ) {
-                    CircularProgressIndicator()
+                    // Mark the last message as read if it's the recipient's message
+                    Log.v(LOG_TAG, "Marking message as read because it should be marked as read")
+                    viewModel.markMessagesAsRead(uiState.recipient?.friendshipId ?: -1, message.id)
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    MessageItem(
+                        recipient = uiState.recipient ?: User(
+                            -1,
+                            "",
+                            "",
+                            since = "",
+                            status = FriendshipStatus.accepted,
+                            requesterId = -1,
+                            friendshipId = -1,
+                            screenRatio = 2f
+                        ),
+                        viewModel = viewModel,
+                        message = message,
+                        uiState = uiState,
+                        isLastMessage = isLastMessage
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Determine if a date header should be shown before this message
+                val showDateHeader = if (messages.indexOf(message) == messages.size - 1) {
+                    true
+                } else {
+                    !isSameDay(message.timestamp, messages[messages.indexOf(message) + 1].timestamp)
+                }
+
+                if (showDateHeader) {
+                    DateHeader(date = timestampAsDate(message.timestamp, LocalContext.current))
+                }
+            }
+
+            item {
+                if (viewModel.paginationState.isLoading) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
         }

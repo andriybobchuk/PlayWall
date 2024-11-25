@@ -338,7 +338,7 @@ fun ProfileScreen(
                         {
                             SelectorMenuItem(
                                 icon = Icons.Default.Wallpaper,
-                                label = "Set my wallpapers on",
+                                label = "Set wallpapers on my",
                                 enabled = state.isOnline,
                                 selectedOption = state.selectedWallpaperOption,
                                 options = WallpaperOption.getDisplayNames(), // Pass the enum options directly

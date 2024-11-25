@@ -15,7 +15,7 @@ interface FriendDao {
     @Query("SELECT * FROM friends WHERE status = 'accepted'")
     suspend fun getAllFriends(): List<FriendEntity>
 
-    @Query("SELECT * FROM friends WHERE status = 'pending'")
+    @Query("SELECT * FROM friends WHERE status = 'pending' AND requesterId = id")
     suspend fun getAllFriendRequests(): List<FriendEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

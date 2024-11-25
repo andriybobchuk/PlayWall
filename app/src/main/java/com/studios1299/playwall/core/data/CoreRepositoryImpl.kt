@@ -190,9 +190,11 @@ class FirebaseCoreRepositoryImpl(
                     Log.d(LOG_TAG, "Inserting ${friendsWithOrderIndex.size} friends into Room")
                     friendsDao.deleteAllFriends()
                     friendsDao.insertFriends(friendsWithOrderIndex)
+                } else {
+                    friendsDao.deleteAllFriends()
                 }
 
-                return SmartResult.Success(friendsWithAvatars?.filter { it.status == FriendshipStatus.accepted || it.status == FriendshipStatus.blocked })
+                return SmartResult.Success(friendsWithAvatars?.filter { it.status == FriendshipStatus.accepted || it.status == FriendshipStatus.blocked || it.status == FriendshipStatus.pending })
             } else {
                 return result
             }
@@ -244,6 +246,7 @@ class FirebaseCoreRepositoryImpl(
                     friendsDao.deleteAllFriends() // Clear old cache
                     friendsDao.insertFriends(friendsWithAvatars.map { it.toEntity() })
                 } else {
+                    friendsDao.deleteAllFriends()
                     Log.d(LOG_TAG, "No friend requests to insert into Room")
                 }
 
