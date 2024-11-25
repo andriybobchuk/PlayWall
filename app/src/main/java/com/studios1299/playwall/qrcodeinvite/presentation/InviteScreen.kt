@@ -50,8 +50,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -89,22 +91,30 @@ fun InviteScreen(
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            val tabTitles = listOf("Display My Code", "Scan Their Code")
-            TabRow(
-                selectedTabIndex = viewModel.currentTab,
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            ) {
-                tabTitles.forEachIndexed { index, title ->
-                    Tab(
-                        selected = viewModel.currentTab == index,
-                        onClick = { viewModel.currentTab = index },
-                        text = { Text(title) }
-                    )
+        Box(modifier = Modifier.fillMaxSize()) {
+            Image(
+                painter = painterResource(id = R.drawable.primary_bg),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            Column(modifier = Modifier.padding(padding)) {
+                val tabTitles = listOf("Display My Code", "Scan Their Code")
+                TabRow(
+                    selectedTabIndex = viewModel.currentTab,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ) {
+                    tabTitles.forEachIndexed { index, title ->
+                        Tab(
+                            selected = viewModel.currentTab == index,
+                            onClick = { viewModel.currentTab = index },
+                            text = { Text(title) }
+                        )
+                    }
                 }
+                TabContent(viewModel.currentTab, viewModel, onNavigateToPlay)
             }
-            TabContent(viewModel.currentTab, viewModel, onNavigateToPlay)
         }
     }
 }
@@ -135,7 +145,8 @@ fun QRCodeDisplayScreen(
     qrCodeBitmap: Bitmap?,
     title: String = "My QR Code",
     subtitle: String = "Ask your friend to scan this code to connect on PlayWall!",
-    logoBitmap: Bitmap? = getBitmapFromDrawable(LocalContext.current, R.drawable.pw),
+    //logoBitmap: Bitmap? = getBitmapFromDrawable(LocalContext.current, R.drawable.pw),
+    logoBitmap: Bitmap? = null,
     fallbackEmoji: String = EVIL_EMOJI
 ) {
     Box(

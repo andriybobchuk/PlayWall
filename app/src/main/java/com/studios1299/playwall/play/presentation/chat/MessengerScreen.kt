@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -256,130 +257,146 @@ fun MessagesList(
 ) {
     val messages = uiState.messages
     if (messages.isEmpty()) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(),
-
-            ) {
-            Column(
+        Box(modifier = Modifier.fillMaxSize()) {
+            Image(
+                painter = painterResource(id = R.drawable.primary_bg),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            Box(
                 modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(32.dp)
-                    .padding(bottom = 100.dp)
-            ) {
-                Image(
+                    .fillMaxSize()
+                    .padding(),
+
+                ) {
+                Column(
                     modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .size(200.dp),
-                    painter = painterResource(id = R.drawable.ic_pw),
-                    contentDescription = "Logo"
-                )
-                Text(
-                    text = "No wallpapers yet?",
-                    style = MaterialTheme.typography.headlineMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = "Start by setting your friend the first wallpaper! $EVIL_EMOJI",
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                )
+                        .align(Alignment.Center)
+                        .padding(32.dp)
+                        .padding(bottom = 100.dp)
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .size(200.dp),
+                        painter = painterResource(id = R.drawable.ic_pw),
+                        contentDescription = "Logo"
+                    )
+                    Text(
+                        text = "No wallpapers yet?",
+                        style = MaterialTheme.typography.headlineMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Start by setting your friend the first wallpaper! $EVIL_EMOJI",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                    )
+                }
             }
         }
     } else {
-        LazyColumn(
-            state = scrollState,
-            reverseLayout = true,
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            item {
-                Spacer(modifier = Modifier.height(64.dp))
-            }
-            items(messages, key = { it.id }) { message ->
-                if (messages.indexOf(message) >= messages.size - 1 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
-                    viewModel.loadMessages()
+        Box(modifier = Modifier.fillMaxSize()) {
+            Image(
+                painter = painterResource(id = R.drawable.primary_bg),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            LazyColumn(
+                state = scrollState,
+                reverseLayout = true,
+                modifier = Modifier
+                    .fillMaxSize()
+                   // .background(MaterialTheme.colorScheme.background)
+            ) {
+                item {
+                    Spacer(modifier = Modifier.height(64.dp))
                 }
-                val isLastMessage = message.id == messages[0].id
+                items(messages, key = { it.id }) { message ->
+                    if (messages.indexOf(message) >= messages.size - 1 && !viewModel.paginationState.endReached && !viewModel.paginationState.isLoading) {
+                        viewModel.loadMessages()
+                    }
+                    val isLastMessage = message.id == messages[0].id
 
-                Log.v(
-                    LOG_TAG,
-                    "Message sender=${uiState.currentUser?.id}, recipient.id=${message.recipientId}, message.id=${message.id}, meagestatus=${message.status}"
-                )
+                    Log.v(
+                        LOG_TAG,
+                        "Message sender=${uiState.currentUser?.id}, recipient.id=${message.recipientId}, message.id=${message.id}, meagestatus=${message.status}"
+                    )
 
-                val isMine = uiState.currentUser?.id != message.recipientId
+                    val isMine = uiState.currentUser?.id != message.recipientId
 
-                if (!isMine
-                    && message.id != -1
-                    && message.status == MessageStatus.unread
-                ) {
-                    // Mark the last message as read if it's the recipient's message
-                    Log.v(LOG_TAG, "Marking message as read because it should be marked as read")
-                    viewModel.markMessagesAsRead(uiState.recipient?.friendshipId ?: -1, message.id)
-                }
+                    if (!isMine
+                        && message.id != -1
+                        && message.status == MessageStatus.unread
+                    ) {
+                        // Mark the last message as read if it's the recipient's message
+                        Log.v(LOG_TAG, "Marking message as read because it should be marked as read")
+                        viewModel.markMessagesAsRead(uiState.recipient?.friendshipId ?: -1, message.id)
+                    }
 
-                Row(
-                   // modifier = Modifier.fillMaxWidth(),
-                  //  horizontalArrangement = Arrangement.End
-                ) {
-                    Column {
-                        if (isLastMessage && !isMine && message.reaction == null) {
-                            EmojiHint(message.id) { reaction ->
-                                viewModel.addOrUpdateReaction(
-                                    message.id,
-                                    reaction
-                                )
+                    Row(
+                        // modifier = Modifier.fillMaxWidth(),
+                        //  horizontalArrangement = Arrangement.End
+                    ) {
+                        Column {
+                            if (isLastMessage && !isMine && message.reaction == null) {
+                                EmojiHint(message.id) { reaction ->
+                                    viewModel.addOrUpdateReaction(
+                                        message.id,
+                                        reaction
+                                    )
+                                }
                             }
+                            MessageItem(
+                                recipient = uiState.recipient ?: User(
+                                    -1,
+                                    "",
+                                    "",
+                                    since = "",
+                                    status = FriendshipStatus.accepted,
+                                    requesterId = -1,
+                                    friendshipId = -1,
+                                    screenRatio = 2f
+                                ),
+                                viewModel = viewModel,
+                                message = message,
+                                uiState = uiState,
+                                isLastMessage = isLastMessage
+                            )
                         }
-                        MessageItem(
-                            recipient = uiState.recipient ?: User(
-                                -1,
-                                "",
-                                "",
-                                since = "",
-                                status = FriendshipStatus.accepted,
-                                requesterId = -1,
-                                friendshipId = -1,
-                                screenRatio = 2f
-                            ),
-                            viewModel = viewModel,
-                            message = message,
-                            uiState = uiState,
-                            isLastMessage = isLastMessage
-                        )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Determine if a date header should be shown before this message
+                    val showDateHeader = if (messages.indexOf(message) == messages.size - 1) {
+                        true
+                    } else {
+                        !isSameDay(message.timestamp, messages[messages.indexOf(message) + 1].timestamp)
+                    }
+
+                    if (showDateHeader) {
+                        DateHeader(date = timestampAsDate(message.timestamp, LocalContext.current))
                     }
                 }
-                Spacer(modifier = Modifier.height(6.dp))
 
-                // Determine if a date header should be shown before this message
-                val showDateHeader = if (messages.indexOf(message) == messages.size - 1) {
-                    true
-                } else {
-                    !isSameDay(message.timestamp, messages[messages.indexOf(message) + 1].timestamp)
-                }
-
-                if (showDateHeader) {
-                    DateHeader(date = timestampAsDate(message.timestamp, LocalContext.current))
-                }
-            }
-
-            item {
-                if (viewModel.paginationState.isLoading) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        CircularProgressIndicator()
+                item {
+                    if (viewModel.paginationState.isLoading) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
                     }
                 }
             }

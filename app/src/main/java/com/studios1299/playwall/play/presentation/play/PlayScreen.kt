@@ -6,6 +6,7 @@ import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -62,15 +63,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.google.accompanist.swiperefresh.SwipeRefresh
@@ -213,9 +220,12 @@ fun PlayScreen(
 
     requestNotificationPermissionWithDexter(LocalContext.current)
 
-    if(requesterId!=-1 && inviteLinkShouldBeParsed.value) {
-        Log.e("PlayScreen", "PlayAction.OnReceiveInviteLink was initiated, requesterId = $requesterId")
-        onAction(PlayAction.OnReceiveInviteLink(requesterId?:-1, requestCode?:-1))
+    if (requesterId != -1 && inviteLinkShouldBeParsed.value) {
+        Log.e(
+            "PlayScreen",
+            "PlayAction.OnReceiveInviteLink was initiated, requesterId = $requesterId"
+        )
+        onAction(PlayAction.OnReceiveInviteLink(requesterId ?: -1, requestCode ?: -1))
         inviteLinkShouldBeParsed.value = false
     }
 
@@ -231,7 +241,7 @@ fun PlayScreen(
 
     LaunchedEffect(state.linkInvite) {
         Log.e("PlayScreen", "link invite data: ${state.linkInvite}")
-        if(state.linkInvite.email != "") {
+        if (state.linkInvite.email != "") {
             showInviteDialog.value = true
         }
     }
@@ -274,20 +284,23 @@ fun PlayScreen(
             onDismissRequest = { showMuteDialog = false },
             title = { Text(text = "Mute Friend?") },
             text = {
-                 Text(stringResource(R.string.remove_friend_alert))
+                Text(stringResource(R.string.remove_friend_alert))
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                      //  selectedFriendId?.let { friendId ->
-                        Log.e("screen", "Blocking user with friendship ID: $selectedFriendshipId by user $selectedFriendId")
-                            onAction(
-                                PlayAction.OnFriendMute(
-                                    selectedFriendshipId,
-                                    selectedFriendId
-                                )
+                        //  selectedFriendId?.let { friendId ->
+                        Log.e(
+                            "screen",
+                            "Blocking user with friendship ID: $selectedFriendshipId by user $selectedFriendId"
+                        )
+                        onAction(
+                            PlayAction.OnFriendMute(
+                                selectedFriendshipId,
+                                selectedFriendId
                             )
-                       // }
+                        )
+                        // }
                         showMuteDialog = false
                     }
                 ) {
@@ -321,7 +334,8 @@ fun PlayScreen(
 
     val requestImagePicker = rememberRequestPermissionAndPickImage { uri ->
         coroutineScope.launch {
-            val filename = S3Handler.uploadToS3(uriToFile(context, uri)!!, S3Handler.Folder.WALLPAPERS)?:""
+            val filename =
+                S3Handler.uploadToS3(uriToFile(context, uri)!!, S3Handler.Folder.WALLPAPERS) ?: ""
             onAction(PlayAction.OnSelectedFromGallery(filename))
             onAction(PlayAction.OnExitSelectMode)
         }
@@ -390,7 +404,7 @@ fun PlayScreen(
                         onClick = {
                             onAction(PlayAction.RequestInviteLink)
                         }
-                        ),
+                    ),
                     ExpendableFabItem(
                         icon = Icons.Rounded.QrCode,
                         text = "QR-code",
@@ -442,50 +456,67 @@ fun PlayScreen(
             }
         }
     ) { combinedPadding ->
-        if (!state.isLoading && state.friends.isEmpty() && state.friendRequests.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(combinedPadding),
 
-                ) {
-                Column(
+        if (!state.isLoading && state.friends.isEmpty() && state.friendRequests.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Image(
+                    painter = painterResource(id = R.drawable.primary_bg),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                Box(
                     modifier = Modifier
-                        .align(Alignment.Center)
-                ) {
-                    Text(
-                        text = "No friends yet?",
-                        style = MaterialTheme.typography.headlineMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Start by adding your first friend!",
-                        style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = {
-                            isInviteSheetOpen.value = true
-                        },
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                        .fillMaxSize()
+                        .padding(combinedPadding),
+
                     ) {
-                        Text(text = "Add Friend")
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                    ) {
+                        Text(
+                            text = "No friends yet?",
+                            style = MaterialTheme.typography.headlineMedium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Start by adding your first friend!",
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = {
+                                isInviteSheetOpen.value = true
+                            },
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        ) {
+                            Text(text = "Add Friend")
+                        }
                     }
                 }
             }
         } else {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Image(
+                    painter = painterResource(id = R.drawable.flames_bg),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(combinedPadding)
-                    .background(MaterialTheme.colorScheme.background)
+                    .padding(combinedPadding),
+                //.background(MaterialTheme.colorScheme.background)
             ) {
                 if (!state.isOnline) {
                     item {
@@ -499,7 +530,7 @@ fun PlayScreen(
                 } else {
                     if (!state.isSelectMode) {
                         items(state.friendRequests) { request ->
-                            if(request.requesterId != request.id) {
+                            if (request.requesterId != request.id) {
                                 FriendRequestItem(
                                     friendRequest = request,
                                     onAccept = { onAction(PlayAction.OnAcceptFriendRequest(request.id)) },
@@ -522,7 +553,10 @@ fun PlayScreen(
                                 },
                                 background = MaterialTheme.colorScheme.primary,
                                 onSwipe = {
-                                    Log.e("setting", "Blocking user with friendship ID: ${friend.friendshipId} by user ${friend.id}")
+                                    Log.e(
+                                        "setting",
+                                        "Blocking user with friendship ID: ${friend.friendshipId} by user ${friend.id}"
+                                    )
                                     selectedFriendshipId = friend.friendshipId
                                     selectedFriendId = friend.id
                                     showMuteDialog = true
@@ -564,7 +598,7 @@ fun PlayScreen(
                     }
 
                     items(state.friends) { friend ->
-                        if(!state.isSelectMode
+                        if (!state.isSelectMode
                             && friend.status == FriendshipStatus.blocked
                         ) {
                             val unmute = SwipeAction(
@@ -578,7 +612,10 @@ fun PlayScreen(
                                 },
                                 background = MaterialTheme.colorScheme.primary,
                                 onSwipe = {
-                                    Log.e("setting", "UN-blocking user with friendship ID: ${friend.friendshipId} by user ${friend.id}")
+                                    Log.e(
+                                        "setting",
+                                        "UN-blocking user with friendship ID: ${friend.friendshipId} by user ${friend.id}"
+                                    )
                                     onAction(
                                         PlayAction.OnFriendUnMute(
                                             friend.friendshipId,
@@ -624,7 +661,7 @@ fun PlayScreen(
                     }
 
                     items(state.friends) { friend ->
-                        if(!state.isSelectMode
+                        if (!state.isSelectMode
                             && friend.status == FriendshipStatus.pending
                         ) {
                             FriendItem(
@@ -639,6 +676,7 @@ fun PlayScreen(
                 }
             }
         }
+    }
     }
 }
 
@@ -655,7 +693,7 @@ fun FriendItem(
         isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
         friend.status == FriendshipStatus.blocked -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
         friend.status == FriendshipStatus.pending -> MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-        else -> MaterialTheme.colorScheme.background
+        else -> Color.Transparent
     }
 
     val textColor = if (friend.status == FriendshipStatus.blocked) {

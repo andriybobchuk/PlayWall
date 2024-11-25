@@ -24,10 +24,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AdUnits
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -46,25 +44,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.android.billingclient.api.BillingClient
 import com.google.firebase.analytics.FirebaseAnalytics
+import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.components.Toolbars
-import com.studios1299.playwall.core.presentation.designsystem.DIAMONDS_SCREEN_PANEL
 import com.studios1299.playwall.monetization.data.AdManager
 import com.studios1299.playwall.monetization.data.BillingManager
 import com.studios1299.playwall.monetization.presentation.AppState
 import com.studios1299.playwall.monetization.presentation.DiamondsViewModel
 import com.studios1299.playwall.monetization.presentation.components.NextDiamondSheet
-import com.studios1299.playwall.monetization.presentation.components.NextSpinSheet
 import kotlinx.coroutines.launch
 
 const val EVIL_EMOJI = "\uD83D\uDE08"
@@ -102,85 +99,92 @@ fun DiamondsScreen(
     LaunchedEffect(Unit) {
         analytics.logEvent("seen_diamonds_screen", null)
     }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = R.drawable.diamonds_bg),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(colorStops = colorStops))
-    ) {
-        //val diamondsCount = viewModel.diamondsCount.collectAsState()
-        val diamondsCount = AppState.devilCount.collectAsState()
-        val showNextDiamondSheet = AppState.nextDiamondSheetShow.collectAsState()
-
-        DiamondsScreenTopBar(onBackClick, isLoading)
         Column(
             modifier = Modifier
-                .padding(horizontal = 10.dp, vertical = 12.dp)
-
+                .fillMaxSize()
+            //.background(Brush.verticalGradient(colorStops = colorStops))
         ) {
-            DiamondsCount(diamondsCount = diamondsCount.value)
-            Spacer(modifier = Modifier.size(spacing))
-            DailyCheckIn(viewModel)
-            Spacer(modifier = Modifier.size(spacing))
-            LuckySpinButton(onNavigateToLuckySpin)
-            Spacer(modifier = Modifier.size(spacing))
-            WatchVideoButton(isLoading) {
-                if (!isLoading) {
-                    analytics.logEvent("ds_watch_ads_to_get_diamonds_button", null)
-                    isLoading = true
-                    adManager.loadRewardedAd(
-                        onAdLoaded = { adLoaded ->
-                            if (adLoaded) {
-                                adManager.showRewardedAdIfLoaded(
-                                    onRewardEarned = {
-                                        viewModel.addDevils(1)
-                                    },
-                                    onAdClosed = {
-                                        // viewModel.showNextDiamondSheet()
-                                        AppState.updateNextDiamondSheetShow(true)
-                                    }
-                                )
-                                //viewModel.hideNextDiamondSheet()
-                                AppState.updateNextDiamondSheetShow(false)
-                            } else {
-                                /*
-                               *
-                               * Case that ad is no loaded (no fill, etc)
-                               *
-                               * */
-                                //viewModel.hideNextDiamondSheet()
-                                AppState.updateNextDiamondSheetShow(false)
-                                scope.launch {
+            //val diamondsCount = viewModel.diamondsCount.collectAsState()
+            val diamondsCount = AppState.devilCount.collectAsState()
+            val showNextDiamondSheet = AppState.nextDiamondSheetShow.collectAsState()
+
+            DiamondsScreenTopBar(onBackClick, isLoading)
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 10.dp, vertical = 12.dp)
+
+            ) {
+                DiamondsCount(diamondsCount = diamondsCount.value)
+                Spacer(modifier = Modifier.size(spacing))
+                DailyCheckIn(viewModel)
+                Spacer(modifier = Modifier.size(spacing))
+                LuckySpinButton(onNavigateToLuckySpin)
+                Spacer(modifier = Modifier.size(spacing))
+                WatchVideoButton(isLoading) {
+                    if (!isLoading) {
+                        analytics.logEvent("ds_watch_ads_to_get_diamonds_button", null)
+                        isLoading = true
+                        adManager.loadRewardedAd(
+                            onAdLoaded = { adLoaded ->
+                                if (adLoaded) {
+                                    adManager.showRewardedAdIfLoaded(
+                                        onRewardEarned = {
+                                            viewModel.addDevils(1)
+                                        },
+                                        onAdClosed = {
+                                            // viewModel.showNextDiamondSheet()
+                                            AppState.updateNextDiamondSheetShow(true)
+                                        }
+                                    )
+                                    //viewModel.hideNextDiamondSheet()
+                                    AppState.updateNextDiamondSheetShow(false)
+                                } else {
+                                    /*
+                                   *
+                                   * Case that ad is no loaded (no fill, etc)
+                                   *
+                                   * */
+                                    //viewModel.hideNextDiamondSheet()
+                                    AppState.updateNextDiamondSheetShow(false)
+                                    scope.launch {
 //                                    SnackbarController.sendEvent(
 //                                        SnackbarEvent(
 //                                            message = noAdsMessage,
 //                                            duration = SnackbarDuration.Long
 //                                        )
 //                                    )
+                                    }
+
+
                                 }
+                                isLoading = false
+                            },
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.size(spacing))
 
-
-                            }
-                            isLoading = false
-                        },
+                val showDialog = remember { mutableStateOf(false) }
+                UnlimitedDiamondsButton(
+                    onClick = {
+                        showDialog.value = true
+                    }
+                )
+                if (showDialog.value) {
+                    BuyDialog(
+                        billingManager = billingManager,
+                        onDismissRequest = { showDialog.value = false }
                     )
                 }
-            }
-            Spacer(modifier = Modifier.size(spacing))
-
-            val showDialog = remember { mutableStateOf(false) }
-            UnlimitedDiamondsButton(
-                onClick = {
-                    showDialog.value = true
-                }
-            )
-            if (showDialog.value) {
-                BuyDialog(
-                    billingManager = billingManager,
-                    onDismissRequest = { showDialog.value = false }
-                )
-            }
-            Spacer(modifier = Modifier.size(spacing))
+                Spacer(modifier = Modifier.size(spacing))
 //            Button(onClick = {
 //                viewModel.addDevils(-1)
 //            }) {
@@ -192,15 +196,16 @@ fun DiamondsScreen(
 //                Text(text = "reset checkin")
 //            }
 
-            if (showNextDiamondSheet.value) {
-                NextDiamondSheet(
-                    viewModel = viewModel,
-                    adManager = adManager
-                )
+                if (showNextDiamondSheet.value) {
+                    NextDiamondSheet(
+                        viewModel = viewModel,
+                        adManager = adManager
+                    )
+                }
+
             }
 
         }
-
     }
 }
 
