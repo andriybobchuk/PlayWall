@@ -76,8 +76,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.studios1299.playwall.R
-import com.studios1299.playwall.app.MyApp
-import com.studios1299.playwall.app.di.AppModule
 import com.studios1299.playwall.core.data.networking.response.friendships.LinkRequestData
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.data.s3.uriToFile
@@ -112,6 +110,7 @@ fun PlayScreenRoot(
     onNavigateToInviteScreen: (String) -> Unit,
     requesterId: Int?,
     requestCode: Int?,
+    onAcceptLinkInvite: () -> Unit,
     bottomNavbar: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
@@ -140,7 +139,7 @@ fun PlayScreenRoot(
             PlayEvent.WallpaperSent -> {
                 Toast.makeText(context, R.string.action_successful, Toast.LENGTH_SHORT).show()
             }
-            PlayEvent.InviteLinkParsedSuccessfully -> {}
+            PlayEvent.PlayScreenShouldBeRestarted -> onAcceptLinkInvite()
             is PlayEvent.InviteLinkReady -> shareText(context, event.inviteLink)
             is PlayEvent.QrInviteReady -> onNavigateToInviteScreen(event.inviteLink)
         }
@@ -310,9 +309,11 @@ fun PlayScreen(
             linkInviteData = state.linkInvite,
             onAccept = {
                 onAction(PlayAction.OnCreateFriendshipWithLink(requesterId!!, requestCode!!))
+                onAction(PlayAction.ClearInviteState)
                 showInviteDialog.value = false
             },
             onReject = {
+                onAction(PlayAction.ClearInviteState)
                 showInviteDialog.value = false
             }
         )

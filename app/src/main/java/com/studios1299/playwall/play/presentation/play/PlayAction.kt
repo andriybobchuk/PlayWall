@@ -12,6 +12,7 @@ sealed interface PlayAction {
     data class UpdateSelectedFriends(val updatedSelectedFriends: List<Int>) : PlayAction
     data object RequestInviteLink: PlayAction
     data object RequestQrInvite: PlayAction
+    data object ClearInviteState: PlayAction
 
     data class OnAcceptFriendRequest(val requestId: Int): PlayAction
     data class OnRejectFriendRequest(val requestId: Int): PlayAction

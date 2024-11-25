@@ -240,7 +240,12 @@ private fun NavGraphBuilder.mainGraph(
                     },
                     bottomNavbar = { BottomNavigationBar(navController, 0) },
                     requesterId = requesterId,
-                    requestCode = requestCode
+                    requestCode = requestCode,
+                    onAcceptLinkInvite = {navController.navigate("${Graphs.Main.Screens.play}/${-1}/${-1}") {
+                        popUpTo(
+                            Graphs.Main.root
+                        )
+                    }}
                 )
             }
         }

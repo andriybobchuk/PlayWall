@@ -9,7 +9,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.data.FriendEvent
 import com.studios1299.playwall.core.data.WallpaperEventManager
@@ -25,20 +24,13 @@ import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.core.presentation.UiText
 import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
-import com.studios1299.playwall.play.presentation.chat.viewmodel.WallpaperNotificationForChat
 import com.studios1299.playwall.monetization.presentation.AppState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.util.Random
-import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalFoundationApi::class)
 class PlayViewModel(
@@ -156,6 +148,8 @@ class PlayViewModel(
                     }
                 }
             }
+
+            PlayAction.ClearInviteState -> state = state.copy(linkInvite = LinkRequestData("", "", ""))
         }
     }
 
@@ -263,10 +257,10 @@ fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
             val result = repository.acceptFriendRequest(AcceptRequest(requestId))
             if (result is SmartResult.Success) {
                 eventChannel.send(PlayEvent.FriendRequestAccepted)
-                loadFriendsAndRequests(forceUpdate = true)
             } else {
                 eventChannel.send(PlayEvent.ShowError(UiText.DynamicString("Error accepting request")))
             }
+            loadFriendsAndRequests(forceUpdate = true)
         }
     }
 
@@ -291,6 +285,7 @@ fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
             } else if(result is SmartResult.Error) {
                 eventChannel.send(PlayEvent.ShowError(UiText.DynamicString(result.errorBody.toString())))
             }
+            eventChannel.send(PlayEvent.PlayScreenShouldBeRestarted)
         }
     }
 
@@ -300,7 +295,6 @@ fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
         viewModelScope.launch {
             val result = repository.getLinkRequestData(LinkFriendshipRequest(requestId, code))
             if (result is SmartResult.Success && result.data != null) {
-                eventChannel.send(PlayEvent.InviteLinkParsedSuccessfully)
                 state = state.copy(
                     linkInvite = LinkRequestData(
                         nick = result.data.nick,
