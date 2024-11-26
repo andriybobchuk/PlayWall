@@ -1,6 +1,7 @@
 package com.studios1299.playwall.core.presentation.components
 
 import android.annotation.SuppressLint
+import android.icu.text.ListFormatter.Width
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -31,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 
@@ -50,6 +52,7 @@ fun ExpandableFab(
     icon: ImageVector,
     iconExpanded: ImageVector = icon,
     text: String,
+    width: Dp = 200.dp,
     items: List<ExpendableFabItem>
 ) {
 
@@ -59,73 +62,84 @@ fun ExpandableFab(
 
     //val interactionSource = MutableInteractionSource()
 
-    Card(
-        modifier = modifier,
-        elevation = CardDefaults.elevatedCardElevation(4.dp)
-    ) {
-        Column(modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)) {
-            // The Expandable Sheet layout
-            AnimatedVisibility(
-                visible = buttonClicked,
-                enter = expandVertically(tween(1200)) + fadeIn(),
-                exit = shrinkVertically(tween(700)) + fadeOut(
-                    animationSpec = tween(400)
-                )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(vertical = 15.dp, horizontal = 20.dp)
-                ) {
-                    items.forEach { item ->
-                        Row(modifier = Modifier
-                            .padding(vertical = 10.dp)
-                            .clickable(
-                                onClick = {
-                                    item.onClick()
-                                    buttonClicked = false
-                                }
-                            )) {
-                            Icon(
-                                imageVector = item.icon, contentDescription = "refresh"
-                            )
-
-                            Spacer(modifier = Modifier.width(15.dp))
-
-                            Text(text = item.text, style = MaterialTheme.typography.bodyMedium)
-                        }
-                    }
-                }
-            }
-
-            // The FAB main button
-            Card(
-                modifier = Modifier.clickable(
-                    onClick = {
-                        buttonClicked = !buttonClicked
-                    }
-                ).align(Alignment.End),
-                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.primary)) {
-                Row(
-                    modifier = Modifier.padding(vertical = 15.dp, horizontal = 20.dp)
-                ) {
-                    Icon(
-                        imageVector = if (buttonClicked) iconExpanded else icon, contentDescription = "refresh"
+    Row {
+        Spacer(modifier = Modifier.weight(1f))
+        Card(
+            modifier = modifier,
+            elevation = CardDefaults.elevatedCardElevation(4.dp)
+        ) {
+            Column(modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)) {
+                // The Expandable Sheet layout
+                AnimatedVisibility(
+                    visible = buttonClicked,
+                    enter = expandVertically(tween(1200)) + fadeIn(),
+                    exit = shrinkVertically(tween(700)) + fadeOut(
+                        animationSpec = tween(400)
                     )
-                    AnimatedVisibility(
-                        visible = buttonClicked,
-                        enter = expandVertically(animationSpec = tween(700)) + fadeIn(),
-                        exit = shrinkVertically(tween(700)) + fadeOut(tween(700))
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(vertical = 15.dp)
+                            .width(if (buttonClicked) width else 0.dp)
                     ) {
-                        Row {
-                            Spacer(modifier = Modifier.width(20.dp))
-                            Text(text = text)
+                        items.forEach { item ->
+                            Row(modifier = Modifier
+                                .clickable(
+                                    onClick = {
+                                        item.onClick()
+                                        buttonClicked = false
+                                    }
+                                )
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp, horizontal = 20.dp)
+                            ) {
+                                Icon(
+                                    imageVector = item.icon, contentDescription = "refresh"
+                                )
+
+                                Spacer(modifier = Modifier.width(15.dp))
+
+                                Text(text = item.text, style = MaterialTheme.typography.bodyMedium)
+                            }
                         }
                     }
                 }
+
+                // The FAB main button
+                Card(
+                    modifier = Modifier
+                        .clickable(
+                            onClick = {
+                                buttonClicked = !buttonClicked
+                            }
+                        )
+                        .align(Alignment.End),
+                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.primary).also {
+                    }) {
+                    Row(
+                        modifier = Modifier.padding(vertical = 15.dp, horizontal = 20.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (buttonClicked) iconExpanded else icon, contentDescription = "refresh"
+                        )
+                        AnimatedVisibility(
+                            visible = buttonClicked,
+                            enter = expandVertically(animationSpec = tween(700)) + fadeIn(),
+                            exit = shrinkVertically(tween(700)) + fadeOut(tween(700))
+                        ) {
+                            Row {
+                                Spacer(modifier = Modifier.width(20.dp))
+                                Text(text = text)
+                            }
+                        }
+                    }
+                }
+
             }
 
         }
-
     }
+    
+    
 
 }

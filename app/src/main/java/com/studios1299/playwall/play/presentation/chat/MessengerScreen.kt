@@ -1,7 +1,10 @@
 package com.studios1299.playwall.play.presentation.chat
 
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import com.studios1299.playwall.play.presentation.chat.viewmodel.ChatViewModel
 import androidx.compose.foundation.background
@@ -45,7 +48,9 @@ import com.studios1299.playwall.play.presentation.chat.viewmodel.MessengerUiStat
 import com.studios1299.playwall.play.presentation.chat.util.isSameDay
 import com.studios1299.playwall.play.presentation.chat.util.timestampAsDate
 import com.studios1299.playwall.play.presentation.play.FriendshipStatus
+import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.launch
+import java.io.File
 
 private const val LOG_TAG = "MessengerScreen"
 
@@ -184,40 +189,37 @@ private fun FullscreenOverlays(
     val pickedImageUri = uiState.pickedImageUri
     val context = LocalContext.current
 
-    // Define UCrop launcher
-//    val cropLauncher = rememberLauncherForActivityResult(
-//        contract = ActivityResultContracts.StartActivityForResult()
-//    ) { result ->
-//        val resultUri = UCrop.getOutput(result.data ?: return@rememberLauncherForActivityResult)
-//        if (resultUri != null) {
-//            // Send the cropped image
-//            viewModel.sendWallpaper(
-//                context = context,
-//                uri = resultUri,
-//                comment = null,
-//                reaction = null,
-//            )
-//            viewModel.setPickedImage(null) // Clear the picked image after sending
-//        }
-//    }
-//
-//    // Launch UCrop directly
-//    fun launchUCrop(sourceUri: Uri, screenRatio: Float?) {
-//        val destinationUri =
-//            Uri.fromFile(File(context.cacheDir, "cropped_image_${System.currentTimeMillis()}.jpg"))
-//
-//        val uCrop = UCrop.of(sourceUri, destinationUri)
-//            .withAspectRatio(screenRatio ?: 1f, 1f) // Set the aspect ratio based on screen ratio
-//            .withMaxResultSize(4096, 4096) // Optional: Adjust to your requirements
-//            .withOptions(UCrop.Options().apply {
-//                setCompressionQuality(100) // Keep the quality high
-//                setFreeStyleCropEnabled(false) // Allow free-style cropping if needed
-//                setHideBottomControls(true) // Hide controls for a cleaner UI
-//                setToolbarTitle("Adjust wallpaper") // Set title for UCrop
-//            })
-//
-//        cropLauncher.launch(uCrop.getIntent(context))
-//    }
+    val cropLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val resultUri = UCrop.getOutput(result.data ?: return@rememberLauncherForActivityResult)
+        if (resultUri != null) {
+            viewModel.sendWallpaper(
+                context = context,
+                uri = resultUri,
+                comment = null,
+                reaction = null,
+            )
+            viewModel.setPickedImage(null)
+        }
+    }
+
+    fun launchUCrop(sourceUri: Uri, screenRatio: Float?) {
+        val destinationUri =
+            Uri.fromFile(File(context.cacheDir, "cropped_image_${System.currentTimeMillis()}.jpg"))
+
+        val uCrop = UCrop.of(sourceUri, destinationUri)
+            .withAspectRatio(screenRatio ?: 1f, 1f)
+            .withMaxResultSize(4096, 4096)
+            .withOptions(UCrop.Options().apply {
+                setCompressionQuality(100)
+                setFreeStyleCropEnabled(false)
+                setHideBottomControls(true)
+                setToolbarTitle("Adjust wallpaper")
+            })
+
+        cropLauncher.launch(uCrop.getIntent(context))
+    }
 
     if (selectedMessage != null) {
         ImageViewer(
@@ -226,18 +228,10 @@ private fun FullscreenOverlays(
             onDismiss = { viewModel.setSelectedMessage(null) },
         )
     } else if (pickedImageUri != null) {
-        viewModel.sendWallpaper(
-            context = context,
-            uri = pickedImageUri,
-            comment = null,
-            reaction = null,
+        launchUCrop(
+            sourceUri = pickedImageUri,
+            screenRatio = 1 / (uiState.recipient?.screenRatio ?: 2f)
         )
-        viewModel.setPickedImage(null) // Clear the picked image after sending
-
-//        launchUCrop(
-//            sourceUri = pickedImageUri,
-//            screenRatio = 1 / (uiState.recipient?.screenRatio ?: 2f)
-//        )
     }
 }
 

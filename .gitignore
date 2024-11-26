@@ -10,3 +10,5 @@ local.properties
 .externalNativeBuild
 .cxx
 /app/src/main/assets/build_counter.properties
+*.keystore
+*.jks
