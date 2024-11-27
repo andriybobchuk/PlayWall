@@ -12,3 +12,4 @@ local.properties
 /app/src/main/assets/build_counter.properties
 *.keystore
 *.jks
+/app/src/main/java/com/studios1299/playwall/core/data/
