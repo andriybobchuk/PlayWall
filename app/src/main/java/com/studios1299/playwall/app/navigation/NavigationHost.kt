@@ -25,6 +25,9 @@ import com.studios1299.playwall.auth.presentation.register.RegisterScreenRoot
 import com.studios1299.playwall.auth.presentation.register.RegisterViewModel
 import com.studios1299.playwall.core.presentation.components.WebViewScreen
 import com.studios1299.playwall.core.presentation.components.WebContent
+import com.studios1299.playwall.core.presentation.wrzutomat.Wrzutomat
+import com.studios1299.playwall.core.presentation.wrzutomat.WrzutomatType
+import com.studios1299.playwall.core.presentation.wrzutomat.WrzutomatViewModel
 import com.studios1299.playwall.monetization.presentation.screens.LuckySpinScreen
 import com.studios1299.playwall.create.presentation.CreateScreenRoot
 import com.studios1299.playwall.create.presentation.CreateViewModel
@@ -245,7 +248,8 @@ private fun NavGraphBuilder.mainGraph(
                         popUpTo(
                             Graphs.Main.root
                         )
-                    }}
+                    }},
+                    onOpenWrzutomat = { navController.navigate(Graphs.Main.Screens.wrzutomat_small) }
                 )
             }
         }
@@ -466,6 +470,64 @@ private fun NavGraphBuilder.mainGraph(
                         selectedItemIndex = 3
                     )
                 }
+            )
+        }
+        composable(Graphs.Main.Screens.wrzutomat_big) {
+            Wrzutomat(
+                viewModel = viewModel<WrzutomatViewModel>(
+                    factory = viewModelFactory {
+                        WrzutomatViewModel(
+                            //MyApp.appModule.coreRepository
+                        )
+                    }
+                ),
+                type = WrzutomatType.BIG,
+                onClose = { navController.navigateUp() },
+                onPrivacyPolicyClick = {
+                    navController.navigate(
+                        Graphs.Shared.Screens.web.replace(
+                            "{webType}",
+                            WebContent.PP.name
+                        )
+                    )
+                },
+                onTermsOfServiceClick = {
+                    navController.navigate(
+                        Graphs.Shared.Screens.web.replace(
+                            "{webType}",
+                            WebContent.TOS.name
+                        )
+                    )
+                },
+            )
+        }
+        composable(Graphs.Main.Screens.wrzutomat_small) {
+            Wrzutomat(
+                viewModel = viewModel<WrzutomatViewModel>(
+                    factory = viewModelFactory {
+                        WrzutomatViewModel(
+                            //MyApp.appModule.coreRepository
+                        )
+                    }
+                ),
+                type = WrzutomatType.SMALL,
+                onClose = { navController.navigateUp() },
+                onPrivacyPolicyClick = {
+                    navController.navigate(
+                        Graphs.Shared.Screens.web.replace(
+                            "{webType}",
+                            WebContent.PP.name
+                        )
+                    )
+                },
+                onTermsOfServiceClick = {
+                    navController.navigate(
+                        Graphs.Shared.Screens.web.replace(
+                            "{webType}",
+                            WebContent.TOS.name
+                        )
+                    )
+                },
             )
         }
         composable("${Graphs.Main.Screens.play_chat}/{friendId}") { backStackEntry ->

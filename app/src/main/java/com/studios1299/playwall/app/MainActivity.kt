@@ -3,17 +3,25 @@ package com.studios1299.playwall.app
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
+import android.view.View
+import android.view.WindowInsetsController
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
-import com.studios1299.playwall.app.config.AppConfigManager
-import com.studios1299.playwall.app.di.AppModuleImpl
-import com.studios1299.playwall.core.presentation.designsystem.PlayWallTheme
 import com.studios1299.playwall.app.navigation.NavigationHostLegacy
+import com.studios1299.playwall.core.presentation.designsystem.PlayWallTheme
+import com.studios1299.playwall.core.presentation.designsystem.ZEDGE_BLACK
+import com.studios1299.playwall.core.presentation.designsystem.ZEDGE_WHITE
+import com.studios1299.playwall.core.presentation.wrzutomat.SubscriptionOption
+import com.studios1299.playwall.core.presentation.wrzutomat.SubscriptionWeeklyScreen
 import com.studios1299.playwall.monetization.data.AdManager
 import com.studios1299.playwall.monetization.data.ConsentManager
 
@@ -26,7 +34,11 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.Transparent.toArgb()),
+            navigationBarStyle = SystemBarStyle.dark(Color.Transparent.toArgb())
+        )
 
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         adManager = AdManager(this)
@@ -45,6 +57,18 @@ class MainActivity : ComponentActivity() {
             }
         }
         setContent {
+//            val systemUiController = rememberSystemUiController()
+//            SideEffect {
+//                systemUiController.setStatusBarColor(
+//                    color = Color.Transparent,
+//                    darkIcons = false
+//                )
+//                systemUiController.setNavigationBarColor(
+//                    color = Color.Transparent,
+//                    darkIcons = false
+//                )
+//            }
+
             PlayWallTheme {
                 if(!viewModel.state.keepSplashScreen) {
                     NavigationHostLegacy(

@@ -211,5 +211,9 @@ dependencies {
 
     implementation ("com.google.mlkit:barcode-scanning:17.0.3")
 
+    // To enforce the dark mode on the system bars
+   // implementation ("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
+
+
 
 }

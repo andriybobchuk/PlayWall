@@ -77,6 +77,8 @@ fun PlayWallTheme(
 //    }
     val colorScheme = ZedgeScheme
 
+
+
     MaterialTheme(
         colorScheme = colorScheme,
         typography = PoppinsTypography,

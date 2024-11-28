@@ -118,10 +118,13 @@ fun PlayScreenRoot(
     requesterId: Int?,
     requestCode: Int?,
     onAcceptLinkInvite: () -> Unit,
+    onOpenWrzutomat: () -> Unit,
     bottomNavbar: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
     val state = viewModel.state
+
+    onOpenWrzutomat()
 
     ObserveAsEvents(viewModel.events) { event ->
         when(event) {

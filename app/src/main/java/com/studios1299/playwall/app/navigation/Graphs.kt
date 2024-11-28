@@ -22,6 +22,8 @@ sealed class Graphs {
             const val explore_image = "explore-image/{photoIndex}"
             const val create = "create"
             const val profile = "profile"
+            const val wrzutomat_small = "wrzutomat-small"
+            const val wrzutomat_big = "wrzutomat-big"
         }
     }
 
