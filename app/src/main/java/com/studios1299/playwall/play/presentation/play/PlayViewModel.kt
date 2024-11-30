@@ -192,7 +192,7 @@ class PlayViewModel(
             if (inviteFriend is SmartResult.Success) {
                 // say success
                 loadFriendsAndRequests(forceUpdate = true)
-                eventChannel.send(PlayEvent.ShowError(UiText.DynamicString("Friend invited successfully!")))
+                eventChannel.send(PlayEvent.FriendInvited)
             } else {
                 // say error
                 val errorMessage = when (inviteFriend) {

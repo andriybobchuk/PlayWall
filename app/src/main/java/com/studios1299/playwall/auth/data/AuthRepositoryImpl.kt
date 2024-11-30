@@ -27,6 +27,12 @@ class AuthRepositoryImpl(
         private const val LOG_TAG = "FirebaseAuthRepositoryImpl"
     }
 
+    override suspend fun checkHealth(): SmartResult<Unit> {
+        return RetrofitClientExt.safeCall {
+            RetrofitClient.userApi.checkHealth()
+        }
+    }
+
     override suspend fun login(email: String, password: String): SmartResult<User> {
         return try {
             val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
@@ -94,7 +100,7 @@ class AuthRepositoryImpl(
                 screenRatio = screenRatio
             )
             if (createUserResult is SmartResult.Error) {
-                //firebaseAuth.signOut()
+                firebaseAuth.signOut()
                 return createUserResult
             }
 

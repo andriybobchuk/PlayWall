@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.studios1299.playwall.app.navigation.NavigationHostLegacy
 import com.studios1299.playwall.core.presentation.designsystem.PlayWallTheme
 import com.studios1299.playwall.core.presentation.designsystem.ZEDGE_BLACK
@@ -24,6 +25,20 @@ import com.studios1299.playwall.core.presentation.wrzutomat.SubscriptionOption
 import com.studios1299.playwall.core.presentation.wrzutomat.SubscriptionWeeklyScreen
 import com.studios1299.playwall.monetization.data.AdManager
 import com.studios1299.playwall.monetization.data.ConsentManager
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 class MainActivity : ComponentActivity() {
 
@@ -57,19 +72,51 @@ class MainActivity : ComponentActivity() {
             }
         }
         setContent {
-//            val systemUiController = rememberSystemUiController()
-//            SideEffect {
-//                systemUiController.setStatusBarColor(
-//                    color = Color.Transparent,
-//                    darkIcons = false
-//                )
-//                systemUiController.setNavigationBarColor(
-//                    color = Color.Transparent,
-//                    darkIcons = false
-//                )
-//            }
-
             PlayWallTheme {
+
+//                runBlocking {
+//
+//                    val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+//                        println("Caught exception: $exception")
+//                    }
+//
+//                    CoroutineScope(
+//                        Dispatchers.IO +
+//                                SupervisorJob() +
+//                                CoroutineName("") +
+//                                CoroutineExceptionHandler { _, exception ->
+//                                    println("Caught exception: $exception")
+//                                }
+//                    )
+//
+//
+//                    GlobalScope.launch { }
+//
+//                    lifecycleScope.launch {
+//
+//                    }
+//
+//                    supervisorScope {  }
+//
+//                    MainScope().launch {
+//
+//                    }
+//
+//                    SharedFlow()
+//
+//
+//
+//                    lifecycleScope.async { }
+//
+//                    suspendCancellableCoroutine { continuation ->
+//                        println("Before too")
+//                        continuation.resume(1)
+//                    }
+//
+//
+//                }
+//
+
                 if(!viewModel.state.keepSplashScreen) {
                     NavigationHostLegacy(
                         adManager = adManager,

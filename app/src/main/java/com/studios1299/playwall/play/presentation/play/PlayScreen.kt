@@ -124,8 +124,6 @@ fun PlayScreenRoot(
     val context = LocalContext.current
     val state = viewModel.state
 
-    onOpenWrzutomat()
-
     ObserveAsEvents(viewModel.events) { event ->
         when(event) {
             is PlayEvent.ShowError -> {
@@ -152,6 +150,12 @@ fun PlayScreenRoot(
             PlayEvent.PlayScreenShouldBeRestarted -> onAcceptLinkInvite()
             is PlayEvent.InviteLinkReady -> shareText(context, event.inviteLink)
             is PlayEvent.QrInviteReady -> onNavigateToInviteScreen(event.inviteLink)
+            PlayEvent.FriendInvited -> {
+                Toast.makeText(context,"Friend invited successfully!", Toast.LENGTH_LONG).show()
+                if (state.friends.isEmpty() && state.friendRequests.isEmpty()) {
+                    onOpenWrzutomat()
+                }
+            }
         }
     }
 

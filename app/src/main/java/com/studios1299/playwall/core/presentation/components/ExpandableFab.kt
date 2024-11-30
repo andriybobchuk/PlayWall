@@ -52,15 +52,12 @@ fun ExpandableFab(
     icon: ImageVector,
     iconExpanded: ImageVector = icon,
     text: String,
-    width: Dp = 200.dp,
     items: List<ExpendableFabItem>
 ) {
 
     var buttonClicked by remember {
         mutableStateOf(false)
     }
-
-    //val interactionSource = MutableInteractionSource()
 
     Row {
         Spacer(modifier = Modifier.weight(1f))
@@ -80,7 +77,7 @@ fun ExpandableFab(
                     Column(
                         modifier = Modifier
                             .padding(vertical = 15.dp)
-                            .width(if (buttonClicked) width else 0.dp)
+                            //.width(if (buttonClicked) width else 0.dp)
                     ) {
                         items.forEach { item ->
                             Row(modifier = Modifier
@@ -90,7 +87,7 @@ fun ExpandableFab(
                                         buttonClicked = false
                                     }
                                 )
-                                .fillMaxWidth()
+                                //.fillMaxWidth()
                                 .padding(vertical = 10.dp, horizontal = 20.dp)
                             ) {
                                 Icon(

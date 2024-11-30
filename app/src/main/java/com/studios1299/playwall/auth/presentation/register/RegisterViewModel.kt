@@ -110,26 +110,38 @@ class RegisterViewModel(
     private fun register(context: Context) {
         viewModelScope.launch {
             state = state.copy(isRegistering = true)
-            val result = repository.register(
-                email = state.email.text.toString().trim(),
-                username = state.username.text.toString().trim(),
-                password = state.password.text.toString(),
-                screenRatio = getScreenRatio(context)
-            )
-            state = state.copy(isRegistering = false)
 
-            when(result) {
-                is SmartResult.Error -> {
-                    Log.e("RegisterViewModel", "$result")
-                    eventChannel.send(
-                        RegisterEvent.Error(
-                            UiText.DynamicString(result.errorBody?:result.message?:"Error")
+            val healthCheck = repository.checkHealth()
+            if (healthCheck is SmartResult.Success) {
+                val result = repository.register(
+                    email = state.email.text.toString().trim(),
+                    username = state.username.text.toString().trim(),
+                    password = state.password.text.toString(),
+                    screenRatio = getScreenRatio(context)
+                )
+
+                when(result) {
+                    is SmartResult.Error -> {
+                        Log.e("RegisterViewModel", "register(), error: $result")
+                        eventChannel.send(
+                            RegisterEvent.Error(
+                                UiText.DynamicString(result.errorBody?:result.message?:"Error")
+                            )
                         )
+                    }
+                    is SmartResult.Success -> {
+                        Log.e("RegisterViewModel", "register(), success: $result")
+                        loginAfterRegister()
+                    }
+                }
+                state = state.copy(isRegistering = false)
+            } else if (healthCheck is SmartResult.Error){
+                eventChannel.send(
+                    RegisterEvent.Error(
+                        UiText.DynamicString(healthCheck.errorBody?:healthCheck.message?:"Server is down, try later")
                     )
-                }
-                is SmartResult.Success -> {
-                    loginAfterRegister()
-                }
+                )
+                state = state.copy(isRegistering = false)
             }
         }
     }
@@ -145,6 +157,7 @@ class RegisterViewModel(
 
             when(result) {
                 is SmartResult.Error -> {
+                    Log.e("RegisterViewModel", "loginAfterRegister(), error: $result")
                     eventChannel.send(
                         RegisterEvent.Error(
                             UiText.DynamicString(result.errorBody?:"Error")
@@ -152,6 +165,7 @@ class RegisterViewModel(
                     )
                 }
                 is SmartResult.Success -> {
+                    Log.e("RegisterViewModel", "loginAfterRegister(), success: $result")
                     eventChannel.send(RegisterEvent.RegistrationSuccess)
                 }
             }
