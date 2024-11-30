@@ -64,7 +64,8 @@ private const val LOG_TAG = "MessengerScreen"
 fun MessengerScreen(
     viewModel: ChatViewModel,
     onBackClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onOpenWrzutomat: () -> Unit
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
@@ -98,7 +99,7 @@ fun MessengerScreen(
         }
     }
 
-    FullscreenOverlays(uiState, viewModel)
+    FullscreenOverlays(uiState, viewModel, onOpenWrzutomat)
 
     Scaffold {
         Column(
@@ -183,7 +184,8 @@ fun MessengerScreen(
 @Composable
 private fun FullscreenOverlays(
     uiState: MessengerUiState,
-    viewModel: ChatViewModel
+    viewModel: ChatViewModel,
+    onOpenWrzutomat: () -> Unit
 ) {
     val selectedMessage = uiState.selectedMessage
     val pickedImageUri = uiState.pickedImageUri
@@ -199,6 +201,7 @@ private fun FullscreenOverlays(
                 uri = resultUri,
                 comment = null,
                 reaction = null,
+                onOpenWrzutomat = onOpenWrzutomat
             )
             viewModel.setPickedImage(null)
         }

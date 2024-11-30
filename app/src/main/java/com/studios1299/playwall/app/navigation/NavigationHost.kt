@@ -249,7 +249,7 @@ private fun NavGraphBuilder.mainGraph(
                             Graphs.Main.root
                         )
                     }},
-                    onOpenWrzutomat = { navController.navigate(Graphs.Main.Screens.wrzutomat_small) }
+                    onOpenWrzutomat = { navController.navigate(Graphs.Main.Screens.wrzutomat_big) }
                 )
             }
         }
@@ -542,6 +542,7 @@ private fun NavGraphBuilder.mainGraph(
                             )
                         }
                     ),
+                    onOpenWrzutomat = { navController.navigate(Graphs.Main.Screens.wrzutomat_small) },
                     onBackClick = { navController.navigateUp() }
                 )
             }

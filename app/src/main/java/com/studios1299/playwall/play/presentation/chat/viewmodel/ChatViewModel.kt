@@ -393,7 +393,7 @@ class ChatViewModel(
         }
     }
 
-    fun sendWallpaper(context: Context, uri: Uri?, comment: String?, reaction: String?) {
+    fun sendWallpaper(context: Context, uri: Uri?, comment: String?, reaction: String?, onOpenWrzutomat: () -> Unit) {
         Log.v(
             "sendWallpaper",
             "Function called with uri: $uri, comment: $comment, reaction: $reaction"
@@ -514,6 +514,9 @@ class ChatViewModel(
             } else if (response is SmartResult.Error) {
                 Log.e(LOG_TAG, response.errorBody.toString())
                 sendErrorMessage(response.errorBody?:"Wallpaper could not be sent")
+                if(response.code == 614) {
+                    onOpenWrzutomat()
+                }
                 // Remove the optimistic message if the request fails
                 _uiState.update { currentState ->
                     val filteredMessages =
