@@ -215,7 +215,7 @@ fun ReactSheet(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface),
                     onClick = {
-                        viewModel.reportWallpaper(message.id)
+                        viewModel.report(message.id, message.senderId)
                     Toast.makeText(context, "Wallpaper has been reported", Toast.LENGTH_SHORT).show()
                         isSheetOpen.value = false
                 }) {

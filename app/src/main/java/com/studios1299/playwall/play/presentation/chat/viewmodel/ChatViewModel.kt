@@ -532,9 +532,9 @@ class ChatViewModel(
         }
     }
 
-    fun reportWallpaper(wallpaperId: Int) {
+    fun report(wallpaperId: Int?, badBoyId: Int) {
         viewModelScope.launch {
-            chatRepository.reportWallpaper(wallpaperId)
+            chatRepository.reportWallpaper(wallpaperId, badBoyId)
         }
     }
 

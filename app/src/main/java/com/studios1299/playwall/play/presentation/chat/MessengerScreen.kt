@@ -443,7 +443,6 @@ fun ScrollToBottomButton(
  * Displays the header of the messenger screen with recipient's information
  * and a back button.
  */
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun MessengerScreenHeader(
     recipient: User,
@@ -512,6 +511,7 @@ fun MessengerScreenHeader(
                 }
             }
 
+            val context = LocalContext.current
             // Three-dot menu button
             Box(
                 modifier = Modifier.align(Alignment.CenterEnd)
@@ -547,6 +547,14 @@ fun MessengerScreenHeader(
                     DropdownMenuItem(
                         text = { Text(text = "Refresh chat") },
                         onClick = onRefreshChat
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = "Report") },
+                        onClick = {
+                            isMenuExpanded = false
+                            Toast.makeText(context, "User has been reported, thanks for the feedback", Toast.LENGTH_LONG).show()
+                            viewModel.report(null, recipient.id)
+                        }
                     )
                 }
             }

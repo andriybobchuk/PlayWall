@@ -55,7 +55,7 @@ interface CoreRepository {
     suspend fun saveWallpaper(wallpaperId: Int): SmartResult<Unit>
     suspend fun removeSavedWallpaper(wallpaperId: Int): SmartResult<Unit>
     suspend fun loadSavedWallpapers(page: Int, pageSize: Int): SmartResult<List<ExploreWallpaperResponse>>
-    suspend fun reportWallpaper(wallpaperId: Int): SmartResult<Unit>
+    suspend fun reportWallpaper(wallpaperId: Int?, badBoyId: Int): SmartResult<Unit>
     suspend fun getFriendScreenRatio(friendId: Int): SmartResult<Float>
 
     // MONETIZATION
