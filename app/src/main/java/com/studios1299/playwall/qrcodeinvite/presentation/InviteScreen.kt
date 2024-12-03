@@ -145,8 +145,8 @@ fun QRCodeDisplayScreen(
     qrCodeBitmap: Bitmap?,
     title: String = "My QR Code",
     subtitle: String = "Ask your friend to scan this code to connect on PlayWall!",
-    //logoBitmap: Bitmap? = getBitmapFromDrawable(LocalContext.current, R.drawable.pw),
-    logoBitmap: Bitmap? = null,
+    logoBitmap: Bitmap? = getBitmapFromDrawable(LocalContext.current, R.drawable.pw),
+    //logoBitmap: Bitmap? = null,
     fallbackEmoji: String = EVIL_EMOJI
 ) {
     Box(
@@ -190,7 +190,7 @@ fun QRCodeDisplayScreen(
                                 bitmap = logoBitmap.asImageBitmap(),
                                 contentDescription = "App Logo",
                                 modifier = Modifier
-                                    .size(40.dp)
+                                    .size(35.dp)
                             )
                         } else {
                             Text(

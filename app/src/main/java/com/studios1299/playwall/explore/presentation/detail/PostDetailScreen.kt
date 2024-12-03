@@ -214,11 +214,7 @@ fun PostDetailScreen(
                                     .withListener(object : PermissionListener {
                                         override fun onPermissionGranted(permissionGrantedResponse: PermissionGrantedResponse?) {
                                             downloadImageToDevice(MyApp.appModule.context, currentPhoto.fileName) { success ->
-                                                Toast.makeText(
-                                                    context,
-                                                    if (success) "Saved successfully" else "Saving failed",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
+                                                Log.e("DownloadDebug", "Saving status: $success")
                                             }
                                         }
                                         override fun onPermissionDenied(permissionDeniedResponse: PermissionDeniedResponse?) {
@@ -230,11 +226,7 @@ fun PostDetailScreen(
                                     }).check()
                             } else {
                                 downloadImageToDevice(MyApp.appModule.context, currentPhoto.fileName) { success ->
-                                    Toast.makeText(
-                                        context,
-                                        if (success) "Saved successfully" else "Saving failed",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    Log.e("DownloadDebug", "Saving status: $success")
                                 }
                             }
                         }

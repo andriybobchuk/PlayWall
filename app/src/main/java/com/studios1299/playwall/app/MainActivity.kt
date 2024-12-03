@@ -1,5 +1,6 @@
 package com.studios1299.playwall.app
 
+import android.app.NotificationManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -116,6 +117,7 @@ class MainActivity : ComponentActivity() {
 //
 //                }
 //
+               // NotificationManager.IMPORTANCE_HIGH
 
                 if(!viewModel.state.keepSplashScreen) {
                     NavigationHostLegacy(

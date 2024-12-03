@@ -61,11 +61,11 @@ analytics = "22.1.0"
 
 # Project versions
 projectApplicationId = "com.studios1299.playwall"
-projectVersionName = "1.0"
+projectVersionName = "1.1"
 projectMinSdkVersion = "24"
 projectTargetSdkVersion = "34"
 projectCompileSdkVersion = "34"
-projectVersionCode = "1"
+projectVersionCode = "2"
 lifecycleViewmodelAndroid = "2.8.4"
 firebaseConfigKtx = "22.0.0"
 workRuntimeKtx = "2.9.1"
