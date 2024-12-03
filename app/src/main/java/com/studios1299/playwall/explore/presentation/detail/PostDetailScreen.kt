@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -383,6 +384,8 @@ fun LikeButton(
 }
 
 
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendsSelectionBottomSheet(
@@ -391,14 +394,9 @@ fun FriendsSelectionBottomSheet(
     friends: List<Friend>,
     onFriendsSelected: (List<Friend>) -> Unit
 ) {
-    // Track the selection state of each friend with a mutable set of friend IDs (Int)
-    val selectedFriends = remember { mutableStateListOf<Int>() }
     val context = LocalContext.current
 
-    // Reset selected friends each time the sheet is opened
     if (isSheetOpen.value) {
-        selectedFriends.clear()
-
         ModalBottomSheet(
             sheetState = sheetState,
             onDismissRequest = { isSheetOpen.value = false }
@@ -408,7 +406,7 @@ fun FriendsSelectionBottomSheet(
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = "Send to friends",
+                    text = "Send to a friend",
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp)
                 )
@@ -424,17 +422,19 @@ fun FriendsSelectionBottomSheet(
                 } else {
                     LazyColumn {
                         items(friends) { friend ->
-                            val isSelected = selectedFriends.contains(friend.id.toInt())
-
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        if (isSelected) {
-                                            selectedFriends.remove(friend.id.toInt())
-                                        } else {
-                                            selectedFriends.add(friend.id.toInt())
-                                        }
+                                        // Send wallpaper to the clicked friend
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.sent_to_friend),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+
+                                        onFriendsSelected(listOf(friend))
+                                        isSheetOpen.value = false
                                     }
                                     .padding(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
@@ -443,55 +443,130 @@ fun FriendsSelectionBottomSheet(
                                     model = friend.avatarId
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(text = friend.nick?:friend.email)
-                                Spacer(modifier = Modifier.weight(1f))
-                                Checkbox(
-                                    checked = isSelected,
-                                    onCheckedChange = { isChecked ->
-                                        if (isChecked) {
-                                            selectedFriends.add(friend.id.toInt())
-                                        } else {
-                                            selectedFriends.remove(friend.id.toInt())
-                                        }
-                                    }
-                                )
+                                Text(text = friend.nick ?: friend.email)
                             }
                         }
                     }
                 }
-
-                Button(
-                    onClick = {
-                        // Filter selected friends and pass to the callback
-                        val selectedFriendList = friends.filter { friend ->
-                            selectedFriends.contains(friend.id.toInt())
-                        }
-                        if (selectedFriendList.isNotEmpty()) {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.sent_to_friend),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "No friends were selected.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                        onFriendsSelected(selectedFriendList)
-                        isSheetOpen.value = false
-                    },
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(16.dp)
-                ) {
-                    Text(text = "Send wallpaper")
-                }
+                Spacer(modifier = Modifier.height(36.dp))
             }
         }
     }
 }
+
+
+
+
+
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun FriendsSelectionBottomSheet(
+//    isSheetOpen: MutableState<Boolean>,
+//    sheetState: SheetState,
+//    friends: List<Friend>,
+//    onFriendsSelected: (List<Friend>) -> Unit
+//) {
+//    // Track the selection state of each friend with a mutable set of friend IDs (Int)
+//    val selectedFriends = remember { mutableStateListOf<Int>() }
+//    val context = LocalContext.current
+//
+//    // Reset selected friends each time the sheet is opened
+//    if (isSheetOpen.value) {
+//        selectedFriends.clear()
+//
+//        ModalBottomSheet(
+//            sheetState = sheetState,
+//            onDismissRequest = { isSheetOpen.value = false }
+//        ) {
+//            Column(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//            ) {
+//                Text(
+//                    text = "Send to friends",
+//                    style = MaterialTheme.typography.titleLarge,
+//                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp)
+//                )
+//
+//                if (friends.isEmpty()) {
+//                    Text(
+//                        text = "Looks like you have no friends",
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(16.dp),
+//                        textAlign = TextAlign.Center
+//                    )
+//                } else {
+//                    LazyColumn {
+//                        items(friends) { friend ->
+//                            val isSelected = selectedFriends.contains(friend.id.toInt())
+//
+//                            Row(
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .clickable {
+//                                        if (isSelected) {
+//                                            selectedFriends.remove(friend.id.toInt())
+//                                        } else {
+//                                            selectedFriends.add(friend.id.toInt())
+//                                        }
+//                                    }
+//                                    .padding(8.dp),
+//                                verticalAlignment = Alignment.CenterVertically
+//                            ) {
+//                                Images.Circle(
+//                                    model = friend.avatarId
+//                                )
+//                                Spacer(modifier = Modifier.width(8.dp))
+//                                Text(text = friend.nick?:friend.email)
+//                                Spacer(modifier = Modifier.weight(1f))
+//                                Checkbox(
+//                                    checked = isSelected,
+//                                    onCheckedChange = { isChecked ->
+//                                        if (isChecked) {
+//                                            selectedFriends.add(friend.id.toInt())
+//                                        } else {
+//                                            selectedFriends.remove(friend.id.toInt())
+//                                        }
+//                                    }
+//                                )
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                Button(
+//                    onClick = {
+//                        // Filter selected friends and pass to the callback
+//                        val selectedFriendList = friends.filter { friend ->
+//                            selectedFriends.contains(friend.id.toInt())
+//                        }
+//                        if (selectedFriendList.isNotEmpty()) {
+//                            Toast.makeText(
+//                                context,
+//                                context.getString(R.string.sent_to_friend),
+//                                Toast.LENGTH_SHORT
+//                            ).show()
+//                        } else {
+//                            Toast.makeText(
+//                                context,
+//                                "No friends were selected.",
+//                                Toast.LENGTH_SHORT
+//                            ).show()
+//                        }
+//                        onFriendsSelected(selectedFriendList)
+//                        isSheetOpen.value = false
+//                    },
+//                    modifier = Modifier
+//                        .align(Alignment.CenterHorizontally)
+//                        .padding(16.dp)
+//                ) {
+//                    Text(text = "Send wallpaper")
+//                }
+//            }
+//        }
+//    }
+//}
 
 
 
