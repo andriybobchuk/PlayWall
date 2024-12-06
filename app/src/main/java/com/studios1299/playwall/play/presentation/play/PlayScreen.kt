@@ -180,6 +180,11 @@ fun PlayScreenRoot(
             refreshing = false
         }
     }
+    LaunchedEffect(state.friends) {
+        if(state.friends.isNotEmpty()) {
+            Log.e("PlayScreen", "Recomposed with userAvatar: ${state.friends[0].avatarId}")
+        }
+    }
     SwipeRefresh(
         state = rememberSwipeRefreshState(isRefreshing = refreshing),
         onRefresh = {

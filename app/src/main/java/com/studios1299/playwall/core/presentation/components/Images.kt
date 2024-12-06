@@ -29,9 +29,11 @@ import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import com.bumptech.glide.signature.ObjectKey
 import com.facebook.shimmer.Shimmer
 import com.facebook.shimmer.ShimmerDrawable
 import com.studios1299.playwall.R
@@ -69,8 +71,18 @@ object Images {
             }
         } else {
             val shimmerDrawable = ShimmerDrawable().apply {
-                setShimmer(Shimmer.AlphaHighlightBuilder().setDuration(1000).setBaseAlpha(0.2f).setHighlightAlpha(0.1f).setDirection(Shimmer.Direction.LEFT_TO_RIGHT).build())
+                setShimmer(
+                    Shimmer.AlphaHighlightBuilder()
+                        .setDuration(1000)
+                        .setBaseAlpha(0.2f)
+                        .setHighlightAlpha(0.1f)
+                        .setDirection(Shimmer.Direction.LEFT_TO_RIGHT)
+                        .build()
+                )
             }
+
+            // Extract base URL (everything before `?`) to use as a cache key
+            val baseUrl = (model as? String)?.split("?")?.firstOrNull() ?: model ?: ""
 
             GlideImage(
                 model = model,
@@ -84,34 +96,40 @@ object Images {
                 contentScale = ContentScale.Crop,
                 requestBuilderTransform = { requestBuilder ->
                     requestBuilder
+                        .signature(ObjectKey(baseUrl)) // Use base URL as the unique cache key
+                        .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                         .placeholder(shimmerDrawable)
                         .addListener(object : RequestListener<Drawable> {
-                        override fun onLoadFailed(
-                            e: GlideException?,
-                            model: Any?,
-                            target: Target<Drawable>,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            Log.e(LOG_TAG, "Image load failed: ${model} because of: \n ${e?.message}")
-                            imageLoadFailed = true
-                            return false
-                        }
+                            override fun onLoadFailed(
+                                e: GlideException?,
+                                model: Any?,
+                                target: Target<Drawable>,
+                                isFirstResource: Boolean
+                            ): Boolean {
+                                Log.e(
+                                    LOG_TAG,
+                                    "Image load failed: $model because of: \n ${e?.message}"
+                                )
+                                imageLoadFailed = true
+                                return false
+                            }
 
-                        override fun onResourceReady(
-                            resource: Drawable,
-                            model: Any,
-                            target: Target<Drawable>?,
-                            dataSource: DataSource,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            imageLoadFailed = false
-                            return false
-                        }
-                    })
+                            override fun onResourceReady(
+                                resource: Drawable,
+                                model: Any,
+                                target: Target<Drawable>?,
+                                dataSource: DataSource,
+                                isFirstResource: Boolean
+                            ): Boolean {
+                                imageLoadFailed = false
+                                return false
+                            }
+                        })
                 }
             )
         }
     }
+
 
     @OptIn(ExperimentalGlideComposeApi::class)
     @Composable

@@ -272,43 +272,9 @@ fun PostDetailScreen(
                         color = MaterialTheme.colorScheme.onBackground,
                         style = MaterialTheme.typography.bodyMedium
                     )
-//                    Button(
-//                        modifier = Modifier.padding(2.dp),
-//                        colors = ButtonDefaults.buttonColors(
-//                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-//                        ),
-//                        onClick = {
-//                            coroutineScope.launch { isFriendsSheetOpen.value = true }
-//                        }) {
-//                        Text(text = stringResource(R.string.set_as_friend_s), color = MaterialTheme.colorScheme.primary)
-//                    }
-//                    Button(
-//                        modifier = Modifier.padding(2.dp),
-//                        colors = ButtonDefaults.buttonColors(
-//                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-//                        ),
-//                        onClick = {
-//                            viewModel.setAsWallpaper(primaryState.wallpapers[pagerState.currentPage].fileName, context)
-//                            Toast.makeText(context,
-//                                context.getString(R.string.done), Toast.LENGTH_SHORT).show()
-//                        }) {
-//                        Text(text = stringResource(R.string.set_as_mine), color = MaterialTheme.colorScheme.primary)
-//                    }
                 }
             }
         },
-//        floatingActionButton = {
-//            if (!exploreState.isLoading && exploreState.isOnline) {
-//                val currentPhoto = primaryState.wallpapers[pagerState.currentPage]
-//                LikeButton(
-//                    likeCount = currentPhoto.savedCount,
-//                    isLiked = currentPhoto.isLiked,
-//                    onClick = {
-//                        viewModel.onAction(PostDetailAction.ToggleLike(currentPhoto.id))
-//                    }
-//                )
-//            }
-//        },
         floatingActionButtonPosition = FabPosition.EndOverlay
     ) { innerPadding ->
         Column(modifier = Modifier
@@ -350,22 +316,6 @@ fun PostDetailScreen(
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
-//                        Box(
-//                            modifier = Modifier
-//                                .padding(16.dp)
-//                                .align(Alignment.BottomEnd)
-//                                .background(
-//                                    color = MaterialTheme.colorScheme.primary,
-//                                    shape = RoundedCornerShape(16.dp)
-//                                )
-//                                .padding(horizontal = 16.dp, vertical = 8.dp)
-//                        ) {
-//                            Text(
-//                                text = timestampAsDateTime(photo.dateCreated, context),
-//                                color = Color.White,
-//                                style = MaterialTheme.typography.bodyMedium
-//                            )
-//                        }
                     }
                 }
             }

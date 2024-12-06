@@ -218,6 +218,8 @@ class PlayViewModel(
 
 @OptIn(ExperimentalFoundationApi::class)
 fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
+    Log.e(LOG_TAG, "loadFriendsAndRequests triggered with forceUpdate = ${forceUpdate}")
+
     viewModelScope.launch {
         state = state.copy(isLoading = true)
 

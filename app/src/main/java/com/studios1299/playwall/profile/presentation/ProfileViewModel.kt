@@ -43,9 +43,6 @@ class ProfileViewModel(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-//    var state by mutableStateOf(ProfileState())
-//        private set
-
     val state: ProfileState
         get() = ProfileStateSingleton.state
 
@@ -60,14 +57,17 @@ class ProfileViewModel(
         viewModelScope.launch {
             NetworkMonitor.isOnline.collect { online ->
                 updateProfileState(state.copy(isOnline = online))
-                if (online) {
+               // if (RefreshStateManager.isProfileScreenRefreshRequired) {
                     loadUserProfile()
-                    loadSavedWallpapers(0, 10)
-                }
+                    loadSavedWallpapers(0, 100)
+               // }
             }
         }
-        loadUserProfile()
-        loadSavedWallpapers(0, 10)
+       // if (RefreshStateManager.isProfileScreenRefreshRequired) {
+            loadUserProfile()
+            loadSavedWallpapers(0, 100)
+            //RefreshStateManager.isProfileScreenRefreshRequired = false
+       // }
     }
 
     fun onAction(action: ProfileAction) {
@@ -119,6 +119,8 @@ class ProfileViewModel(
                     ))
                     Log.d("loadUserProfile()", "email=" + profileResult.data.email)
                     Log.d("loadUserProfile()", "avatarId=" + profileResult.data.avatarId)
+
+                   // RefreshStateManager.isProfileScreenRefreshRequired = false
                 }
                 is SmartResult.Error -> {
                     if (state.isOnline) {
