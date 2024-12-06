@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.data.networking.NetworkMonitor
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
 import com.studios1299.playwall.core.data.s3.S3Handler
@@ -52,6 +53,10 @@ class CreateViewModel(
         }
     }
 
+    fun updateState(new: CreateScreenState) {
+        _state.update { new }
+    }
+
     fun onAction(action: CreateScreenAction) {
         when (action) {
             is CreateScreenAction.SelectImage -> selectImage(action.uri)
@@ -72,7 +77,7 @@ class CreateViewModel(
                 )
             }
             is CreateScreenAction.SendToFriends -> {
-                sendWallpaperToFriends(action.selectedFriends, action.filename, action.context)
+                sendWallpaperToFriends(action.selectedFriends, action.filename)
             }
         }
     }
@@ -112,9 +117,9 @@ class CreateViewModel(
         }
     }
 
-    fun sendWallpaperToFriends(friends: List<Friend>, uri: Uri, context: Context) {
+    fun sendWallpaperToFriends(friends: List<Friend>, uri: Uri) {
         viewModelScope.launch {
-            val pathTobeSent = S3Handler.uploadToS3(uriToFile(context, uri)!!, S3Handler.Folder.WALLPAPERS)?:""
+            val pathTobeSent = S3Handler.uploadToS3(uriToFile(MyApp.appModule.context, uri)!!, S3Handler.Folder.WALLPAPERS)?:""
 
             friends.forEach { friend ->
                 val result = repository.changeWallpaper(

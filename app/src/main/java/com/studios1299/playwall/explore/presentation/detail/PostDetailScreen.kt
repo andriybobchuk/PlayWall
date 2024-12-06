@@ -73,6 +73,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.karumi.dexter.Dexter
@@ -157,25 +158,38 @@ fun PostDetailScreen(
     val context = LocalContext.current
     Log.e("PostDetailScreen", "state.currentPhotoIndex: ${primaryState.currentPhotoIndex}, wallpapers size: ${primaryState.wallpapers.size}")
     val pagerState = rememberPagerState(initialPage = primaryState.currentPhotoIndex, pageCount = { primaryState.wallpapers.size })
+    val coroutineScope = rememberCoroutineScope()
 
     val isFriendsSheetOpen = remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
     val friendsSheetState = rememberModalBottomSheetState()
+
+    val cropOpen = remember { mutableStateOf(false) }
+    val cropState = rememberModalBottomSheetState()
 
     val currentPhoto = primaryState.wallpapers[pagerState.currentPage]
 
-//    FriendsSelectionBottomSheet(
-//        imageToSend  = currentPhoto.fileName,
-//        isSheetOpen = isFriendsSheetOpen,
-//        sheetState = friendsSheetState,
-//        friends = exploreState.friends,
-//        onFriendsSelected = { selectedFriends ->
-//            viewModel.sendWallpaperToFriends(
-//                friends = selectedFriends,
-//                fileName = primaryState.wallpapers[pagerState.currentPage].fileName
-//            )
-//        }
-//    )
+    if (isFriendsSheetOpen.value) {
+        FriendsSelectionBottomSheet(
+            state = exploreState,
+            isSheetOpen = isFriendsSheetOpen,
+            sheetState = friendsSheetState,
+            cropState = cropState,
+            cropOpen = cropOpen,
+            friends = exploreState.friends,
+            viewModel = viewModel
+        )
+    }
+
+    if (cropOpen.value) {
+        CropScreen(
+            cropOpen = cropOpen,
+            state = exploreState,
+            onWallpaperSent = { croppedImagePath ->
+                // Toast.makeText(context, "Send image to friend", Toast.LENGTH_LONG).show()
+            },
+            viewModel = viewModel
+        )
+    }
 
     LaunchedEffect(primaryState.currentPhotoIndex) {
         pagerState.scrollToPage(primaryState.currentPhotoIndex.coerceAtMost(primaryState.wallpapers.size - 1))
@@ -393,325 +407,118 @@ fun LikeButton(
 }
 
 
+@Composable
+private fun CropScreen(
+    cropOpen: MutableState<Boolean>,
+    state: ExploreState,
+    onWallpaperSent: (String) -> Unit, // Callback after sending the wallpaper
+    viewModel: PostDetailViewModel
+) {
+    val context = LocalContext.current
 
-//@Composable
-//private fun CropScreen(
-//    imageToSend: String,
-//    friends: List<Friend>,
-//    onFriendsSelected: (List<Friend>) -> Unit,
-//    onOpenWrzutomat: () -> Unit
-//) {
-//    //val selectedMessage = uiState.selectedMessage
-//    //val pickedImageUri = uiState.pickedImageUri
-//    val context = LocalContext.current
-//
-//    val cropLauncher = rememberLauncherForActivityResult(
-//        contract = ActivityResultContracts.StartActivityForResult()
-//    ) { result ->
-//        val resultUri = UCrop.getOutput(result.data ?: return@rememberLauncherForActivityResult)
-//        if (resultUri != null) {
-//            onFriendsSelected(friends)
-//            viewModel.sendWallpaper(
-//                context = context,
-//                uri = resultUri,
-//                comment = null,
-//                reaction = null,
-//                onOpenWrzutomat = onOpenWrzutomat
-//            )
-//            viewModel.setPickedImage(null)
-//        }
-//    }
-//
-//    fun launchUCrop(sourceUri: Uri, screenRatio: Float?) {
-//        val destinationUri =
-//            Uri.fromFile(File(context.cacheDir, "cropped_image_${System.currentTimeMillis()}.jpg"))
-//
-//        val uCrop = UCrop.of(sourceUri, destinationUri)
-//            .withAspectRatio(screenRatio ?: 1f, 1f)
-//            .withMaxResultSize(4096, 4096)
-//            .withOptions(UCrop.Options().apply {
-//                setCompressionQuality(100)
-//                setFreeStyleCropEnabled(false)
-//                setHideBottomControls(true)
-//                setToolbarTitle("Adjust wallpaper")
-//            })
-//
-//        cropLauncher.launch(uCrop.getIntent(context))
-//    }
-//
-//
-//    launchUCrop(
-//        sourceUri = pickedImageUri,
-//       // screenRatio = 1 / (uiState.recipient?.screenRatio ?: 2f)
-//        screenRatio = 1 / (friends[0].screenRatio ?: 2f)
-//    )
-//}
+    val cropLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val resultUri = UCrop.getOutput(result.data ?: return@rememberLauncherForActivityResult)
+        if (resultUri != null) {
+            Log.e("ANDDRII", "cropped img: $resultUri")
+            viewModel.sendWallpaperToFriends(listOf(state.selectedFriend), resultUri)
+
+            // Notify parent to close the CropScreen or reset the state
+            onWallpaperSent(resultUri.toString())
+            cropOpen.value = false
+        }
+    }
+
+    fun launchUCrop(sourceUri: Uri, screenRatio: Float?) {
+        val destinationUri =
+            Uri.fromFile(File(context.cacheDir, "cropped_image_${System.currentTimeMillis()}.jpg"))
+
+        val uCrop = UCrop.of(sourceUri, destinationUri)
+            .withAspectRatio(screenRatio ?: 1f, 1f)
+            .withMaxResultSize(4096, 4096)
+            .withOptions(UCrop.Options().apply {
+                setCompressionQuality(100)
+                setFreeStyleCropEnabled(false)
+                setHideBottomControls(true)
+                setToolbarTitle("Adjust wallpaper")
+            })
+
+        cropLauncher.launch(uCrop.getIntent(context))
+    }
+
+    // Trigger the UCrop launch whenever the relevant state changes
+    LaunchedEffect(state.currentPhotoIndex, state.selectedFriend) {
+        val sourceUri = Uri.parse(state.wallpapers[state.currentPhotoIndex].fileName)
+        val screenRatio = 1 / (state.selectedFriend.screenRatio ?: 2f)
+        launchUCrop(sourceUri, screenRatio)
+    }
+}
 
 
 
-//
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun FriendsSelectionBottomSheet(
-//    imageToSend: String,
-//    isSheetOpen: MutableState<Boolean>,
-//    sheetState: SheetState,
-//    friends: List<Friend>,
-//    onFriendsSelected: (List<Friend>) -> Unit
-//) {
-//    val context = LocalContext.current
-//
-//    if (isSheetOpen.value) {
-//        ModalBottomSheet(
-//            sheetState = sheetState,
-//            onDismissRequest = { isSheetOpen.value = false }
-//        ) {
-//            Column(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//            ) {
-//                Text(
-//                    text = "Send to a friend",
-//                    style = MaterialTheme.typography.titleLarge,
-//                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp)
-//                )
-//
-//                if (friends.isEmpty()) {
-//                    Text(
-//                        text = "Looks like you have no friends",
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(16.dp),
-//                        textAlign = TextAlign.Center
-//                    )
-//                } else {
-//                    LazyColumn {
-//                        items(friends) { friend ->
-//                            Row(
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .clickable {
-//                                        // Send wallpaper to the clicked friend
-//                                        Toast
-//                                            .makeText(
-//                                                context,
-//                                                context.getString(R.string.sent_to_friend),
-//                                                Toast.LENGTH_SHORT
-//                                            )
-//                                            .show()
-//
-//                                        CropScreen(
-//                                            imageToSend = imageToSend,
-//                                            friends = friends,
-//                                            onFriendsSelected = onFriendsSelected,
-//                                            onOpenWrzutomat = {}
-//                                        )
-//                                        //onFriendsSelected(listOf(friend))
-//                                        isSheetOpen.value = false
-//                                    }
-//                                    .padding(8.dp),
-//                                verticalAlignment = Alignment.CenterVertically
-//                            ) {
-//                                Images.Circle(
-//                                    model = friend.avatarId
-//                                )
-//                                Spacer(modifier = Modifier.width(8.dp))
-//                                Text(text = friend.nick ?: friend.email)
-//                            }
-//                        }
-//                    }
-//                }
-//                Spacer(modifier = Modifier.height(36.dp))
-//            }
-//        }
-//    }
-//}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FriendsSelectionBottomSheet(
+    state: ExploreState,
+    viewModel: PostDetailViewModel,
+    isSheetOpen: MutableState<Boolean>,
+    sheetState: SheetState,
+    cropOpen: MutableState<Boolean>,
+    cropState: SheetState,
+    friends: List<Friend>,
+) {
+    //val context = LocalContext.current
 
+    if (isSheetOpen.value) {
+        ModalBottomSheet(
+            sheetState = sheetState,
+            onDismissRequest = { isSheetOpen.value = false }
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Send to a friend",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp)
+                )
 
+                if (friends.isEmpty()) {
+                    Text(
+                        text = "Looks like you have no friends",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        textAlign = TextAlign.Center
+                    )
+                } else {
+                    LazyColumn {
+                        items(friends) { friend ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        cropOpen.value = true
+                                        isSheetOpen.value = false
+                                        viewModel.updateExploreState(state.copy(selectedFriend = friend))
+                                    }
+                                    .padding(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Images.Circle(
+                                    model = friend.avatarId
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(text = friend.nick ?: friend.email)
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(36.dp))
+            }
+        }
+    }
+}
 
-
-
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun FriendsSelectionBottomSheet(
-//    isSheetOpen: MutableState<Boolean>,
-//    sheetState: SheetState,
-//    friends: List<Friend>,
-//    onFriendsSelected: (List<Friend>) -> Unit
-//) {
-//    // Track the selection state of each friend with a mutable set of friend IDs (Int)
-//    val selectedFriends = remember { mutableStateListOf<Int>() }
-//    val context = LocalContext.current
-//
-//    // Reset selected friends each time the sheet is opened
-//    if (isSheetOpen.value) {
-//        selectedFriends.clear()
-//
-//        ModalBottomSheet(
-//            sheetState = sheetState,
-//            onDismissRequest = { isSheetOpen.value = false }
-//        ) {
-//            Column(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//            ) {
-//                Text(
-//                    text = "Send to friends",
-//                    style = MaterialTheme.typography.titleLarge,
-//                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp)
-//                )
-//
-//                if (friends.isEmpty()) {
-//                    Text(
-//                        text = "Looks like you have no friends",
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(16.dp),
-//                        textAlign = TextAlign.Center
-//                    )
-//                } else {
-//                    LazyColumn {
-//                        items(friends) { friend ->
-//                            val isSelected = selectedFriends.contains(friend.id.toInt())
-//
-//                            Row(
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .clickable {
-//                                        if (isSelected) {
-//                                            selectedFriends.remove(friend.id.toInt())
-//                                        } else {
-//                                            selectedFriends.add(friend.id.toInt())
-//                                        }
-//                                    }
-//                                    .padding(8.dp),
-//                                verticalAlignment = Alignment.CenterVertically
-//                            ) {
-//                                Images.Circle(
-//                                    model = friend.avatarId
-//                                )
-//                                Spacer(modifier = Modifier.width(8.dp))
-//                                Text(text = friend.nick?:friend.email)
-//                                Spacer(modifier = Modifier.weight(1f))
-//                                Checkbox(
-//                                    checked = isSelected,
-//                                    onCheckedChange = { isChecked ->
-//                                        if (isChecked) {
-//                                            selectedFriends.add(friend.id.toInt())
-//                                        } else {
-//                                            selectedFriends.remove(friend.id.toInt())
-//                                        }
-//                                    }
-//                                )
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                Button(
-//                    onClick = {
-//                        // Filter selected friends and pass to the callback
-//                        val selectedFriendList = friends.filter { friend ->
-//                            selectedFriends.contains(friend.id.toInt())
-//                        }
-//                        if (selectedFriendList.isNotEmpty()) {
-//                            Toast.makeText(
-//                                context,
-//                                context.getString(R.string.sent_to_friend),
-//                                Toast.LENGTH_SHORT
-//                            ).show()
-//                        } else {
-//                            Toast.makeText(
-//                                context,
-//                                "No friends were selected.",
-//                                Toast.LENGTH_SHORT
-//                            ).show()
-//                        }
-//                        onFriendsSelected(selectedFriendList)
-//                        isSheetOpen.value = false
-//                    },
-//                    modifier = Modifier
-//                        .align(Alignment.CenterHorizontally)
-//                        .padding(16.dp)
-//                ) {
-//                    Text(text = "Send wallpaper")
-//                }
-//            }
-//        }
-//    }
-//}
-
-
-
-//
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun FriendsSelectionBottomSheet(
-//    isSheetOpen: MutableState<Boolean>,
-//    sheetState: SheetState,
-//    friends: List<Friend>,
-//    onFriendsSelected: (List<Friend>) -> Unit
-//) {
-//    if (isSheetOpen.value) {
-//        ModalBottomSheet(
-//            sheetState = sheetState,
-//            onDismissRequest = { isSheetOpen.value = false }
-//        ) {
-//            Column(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//            ) {
-//                Text(
-//                    text = "Send to friends",
-//                    style = MaterialTheme.typography.titleLarge,
-//                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp)
-//                )
-//
-//                if (friends.isEmpty()) {
-//                    Text(
-//                        text = "Looks like you have no friends",
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(16.dp),
-//                        textAlign = TextAlign.Center
-//                    )
-//                } else {
-//                    LazyColumn {
-//                        items(friends) { friend ->
-//                            var isSelected by remember { mutableStateOf(false) }
-//                            Row(
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .clickable { isSelected = !isSelected }
-//                                    .padding(8.dp),
-//                                verticalAlignment = Alignment.CenterVertically
-//                            ) {
-//                                Checkbox(
-//                                    checked = isSelected,
-//                                    onCheckedChange = { isSelected = it }
-//                                )
-//                                Spacer(modifier = Modifier.width(8.dp))
-//                                Text(text = friend.email)
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                Button(
-//                    onClick = {
-//                        // Pass selected friends
-//                        onFriendsSelected(friends.filter { /* logic for selection */ true })
-//                        isSheetOpen.value = false
-//                    },
-//                    modifier = Modifier
-//                        .align(Alignment.CenterHorizontally)
-//                        .padding(16.dp)
-//                ) {
-//                    Text(text = "Send wallpaper")
-//                }
-//            }
-//        }
-//    }
-//}
-//
 

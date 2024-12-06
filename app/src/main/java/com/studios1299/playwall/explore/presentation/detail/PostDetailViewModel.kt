@@ -1,6 +1,7 @@
 package com.studios1299.playwall.explore.presentation.detail
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.lifecycle.ViewModel
@@ -9,10 +10,12 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.data.ChangeWallpaperWorker
 import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.networking.request.wallpapers.ChangeWallpaperRequest
 import com.studios1299.playwall.core.data.s3.S3Handler
+import com.studios1299.playwall.core.data.s3.uriToFile
 import com.studios1299.playwall.core.domain.CoreRepository
 import com.studios1299.playwall.core.domain.error_handling.SmartResult
 import com.studios1299.playwall.explore.presentation.explore.ExploreState
@@ -197,19 +200,40 @@ class PostDetailViewModel(
             }
     }
 
-    fun sendWallpaperToFriends(friends: List<Friend>, fileName: String) {
+    fun sendWallpaperToFriends(friends: List<Friend>, uri: Uri?) {
         viewModelScope.launch {
 
-            val pathTobeSent = S3Handler.downloadableLinkToPath(presignedUrl = fileName)
-            if(pathTobeSent.isNullOrBlank()) {
-                Log.e("sendWallpaperToFriends", "path to be sent is null")
+            var s3Filename: String? = null
+            if (uri != null) {
+                Log.d("sendWallpaper", "Converting Uri to File...")
+                val wallpaperFile = uriToFile(MyApp.appModule.context, uri)
+                if (wallpaperFile == null || !wallpaperFile.exists()) {
+                    Log.e("sendWallpaper", "Failed to convert Uri to File or file does not exist.")
+                    return@launch
+                }
+                Log.d("sendWallpaper", "Uploading file to S3...")
+                val filename = repository.uploadFile(wallpaperFile, S3Handler.Folder.WALLPAPERS)
+                if (filename is SmartResult.Success) {
+                    s3Filename = filename.data
+                    Log.d("sendWallpaper", "File uploaded successfully. S3 Filename: $s3Filename")
+                } else {
+                    return@launch
+                }
+            } else {
+                Log.e("sendWallpaper", "Uri is null, cannot proceed.")
+            }
+
+            if (s3Filename == null) {
+                Log.e("sendWallpaper", "Failed: filename in S3 is null")
                 return@launch
             }
+
+
 
             friends.forEach { friend ->
                 val result = repository.changeWallpaper(
                     ChangeWallpaperRequest(
-                        fileName = pathTobeSent,
+                        fileName = s3Filename,
                         recipientId = friend.id.toString(),
                         comment = null,
                         reaction = null,
@@ -217,7 +241,8 @@ class PostDetailViewModel(
                     )
                 )
                 if (result is SmartResult.Success) {
-                    Log.e("sendWallpaperToFriends", "Wallpapers sent to ${friends.size} friends!!")
+                    Log.e("sendWallpaperToFriends", "Wallpaper sent")
+                    sendErrorMessage("Wallpaper sent!")
 
                 } else if (result is SmartResult.Error) {
                     sendErrorMessage(result.errorBody?:"Wallpaper could not be sent")

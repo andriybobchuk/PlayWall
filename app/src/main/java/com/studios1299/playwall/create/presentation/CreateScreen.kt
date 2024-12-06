@@ -6,6 +6,8 @@ import android.net.Uri
 import android.util.Log
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -56,8 +58,11 @@ import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.data.s3.uriToFile
 import com.studios1299.playwall.core.presentation.ObserveAsEvents
 import com.studios1299.playwall.core.presentation.components.Images
+import com.studios1299.playwall.explore.presentation.detail.PostDetailViewModel
+import com.studios1299.playwall.explore.presentation.explore.ExploreState
 import com.studios1299.playwall.play.presentation.chat.util.rememberRequestPermissionAndPickImage
 import com.studios1299.playwall.play.presentation.play.Friend
+import com.yalantis.ucrop.UCrop
 import ja.burhanrashid52.photoeditor.PhotoEditor
 import ja.burhanrashid52.photoeditor.PhotoEditorView
 import ja.burhanrashid52.photoeditor.TextStyleBuilder
@@ -97,7 +102,8 @@ fun CreateScreenRoot(
         state = state,
         onNavigateToDiamonds = onNavigateToDiamonds,
         onAction = { action -> viewModel.onAction(action) },
-        bottomNavbar = bottomNavbar
+        bottomNavbar = bottomNavbar,
+        viewmodel = viewModel
     )
 }
 
@@ -107,6 +113,7 @@ fun CreateScreen(
     state: CreateScreenState,
     onNavigateToDiamonds: () -> Unit,
     onAction: (CreateScreenAction) -> Unit,
+    viewmodel: CreateViewModel,
     bottomNavbar: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -158,10 +165,21 @@ fun CreateScreen(
     val coroutineScope = rememberCoroutineScope()
     val isFriendsSheetOpen = remember { mutableStateOf(false) }
     val friendsSheetState = rememberModalBottomSheetState()
+
+    val cropOpen = remember { mutableStateOf(false) }
+    val cropState = rememberModalBottomSheetState()
+
+    LaunchedEffect(state.imageString) {
+        Log.e("CreateScreen", "LaunchedEffect imageString0: = ${state.imageString}")
+    }
+
     FriendsSelectionBottomSheet(
         isSheetOpen = isFriendsSheetOpen,
         sheetState = friendsSheetState,
         friends = state.friends,
+        cropOpen = cropOpen,
+        state = state,
+        viewModel = viewmodel,
         onFriendsSelected = { selectedFriends ->
             Log.e("CreateScreen", "onFriendsSelected: = ${selectedFriends.size}")
             CoroutineScope(Dispatchers.Main).launch {
@@ -170,11 +188,23 @@ fun CreateScreen(
                         context = context,
                         photoEditor = photoEditor,
                         onSuccess = { savedUri ->
-                            Log.e("CreateScreen", "saveImageToGallery.onSuccess: = ${savedUri}")
+                            Log.e("CreateScreen", "saveImageToGallery.onSuccess: savedUri = ${savedUri}")
                             CoroutineScope(Dispatchers.IO).launch {
                                 //setAsWallpaper(S3Handler.uploadToS3(uriToFile(context, savedUri)!!, S3Handler.Folder.WALLPAPERS)?:"", context)
-                                selectedImageUri = savedUri
-                                onAction(CreateScreenAction.SendToFriends(selectedFriends, selectedImageUri, context))
+                                //selectedImageUri =
+                                  //  savedUri
+
+                                val string = S3Handler.uploadToS3(uriToFile(context, savedUri)!!, S3Handler.Folder.WALLPAPERS)?:""
+                                Log.e("CreateScreen", "saveImageToGallery.imageString11: = ${string}")
+                                Log.e("CreateScreen", "uriToFile(context, savedUri)!!12: = ${uriToFile(context, savedUri)!!}")
+                                Log.e("CreateScreen", "S3Handler.uploadToS3(uriToFile(context, savedUri)!!, S3Handler.Folder.WALLPAPERS)13: = ${S3Handler.uploadToS3(uriToFile(context, savedUri)!!, S3Handler.Folder.WALLPAPERS)}")
+
+
+                                viewmodel.updateState(state.copy(selectedFriend = selectedFriends.get(0), imageString = string))
+                                Log.e("CreateScreen", "saveImageToGallery.imageString0: = ${state.imageString}")
+
+                                cropOpen.value = true
+                                //onAction(CreateScreenAction.SendToFriends(selectedFriends, selectedImageUri, context))
                             }
                         }
                     )
@@ -184,6 +214,17 @@ fun CreateScreen(
             }
         }
     )
+
+    if (cropOpen.value) {
+        CropScreen(
+            cropOpen = cropOpen,
+            state = state,
+            onWallpaperSent = { croppedImagePath ->
+                // Toast.makeText(context, "Send image to friend", Toast.LENGTH_LONG).show()
+            },
+            viewModel = viewmodel
+        )
+    }
 
     LaunchedEffect(selectedImageUri) {
         if (selectedImageUri != Uri.EMPTY) {
@@ -215,6 +256,7 @@ fun CreateScreen(
                                     CoroutineScope(Dispatchers.IO).launch {
                                         setAsWallpaper(S3Handler.uploadToS3(uriToFile(context, savedUri)!!, S3Handler.Folder.WALLPAPERS)?:"", context)
                                         selectedImageUri = savedUri
+                                        viewmodel.updateState(state.copy(selectedImageUri = savedUri))
                                     }
                                 }
                             )
@@ -357,18 +399,76 @@ fun setAsWallpaper(s3Link: String, context: Context) {
 }
 
 
+@Composable
+private fun CropScreen(
+    cropOpen: MutableState<Boolean>,
+    state: CreateScreenState,
+    onWallpaperSent: (String) -> Unit, // Callback after sending the wallpaper
+    viewModel: CreateViewModel
+) {
+    val context = LocalContext.current
+    var hasLaunched by remember { mutableStateOf(false) } // Added flag to ensure single execution
+
+    val cropLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val resultUri = UCrop.getOutput(result.data ?: return@rememberLauncherForActivityResult)
+        if (resultUri != null) {
+            viewModel.sendWallpaperToFriends(listOf(state.selectedFriend), resultUri)
+
+            // Notify parent to close the CropScreen or reset the state
+            onWallpaperSent(resultUri.toString())
+            cropOpen.value = false
+        }
+        hasLaunched = false // Reset for future executions if necessary
+    }
+
+    fun launchUCrop(sourceUri: Uri, screenRatio: Float?) {
+        val destinationUri =
+            Uri.fromFile(File(context.cacheDir, "cropped_image_${System.currentTimeMillis()}.jpg"))
+
+        val uCrop = UCrop.of(sourceUri, destinationUri)
+            .withAspectRatio(screenRatio ?: 1f, 1f)
+            .withMaxResultSize(4096, 4096)
+            .withOptions(UCrop.Options().apply {
+                setCompressionQuality(100)
+                setFreeStyleCropEnabled(false)
+                setHideBottomControls(true)
+                setToolbarTitle("Adjust wallpaper")
+            })
+
+        cropLauncher.launch(uCrop.getIntent(context))
+    }
+
+    LaunchedEffect(state.imageString) {
+        Log.e("ANDRII", "LaunchEffect triggered, imageString: '${state.imageString}'")
+
+        if (!hasLaunched && state.imageString.isNotBlank()) {
+            Log.e("ANDRII", "Going inside, imageString: '${state.imageString}'")
+            val sourceUri = Uri.parse(S3Handler.pathToDownloadableLink(state.imageString))
+            val screenRatio = 1 / (state.selectedFriend.screenRatio ?: 2f)
+            launchUCrop(sourceUri, screenRatio)
+            hasLaunched = true // Mark as launched
+        } else {
+            Log.e("ANDRII", "Skipped processing: hasLaunched=$hasLaunched, imageString='${state.imageString}'")
+        }
+    }
+}
 
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendsSelectionBottomSheet(
+    state: CreateScreenState,
+    viewModel: CreateViewModel,
     isSheetOpen: MutableState<Boolean>,
     sheetState: SheetState,
     friends: List<Friend>,
-    onFriendsSelected: (List<Friend>) -> Unit
+    onFriendsSelected: (List<Friend>) -> Unit,
+    cropOpen: MutableState<Boolean>,
 ) {
-    val context = LocalContext.current
+   // val context = LocalContext.current
 
     if (isSheetOpen.value) {
         ModalBottomSheet(
@@ -401,14 +501,14 @@ fun FriendsSelectionBottomSheet(
                                     .fillMaxWidth()
                                     .clickable {
                                         // Send wallpaper to the clicked friend
-                                        Toast.makeText(
-                                            context,
-                                            context.getString(R.string.sent_to_friend),
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-
                                         onFriendsSelected(listOf(friend))
+                                        cropOpen.value = true
                                         isSheetOpen.value = false
+                                        viewModel.updateState(state.copy(selectedFriend = friend))
+
+
+//                                        onFriendsSelected(listOf(friend))
+//                                        isSheetOpen.value = false
                                     }
                                     .padding(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
@@ -427,10 +527,6 @@ fun FriendsSelectionBottomSheet(
         }
     }
 }
-
-
-
-
 
 
 // TODO: boilerplate from PostDetailScreen to be removed
