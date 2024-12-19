@@ -10,6 +10,7 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.domain.model.WallpaperOption
@@ -25,7 +26,9 @@ class ChangeWallpaperWorker(context: Context, params: WorkerParameters) : Corout
 
     override suspend fun doWork(): Result {
         val s3PathToFile = inputData.getString("file_name") ?: return Result.failure()
-        val s3DownloadableLink = S3Handler.pathToDownloadableLink(s3PathToFile)
+        //val s3DownloadableLink = S3Handler.pathToDownloadableLink(s3PathToFile)
+        val s3DownloadableLink = MyApp.appModule.coreRepository.getPresignedUrl(s3PathToFile)
+
 
         if (Preferences.isSavingIncomingWallpapersEnabled()) {
             val isSaved = saveImageToGallery(applicationContext, s3DownloadableLink ?: "", s3PathToFile.substringAfterLast("/"))

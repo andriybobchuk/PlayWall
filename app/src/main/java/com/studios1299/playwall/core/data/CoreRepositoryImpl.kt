@@ -50,6 +50,10 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
 import java.io.File
 import java.text.SimpleDateFormat
@@ -434,7 +438,7 @@ class FirebaseCoreRepositoryImpl(
     // S3:
     override suspend fun uploadFile(file: File, folder: S3Handler.Folder): SmartResult<String> {
         return try {
-            val avatarId = S3Handler.uploadToS3(file, folder)
+            val avatarId = uploadWallpaper(file, folder.path)
             if (avatarId != null) {
                 SmartResult.Success(avatarId)
             } else {
@@ -447,13 +451,17 @@ class FirebaseCoreRepositoryImpl(
 
     override suspend fun pathToLink(path: String): SmartResult<String> {
         return try {
-            val avatarUrl = S3Handler.pathToDownloadableLink(path)
+            Log.v(LOG_TAG, "pathToLink: Generating presigned URL for path: $path")
+            val avatarUrl = getPresignedUrl(path)
             if (avatarUrl != null) {
+                Log.v(LOG_TAG, "pathToLink: Successfully generated URL: $avatarUrl")
                 SmartResult.Success(avatarUrl)
             } else {
+                Log.e(LOG_TAG, "pathToLink: Failed to generate presigned URL for path: $path")
                 SmartResult.Error(604, null, "Could not convert path to downloadable link")
             }
         } catch (e: Exception) {
+            Log.e(LOG_TAG, "pathToLink: Exception occurred: ${e.message}", e)
             SmartResult.Error(600, null, "${LOG_TAG} in ${e.message}")
         }
     }
@@ -992,6 +1000,71 @@ class FirebaseCoreRepositoryImpl(
             SmartResult.Error(600, "Runtime exception in $LOG_TAG: ", e.message)
         }
     }
+    override suspend fun uploadWallpaper(file: File, folder: String): String {
+        return try {
+            Log.d(LOG_TAG, "Starting uploadWallpaper: file=${file.name}, folder=$folder")
+
+            val result = performAuthRequest { token ->
+                Log.d(LOG_TAG, "uploadWallpaper: Using token: $token")
+
+                val filePart = MultipartBody.Part.createFormData(
+                    "file", file.name, file.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                )
+                val folderPart = folder.toRequestBody("text/plain".toMediaTypeOrNull())
+
+                RetrofitClient.userApi.uploadWallpaper(token, filePart, folderPart)
+            }
+
+            when (result) {
+                is SmartResult.Success -> {
+                    Log.d(LOG_TAG, "uploadWallpaper: File uploaded successfully: ${result.data?.fileKey}")
+                    result.data?.fileKey ?: ""
+                }
+                is SmartResult.Error -> {
+                    Log.e(LOG_TAG, "uploadWallpaper: Failed to upload file: Code=${result.code}, Message=${result.message}, ErrorBody=${result.errorBody}")
+                    result.errorBody ?: ""
+                }
+                else -> {
+                    Log.e(LOG_TAG, "uploadWallpaper: Unknown S3 error during uploadWallpaper")
+                    "Unknown S3 error"
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, "uploadWallpaper: Exception during uploadWallpaper: ${e.message}", e)
+            "Runtime exception in uploadWallpaper()"
+        }
+    }
+
+    override suspend fun getPresignedUrl(fileName: String): String {
+        return try {
+            Log.d(LOG_TAG, "Starting getPresignedUrl: fileName=$fileName")
+
+            val result = performAuthRequest { token ->
+                Log.d(LOG_TAG, "getPresignedUrl: Using token: $token")
+                RetrofitClient.userApi.getPresignedUrl(token, fileName)
+            }
+
+            when (result) {
+                is SmartResult.Success -> {
+                    Log.d(LOG_TAG, "getPresignedUrl: Presigned URL fetched successfully: ${result.data?.url}")
+                    result.data?.url ?: ""
+                }
+                is SmartResult.Error -> {
+                    Log.e(LOG_TAG, "getPresignedUrl: Failed to fetch presigned URL: Code=${result.code}, Message=${result.message}, ErrorBody=${result.errorBody}")
+                    "Failed to fetch presigned URL"
+                }
+                else -> {
+                    Log.e(LOG_TAG, "getPresignedUrl: Unknown error during getPresignedUrl")
+                    "Unknown S3 error"
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, "getPresignedUrl: Exception during getPresignedUrl: ${e.message}", e)
+            "Runtime exception in getPresignedUrl()"
+        }
+    }
+
+
 
     override fun getWallpaperDestination(): WallpaperOption {
         return Preferences.getWallpaperDestination()

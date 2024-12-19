@@ -9,6 +9,5 @@ local.properties
 /captures
 .externalNativeBuild
 .cxx
-/app/src/main/assets/build_counter.properties
 *.keystore
 *.jks

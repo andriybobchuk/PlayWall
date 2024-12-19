@@ -70,6 +70,10 @@ interface CoreRepository {
     suspend fun hasCheckedInToday(): Boolean
     suspend fun debugClearCheckInShit()
 
+    // S3
+    suspend fun uploadWallpaper(file: File, folder: String): String
+    suspend fun getPresignedUrl(fileName: String): String
+
     // PREFERENCE MANAGEMENT (DEPRECATED)
     fun getWallpaperDestination(): WallpaperOption
     fun setWallpaperDestination(option: WallpaperOption)

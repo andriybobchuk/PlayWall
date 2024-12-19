@@ -51,7 +51,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https"
-                    android:host="andriybobchuk.netlify.app"
+                    android:host="socials.myplaywall.com"
                     android:pathPrefix="/invite" />
             </intent-filter>
         </activity>

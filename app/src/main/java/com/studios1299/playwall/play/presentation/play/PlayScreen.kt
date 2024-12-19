@@ -83,6 +83,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.studios1299.playwall.R
+import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.data.networking.response.friendships.LinkRequestData
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.data.s3.uriToFile
@@ -347,7 +348,7 @@ fun PlayScreen(
     val requestImagePicker = rememberRequestPermissionAndPickImage { uri ->
         coroutineScope.launch {
             val filename =
-                S3Handler.uploadToS3(uriToFile(context, uri)!!, S3Handler.Folder.WALLPAPERS) ?: ""
+                MyApp.appModule.coreRepository.uploadWallpaper(uriToFile(context, uri)!!, S3Handler.Folder.WALLPAPERS.path) ?: ""
             onAction(PlayAction.OnSelectedFromGallery(filename))
             onAction(PlayAction.OnExitSelectMode)
         }

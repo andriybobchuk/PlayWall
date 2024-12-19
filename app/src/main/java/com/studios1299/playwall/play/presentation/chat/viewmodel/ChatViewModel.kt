@@ -220,7 +220,7 @@ class ChatViewModel(
                 // Add the new message
                 val newMessage = Message(
                     id = wallpaperHistoryResponse.id,
-                    imageUrl = S3Handler.pathToDownloadableLink(wallpaperHistoryResponse.fileName)!!,
+                    imageUrl = chatRepository.getPresignedUrl(wallpaperHistoryResponse.fileName),
                     caption = wallpaperHistoryResponse.comment ?: "",
                     timestamp = wallpaperHistoryResponse.timeSent,
                     reaction = wallpaperHistoryResponse.reaction,
@@ -447,7 +447,7 @@ class ChatViewModel(
 
             val optimisticMessage = Message(
                 id = -1, // Temporary ID, replace with actual once received
-                imageUrl = S3Handler.pathToDownloadableLink(s3Filename)!!,
+                imageUrl = chatRepository.getPresignedUrl(s3Filename),
                 caption = comment,
                 timestamp = currentTimestamp,
                 status = MessageStatus.unread,

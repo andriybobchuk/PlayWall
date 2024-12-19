@@ -53,6 +53,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.studios1299.playwall.R
+import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.data.ChangeWallpaperWorker
 import com.studios1299.playwall.core.data.s3.S3Handler
 import com.studios1299.playwall.core.data.s3.uriToFile
@@ -194,10 +195,10 @@ fun CreateScreen(
                                 //selectedImageUri =
                                   //  savedUri
 
-                                val string = S3Handler.uploadToS3(uriToFile(context, savedUri)!!, S3Handler.Folder.WALLPAPERS)?:""
+                                val string = MyApp.appModule.coreRepository.uploadWallpaper(uriToFile(context, savedUri)!!, S3Handler.Folder.WALLPAPERS.path)?:""
                                 Log.e("CreateScreen", "saveImageToGallery.imageString11: = ${string}")
                                 Log.e("CreateScreen", "uriToFile(context, savedUri)!!12: = ${uriToFile(context, savedUri)!!}")
-                                Log.e("CreateScreen", "S3Handler.uploadToS3(uriToFile(context, savedUri)!!, S3Handler.Folder.WALLPAPERS)13: = ${S3Handler.uploadToS3(uriToFile(context, savedUri)!!, S3Handler.Folder.WALLPAPERS)}")
+                                Log.e("CreateScreen", "S3Handler.uploadToS3(uriToFile(context, savedUri)!!, S3Handler.Folder.WALLPAPERS)13: = ${MyApp.appModule.coreRepository.uploadWallpaper(uriToFile(context, savedUri)!!, S3Handler.Folder.WALLPAPERS.path)}")
 
 
                                 viewmodel.updateState(state.copy(selectedFriend = selectedFriends.get(0), imageString = string))
@@ -254,7 +255,7 @@ fun CreateScreen(
                                 photoEditor = photoEditor,
                                 onSuccess = { savedUri ->
                                     CoroutineScope(Dispatchers.IO).launch {
-                                        setAsWallpaper(S3Handler.uploadToS3(uriToFile(context, savedUri)!!, S3Handler.Folder.WALLPAPERS)?:"", context)
+                                        setAsWallpaper(MyApp.appModule.coreRepository.uploadWallpaper(uriToFile(context, savedUri)!!, S3Handler.Folder.WALLPAPERS.path)?:"", context)
                                         selectedImageUri = savedUri
                                         viewmodel.updateState(state.copy(selectedImageUri = savedUri))
                                     }
@@ -444,7 +445,7 @@ private fun CropScreen(
 
         if (!hasLaunched && state.imageString.isNotBlank()) {
             Log.e("ANDRII", "Going inside, imageString: '${state.imageString}'")
-            val sourceUri = Uri.parse(S3Handler.pathToDownloadableLink(state.imageString))
+            val sourceUri = Uri.parse(MyApp.appModule.coreRepository.getPresignedUrl(state.imageString))
             val screenRatio = 1 / (state.selectedFriend.screenRatio ?: 2f)
             launchUCrop(sourceUri, screenRatio)
             hasLaunched = true // Mark as launched

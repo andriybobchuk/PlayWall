@@ -119,7 +119,7 @@ class CreateViewModel(
 
     fun sendWallpaperToFriends(friends: List<Friend>, uri: Uri) {
         viewModelScope.launch {
-            val pathTobeSent = S3Handler.uploadToS3(uriToFile(MyApp.appModule.context, uri)!!, S3Handler.Folder.WALLPAPERS)?:""
+            val pathTobeSent = repository.uploadWallpaper(uriToFile(MyApp.appModule.context, uri)!!, S3Handler.Folder.WALLPAPERS.path)?:""
 
             friends.forEach { friend ->
                 val result = repository.changeWallpaper(

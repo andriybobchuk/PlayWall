@@ -4,11 +4,15 @@ import com.studios1299.playwall.core.data.networking.request.user.CreateUserRequ
 import com.studios1299.playwall.core.data.networking.request.user.UpdateProfileRequest
 import com.studios1299.playwall.core.data.networking.response.user.GetScreenRatioResponse
 import com.studios1299.playwall.core.data.networking.response.user.UserDataResponse
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.Query
 
 interface UserApi {
@@ -44,4 +48,21 @@ interface UserApi {
         @Header("Authorization") authHeader: String,
         @Query("friendId") friendId: Int
     ): Response<GetScreenRatioResponse>
+
+    @Multipart
+    @POST("api/uploadWallpaper")
+    suspend fun uploadWallpaper(
+        @Header("Authorization") authHeader: String,
+        @Part file: MultipartBody.Part,
+        @Part("folder") folder: RequestBody
+    ): Response<UploadWallpaperResponse>
+
+    @GET("api/getPresignedUrl")
+    suspend fun getPresignedUrl(
+        @Header("Authorization") authHeader: String,
+        @Query("fileName") fileName: String
+    ): Response<PresignedUrlResponse>
 }
+
+data class UploadWallpaperResponse(val success: Boolean, val fileKey: String)
+data class PresignedUrlResponse(val success: Boolean, val url: String)

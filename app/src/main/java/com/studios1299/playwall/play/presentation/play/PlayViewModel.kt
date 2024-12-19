@@ -315,7 +315,7 @@ fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
         viewModelScope.launch {
             val random = Random()
             val code = (1000 + random.nextInt(9000)).toString()
-            val baseUrl = "https://andriybobchuk.netlify.app/invite"
+            val baseUrl = "https://socials.myplaywall.com/invite"
             val userData = repository.getUserData()
             if(userData is SmartResult.Success) {
                 val link = "$baseUrl?requesterId=${userData.data?.id}&code=$code"

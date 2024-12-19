@@ -213,7 +213,7 @@ private fun NavGraphBuilder.mainGraph(
             ),
             deepLinks = listOf(navDeepLink {
                 uriPattern =
-                    "https://andriybobchuk.netlify.app/invite?requesterId={requesterId}&code={code}"
+                    "https://socials.myplaywall.com/invite?requesterId={requesterId}&code={code}"
             })
         ) { backStackEntry ->
             val requesterId = backStackEntry.arguments?.getInt("requesterId") ?: -1

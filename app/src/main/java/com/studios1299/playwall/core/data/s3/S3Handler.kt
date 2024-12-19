@@ -40,47 +40,57 @@ object S3Handler {
         )
     }
 
-    suspend fun uploadToS3(file: File, folder: Folder): String? {
-        return try {
-            val filename = "$folder${UUID.randomUUID()}.jpg"
-            Log.d(LOG_TAG, "Starting upload to S3 with key: $filename")
-
-            val request = PutObjectRequest {
-                bucket = BUCKET_NAME
-                key = filename
-                body = ByteStream.fromFile(file)
-            }
-
-            s3Client.putObject(request)
-            Log.d(LOG_TAG, "File uploaded successfully with key: $filename")
-
-            filename // Return S3 key (avatarId)
-        } catch (e: Exception) {
-            Log.e(LOG_TAG, "Failed to upload file to S3: ${e.message}", e)
-            null // Return null on failure
-        }
-    }
+    @Deprecated(
+        message = "Due to safety concerns, access to AWS key has only backend now",
+        replaceWith = ReplaceWith("uploadWallpaper"),
+        level = DeprecationLevel.ERROR
+    )
+//    suspend fun uploadToS3(file: File, folder: Folder): String? {
+//        return try {
+//            val filename = "$folder${UUID.randomUUID()}.jpg"
+//            Log.d(LOG_TAG, "Starting upload to S3 with key: $filename")
+//
+//            val request = PutObjectRequest {
+//                bucket = BUCKET_NAME
+//                key = filename
+//                body = ByteStream.fromFile(file)
+//            }
+//
+//            s3Client.putObject(request)
+//            Log.d(LOG_TAG, "File uploaded successfully with key: $filename")
+//
+//            filename // Return S3 key (avatarId)
+//        } catch (e: Exception) {
+//            Log.e(LOG_TAG, "Failed to upload file to S3: ${e.message}", e)
+//            null // Return null on failure
+//        }
+//    }
 
     /**
      * Accepts path as is saved in database and returns downloadable link to S3
      * @param filename path from database in format "avatars/2a68a3ae-54d3-4890-b902-1a19426a"
      * @return downloadable link to S3 like "https://playwall-dev.s3.eu-north-1.amazonaws.com/avatars/2a68a3ae-54d3-4890-"
      */
-    suspend fun pathToDownloadableLink(filename: String): String? {
-        val getObjectRequest = GetObjectRequest {
-            bucket = BUCKET_NAME
-            key = filename
-        }
-        return try {
-            val presignedRequest = s3Client.presignGetObject(getObjectRequest, 12.hours)
-            val presignedUrl = presignedRequest.url.toString()
-            Log.d("com.studios1299.playwall.core.data.s3.S3Handler", "Generated presigned URL: $presignedUrl")
-            presignedUrl
-        } catch (e: Exception) {
-            Log.e("S3Handler", "Failed to generate presigned URL: ${e.message}", e)
-            null
-        }
-    }
+    @Deprecated(
+        message = "Due to safety concerns, access to AWS key has only backend now",
+        replaceWith = ReplaceWith("getPresignedUrl"),
+        level = DeprecationLevel.ERROR
+    )
+//    suspend fun pathToDownloadableLink(filename: String): String? {
+//        val getObjectRequest = GetObjectRequest {
+//            bucket = BUCKET_NAME
+//            key = filename
+//        }
+//        return try {
+//            val presignedRequest = s3Client.presignGetObject(getObjectRequest, 12.hours)
+//            val presignedUrl = presignedRequest.url.toString()
+//            Log.d("com.studios1299.playwall.core.data.s3.S3Handler", "Generated presigned URL: $presignedUrl")
+//            presignedUrl
+//        } catch (e: Exception) {
+//            Log.e("S3Handler", "Failed to generate presigned URL: ${e.message}", e)
+//            null
+//        }
+//    }
 
     /**
      * Accepts a downloadable link to S3 and returns the path to store in the database.
