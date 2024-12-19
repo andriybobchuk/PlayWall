@@ -40,11 +40,11 @@ object S3Handler {
         )
     }
 
-    @Deprecated(
-        message = "Due to safety concerns, access to AWS key has only backend now",
-        replaceWith = ReplaceWith("uploadWallpaper"),
-        level = DeprecationLevel.ERROR
-    )
+//    @Deprecated(
+//        message = "Due to safety concerns, access to AWS key has only backend now",
+//        replaceWith = ReplaceWith("uploadWallpaper"),
+//        level = DeprecationLevel.ERROR
+//    )
 //    suspend fun uploadToS3(file: File, folder: Folder): String? {
 //        return try {
 //            val filename = "$folder${UUID.randomUUID()}.jpg"
@@ -71,11 +71,11 @@ object S3Handler {
      * @param filename path from database in format "avatars/2a68a3ae-54d3-4890-b902-1a19426a"
      * @return downloadable link to S3 like "https://playwall-dev.s3.eu-north-1.amazonaws.com/avatars/2a68a3ae-54d3-4890-"
      */
-    @Deprecated(
-        message = "Due to safety concerns, access to AWS key has only backend now",
-        replaceWith = ReplaceWith("getPresignedUrl"),
-        level = DeprecationLevel.ERROR
-    )
+//    @Deprecated(
+//        message = "Due to safety concerns, access to AWS key has only backend now",
+//        replaceWith = ReplaceWith("getPresignedUrl"),
+//        level = DeprecationLevel.ERROR
+//    )
 //    suspend fun pathToDownloadableLink(filename: String): String? {
 //        val getObjectRequest = GetObjectRequest {
 //            bucket = BUCKET_NAME

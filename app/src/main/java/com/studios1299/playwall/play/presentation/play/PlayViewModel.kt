@@ -221,7 +221,7 @@ fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
     Log.e(LOG_TAG, "loadFriendsAndRequests triggered with forceUpdate = ${forceUpdate}")
 
     viewModelScope.launch {
-        state = state.copy(isLoading = true)
+        if (forceUpdate) state = state.copy(isLoading = true)
 
         when (val friendsResult = repository.getFriends(forceUpdate)) {
             is SmartResult.Success -> {
