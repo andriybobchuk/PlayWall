@@ -16,6 +16,7 @@ data class MessengerUiState(
     val selectedMessage: Message? = null,
     val isOnline: Boolean = true,
     val goBack: Boolean = false,
+    val loading: Boolean = false,
 )
 
 data class PaginationState(

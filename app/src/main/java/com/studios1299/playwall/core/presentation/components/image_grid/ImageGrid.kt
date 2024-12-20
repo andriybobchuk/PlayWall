@@ -55,13 +55,8 @@ fun ImageGrid(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        if (state.isLoading) {
+        if (state.wallpapers.isEmpty()) {
             ShimmerLoadingForWallpaperGrid()
-        } else if (state.wallpapers.isEmpty()) {
-            Text(
-                text = "No photos available",
-                modifier = Modifier.align(Alignment.Center)
-            )
         } else {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),

@@ -22,21 +22,21 @@ object RetrofitClientExt {
             responseToSmartResult(response)
         } catch (e: Exception) {
             Firebase.crashlytics.recordException(e)
-//            val errorMessage = when (e) {
-//                is UnknownHostException -> {
-//                    Log.e(LOG_TAG, "No internet connection: ${e.message}")
-//                    "No internet connection"
-//                }
-//                is SocketTimeoutException -> {
-//                    Log.e(LOG_TAG, "Request timed out: ${e.message}")
-//                    "Request timed out"
-//                }
-//                else -> {
-//                    Log.e(LOG_TAG, "Request failed: ${e.message}")
-//                    "Connection error, try later"
-//                }
-//            }
-//            SmartResult.Error(500, errorMessage, errorMessage)
+            val errorMessage = when (e) {
+                is UnknownHostException -> {
+                    Log.e(LOG_TAG, "No internet connection: ${e.message}")
+                    "No internet connection"
+                }
+                is SocketTimeoutException -> {
+                    Log.e(LOG_TAG, "Request timed out: ${e.message}")
+                    "Request timed out"
+                }
+                else -> {
+                    Log.e(LOG_TAG, "Request failed: ${e.message}")
+                    "Connection error, try later"
+                }
+            }
+            SmartResult.Error(500, errorMessage, errorMessage)
             SmartResult.Error(501, e.message, e.toString())
         }
     }
@@ -53,16 +53,16 @@ object RetrofitClientExt {
             var headers = response.headers().toMultimap().toString()
 
             // Log the error with as much detail as possible
-//            Log.e(LOG_TAG, "API call failed with response code: $code")
-//            Log.e(LOG_TAG, "Response message: $message")
-//            Log.e(LOG_TAG, "Response headers: $headers")
-//            Log.e(LOG_TAG, "Response error body: $errorBody")
+            Log.e(LOG_TAG, "API call failed with response code: $code")
+            Log.e(LOG_TAG, "Response message: $message")
+            Log.e(LOG_TAG, "Response headers: $headers")
+            Log.e(LOG_TAG, "Response error body: $errorBody")
 
-//            if (response.code() == 500) {
-//                message = "Server error, try later"
-//                errorBody = message
-//                headers = message
-//            }
+            if (response.code() == 500) {
+                message = "Server error, try later"
+                errorBody = message
+                headers = message
+            }
 
             // Log the error with as much detail as possible
             Log.e(LOG_TAG, "API call failed with response code: $code")

@@ -157,7 +157,7 @@ class FirebaseCoreRepositoryImpl(
             // Check cache first if not forced to update
             if (!forceUpdate) {
                 Log.d(LOG_TAG, "Trying to load friends from Room first..")
-                val cachedFriends = friendsDao.getAllFriends()
+                val cachedFriends = friendsDao.getAllFriendsSortedByOrder(getCurrentUserId()?:"")
                 Log.d(LOG_TAG, "Cached friends were obtained from local: ${cachedFriends.size}")
                 if (cachedFriends.isNotEmpty()) {
                     val result: List<Friend> = cachedFriends.map { it.toDomain() }
@@ -216,11 +216,12 @@ class FirebaseCoreRepositoryImpl(
                 Log.d(LOG_TAG, "Trying to load requests from Room first..")
                 val cachedFriendRequests = friendsDao.getAllFriendRequests() // Load requests with status = pending
                 Log.d(LOG_TAG, "Cached requests were obtained from local: ${cachedFriendRequests.size}")
-                if (cachedFriendRequests.isNotEmpty()) {
-                    return SmartResult.Success(cachedFriendRequests.map { it.toDomain() })
-                } else {
-                    Log.i(LOG_TAG, "No cached data found, fetching from API")
-                }
+                return SmartResult.Success(cachedFriendRequests.map { it.toDomain() })
+//                if (cachedFriendRequests.isNotEmpty()) {
+//                    return SmartResult.Success(cachedFriendRequests.map { it.toDomain() })
+//                } else {
+//                    Log.i(LOG_TAG, "No cached data found, fetching from API")
+//                }
             }
 
             // Fetch from remote if forced or no cache

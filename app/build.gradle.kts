@@ -66,32 +66,6 @@ android {
     }
 }
 
-// === MY CUSTOM GRADLE TASKS ===
-
-// Build counter:
-val counterFile = file("$projectDir/src/main/assets/build_counter.properties")
-tasks.register("incrementBuildCounter") {
-    doLast {
-        if (!counterFile.exists()) {
-            counterFile.createNewFile()
-        }
-
-        val props = Properties().apply {
-            counterFile.inputStream().use { load(it) }
-        }
-
-        val counter = (props.getProperty("buildCounter")?.toInt() ?: 0) + 1
-        props.setProperty("buildCounter", counter.toString())
-
-        counterFile.outputStream().use { props.store(it, null) }
-    }
-}
-
-// Run my tasks before build:
-tasks.named("preBuild") {
-    dependsOn("incrementBuildCounter")
-}
-
 dependencies {
 
     // Core:

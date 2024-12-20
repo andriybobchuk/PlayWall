@@ -30,15 +30,15 @@ object S3Handler {
         }
     }
 
-    private val s3Client = S3Client {
-        region = REGION
-        credentialsProvider = StaticCredentialsProvider(
-            aws.smithy.kotlin.runtime.auth.awscredentials.Credentials(
-                Credentials.accessKey,
-                Credentials.secretKey
-            )
-        )
-    }
+//    private val s3Client = S3Client {
+//        region = REGION
+//        credentialsProvider = StaticCredentialsProvider(
+//            aws.smithy.kotlin.runtime.auth.awscredentials.Credentials(
+//                Credentials.accessKey,
+//                Credentials.secretKey
+//            )
+//        )
+//    }
 
 //    @Deprecated(
 //        message = "Due to safety concerns, access to AWS key has only backend now",

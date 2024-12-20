@@ -248,7 +248,15 @@ class ChatViewModel(
     fun loadMessages() {
         viewModelScope.launch {
             if (!paginationState.endReached && !paginationState.isLoading) {
+                if(paginationState.page == 0) {
+                    _uiState.update { currentState ->
+                        currentState.copy(loading = true)
+                    }
+                }
                 paginator.loadNextItems()
+                _uiState.update { currentState ->
+                    currentState.copy(loading = false)
+                }
             }
         }
     }

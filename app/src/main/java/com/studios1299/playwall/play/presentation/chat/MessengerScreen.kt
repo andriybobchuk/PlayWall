@@ -253,7 +253,7 @@ fun MessagesList(
     scrollState: LazyListState
 ) {
     val messages = uiState.messages
-    if (messages.isEmpty()) {
+    if (!uiState.loading && messages.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize()) {
             Image(
                 painter = painterResource(id = R.drawable.primary_bg),
