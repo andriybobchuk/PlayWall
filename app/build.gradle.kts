@@ -26,6 +26,7 @@ android {
         }
 
         buildConfigField ("String", "BASE_URL", "\"http://77.237.234.47:3000/\"")
+        buildConfigField ("String", "DEEP_LINK_URL", "\"https://socials.myplaywall.com/\"")
     }
 
     buildTypes {

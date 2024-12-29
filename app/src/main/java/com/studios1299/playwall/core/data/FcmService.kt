@@ -2,7 +2,10 @@ package com.studios1299.playwall.core.data
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -11,7 +14,9 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.studios1299.playwall.BuildConfig
 import com.studios1299.playwall.R
+import com.studios1299.playwall.app.MainActivity
 import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.networking.response.wallpapers.WallpaperHistoryResponse
@@ -75,7 +80,11 @@ class FcmService : FirebaseMessagingService() {
                     handleWallpaperDownload(fileName)
                     WallpaperNotificationForChat.setNewWallpaperReceived(true)
                     WallpaperNotificationForPlay.setNewWallpaperReceived(true)
-                    sendNotification(NotificationType.wallpaper)
+                    val chatDeepLink = "https://socials.myplaywall.com/play-chat?friendId=$recipientId"
+                    val notificationIntent = Intent(Intent.ACTION_VIEW, Uri.parse(chatDeepLink)).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    sendNotification(NotificationType.wallpaper, notificationIntent)
                 }
                 "reaction" -> {
                     Log.e("FcmService", "New reaction received: $reaction for message $wallpaperId")
@@ -112,7 +121,12 @@ class FcmService : FirebaseMessagingService() {
                     )
                     Log.e("FcmService", "Friend invite received: " + friendEvent)
                     emitFriendUpdate(friendEvent)
-                    sendNotification(NotificationType.friendInvite)
+
+                    val launchIntent = Intent(this, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+
+                    sendNotification(NotificationType.friendInvite, launchIntent)
                 }
                 "friend_accept" -> {
                     Log.e("FcmService", "Friend request accepted")
@@ -203,16 +217,30 @@ class FcmService : FirebaseMessagingService() {
         scope.cancel()
     }
 
-    private fun sendNotification(notificationType: NotificationType) {
+    private fun sendNotification(notificationType: NotificationType,  notificationIntent: Intent? = null) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val notificationId = notificationType.id
         createNotificationChannel(notificationManager)
+
+        val pendingIntent = notificationIntent?.let {
+            PendingIntent.getActivity(
+                this,
+                0,
+                it,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        }
+
         val notification = NotificationCompat.Builder(this, "playwall_notifications")
             .setSmallIcon(R.drawable.pw)
             .setContentTitle(notificationType.title)
             .setContentText(notificationType.content)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
+
+        //notificationIntent?.let {
+            notification.contentIntent = pendingIntent
+        //}
         notificationManager.notify(notificationId, notification)
     }
 

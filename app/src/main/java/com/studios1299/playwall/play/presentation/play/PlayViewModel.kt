@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.studios1299.playwall.BuildConfig
 import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.data.FriendEvent
 import com.studios1299.playwall.core.data.WallpaperEventManager
@@ -316,7 +317,7 @@ fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
         viewModelScope.launch {
             val random = Random()
             val code = (1000 + random.nextInt(9000)).toString()
-            val baseUrl = "https://socials.myplaywall.com/invite"
+            val baseUrl = BuildConfig.DEEP_LINK_URL + "invite"
             val userData = repository.getUserData()
             if(userData is SmartResult.Success) {
                 val link = "$baseUrl?requesterId=${userData.data?.id}&code=$code"

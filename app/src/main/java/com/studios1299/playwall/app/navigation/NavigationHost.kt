@@ -15,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
+import com.studios1299.playwall.BuildConfig
 import com.studios1299.playwall.app.MyApp
 import com.studios1299.playwall.core.presentation.viewModelFactory
 import com.studios1299.playwall.auth.data.UserDataValidator
@@ -213,7 +214,7 @@ private fun NavGraphBuilder.mainGraph(
             ),
             deepLinks = listOf(navDeepLink {
                 uriPattern =
-                    "https://socials.myplaywall.com/invite?requesterId={requesterId}&code={code}"
+                    BuildConfig.DEEP_LINK_URL + "invite?requesterId={requesterId}&code={code}"
             })
         ) { backStackEntry ->
             val requesterId = backStackEntry.arguments?.getInt("requesterId") ?: -1
@@ -530,7 +531,18 @@ private fun NavGraphBuilder.mainGraph(
                 },
             )
         }
-        composable("${Graphs.Main.Screens.play_chat}/{friendId}") { backStackEntry ->
+        composable(
+            route = "${Graphs.Main.Screens.play_chat}/{friendId}",
+            arguments = listOf(
+                navArgument("friendId") {
+                    type = NavType.StringType
+                    nullable = false
+                }
+            ),
+            deepLinks = listOf(navDeepLink {
+                uriPattern = BuildConfig.DEEP_LINK_URL + "play-chat?friendId={friendId}"
+            })
+        ) { backStackEntry ->
             val friendId = backStackEntry.arguments?.getString("friendId")
             if (friendId != null) {
                 MessengerScreen(
