@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
@@ -17,7 +18,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,13 +43,10 @@ import com.studios1299.playwall.play.presentation.chat.util.Constants.BACKGROUND
 import com.studios1299.playwall.play.presentation.chat.util.Constants.DRAG_ALPHA_FACTOR
 import com.studios1299.playwall.play.presentation.chat.util.Constants.DRAG_DISMISS_THRESHOLD
 import com.studios1299.playwall.play.data.model.Message
-import com.studios1299.playwall.play.presentation.chat.util.timestampAsDate
-import com.studios1299.playwall.play.presentation.chat.viewmodel.ChatViewModel
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.studios1299.playwall.R
 import com.studios1299.playwall.play.presentation.chat.util.timestampAsDateTime
-import com.studios1299.playwall.play.presentation.chat.util.timestampAsTime
 import com.studios1299.playwall.play.presentation.chat.viewmodel.MessengerUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -71,8 +68,8 @@ fun ImageViewer(
     message: Message,
     onDismiss: () -> Unit,
 ) {
-
     val offsetY = remember { Animatable(0f) }
+    val offsetX = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
     val topBarVisible = remember { mutableStateOf(true) }
     val alpha = remember { Animatable(BACKGROUND_ALPHA) }
@@ -82,6 +79,14 @@ fun ImageViewer(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background.copy(alpha = alpha.value))
+            .handleHorizontalDrag(
+                offsetX = offsetX,
+                alpha = alpha,
+                topBarVisible = topBarVisible,
+                coroutineScope = coroutineScope,
+                dragAmount = dragAmount,
+                onDismiss = onDismiss
+            )
             .handleVerticalDrag(
                 offsetY = offsetY,
                 alpha = alpha,
@@ -91,9 +96,10 @@ fun ImageViewer(
                 onDismiss = onDismiss
             )
     ) {
-        Box(modifier = Modifier.fillMaxSize()){
+        Box(modifier = Modifier.fillMaxSize()) {
             FullscreenImageContent(
                 imageUrl = message.imageUrl,
+                offsetX = offsetX,
                 offsetY = offsetY,
                 onTap = { topBarVisible.value = !topBarVisible.value }
             )
@@ -107,11 +113,57 @@ fun ImageViewer(
 
             CaptionContent(
                 visible = topBarVisible.value,
-                caption = message.caption?:"",
+                caption = message.caption ?: "",
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth()
             )
+        }
+    }
+}
+
+/**
+ * This modifier enables dragging functionality for the image. It adjusts the image's vertical position and
+ * the alpha of the background based on drag gestures. When the drag exceeds a specified threshold, it triggers
+ * the `onDismiss` callback to close the image viewer. The background alpha fades based on the drag amount.
+ *
+ * @param offsetX The vertical offset of the image, managed by an Animatable.
+ * @param alpha The alpha value of the background, managed by an Animatable.
+ * @param dragAmount Mutable state tracking the total amount of drag.
+ * @return The Modifier configured to handle vertical drag gestures.
+ */
+private fun Modifier.handleHorizontalDrag(
+    offsetX: Animatable<Float, *>,
+    alpha: Animatable<Float, *>,
+    topBarVisible: MutableState<Boolean>,
+    coroutineScope: CoroutineScope,
+    dragAmount: MutableState<Float>,
+    onDismiss: () -> Unit
+): Modifier {
+    return this.pointerInput(Unit) {
+        detectHorizontalDragGestures(
+            onDragStart = { topBarVisible.value = false },
+            onDragEnd = {
+                coroutineScope.launch {
+                    offsetX.animateTo(0f)
+                    alpha.animateTo(BACKGROUND_ALPHA)
+                }
+                topBarVisible.value = true
+            }
+        ) { _, dragAmountDelta ->
+            dragAmount.value += dragAmountDelta
+            coroutineScope.launch {
+                offsetX.snapTo(offsetX.value + dragAmountDelta)
+                val clampedAlpha =
+                    (1 - abs(offsetX.value) / (DRAG_DISMISS_THRESHOLD * DRAG_ALPHA_FACTOR)).coerceIn(
+                        0f,
+                        BACKGROUND_ALPHA
+                    )
+                alpha.snapTo(clampedAlpha)
+                if (abs(dragAmount.value) > DRAG_DISMISS_THRESHOLD) {
+                    onDismiss()
+                }
+            }
         }
     }
 }
@@ -172,6 +224,7 @@ private fun Modifier.handleVerticalDrag(
 private fun FullscreenImageContent(
     imageUrl: String,
     offsetY: Animatable<Float, *>,
+    offsetX: Animatable<Float, *>,
     onTap: () -> Unit
 ) {
     GlideImage(
@@ -179,7 +232,7 @@ private fun FullscreenImageContent(
         contentDescription = stringResource(R.string.fullscreen_image),
         modifier = Modifier
             .fillMaxSize()
-            .offset { IntOffset(0, offsetY.value.roundToInt()) }
+            .offset { IntOffset(offsetX.value.roundToInt(), offsetY.value.roundToInt()) }
             .pointerInput(Unit) { detectTapGestures(onTap = { onTap() }) },
         contentScale = ContentScale.Fit
     )
