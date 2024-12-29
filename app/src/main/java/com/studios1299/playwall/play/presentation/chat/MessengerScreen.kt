@@ -1,5 +1,6 @@
 package com.studios1299.playwall.play.presentation.chat
 
+import android.graphics.Color
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -30,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -38,6 +40,8 @@ import androidx.compose.ui.unit.sp
 import com.studios1299.playwall.R
 import com.studios1299.playwall.core.presentation.components.Banners
 import com.studios1299.playwall.core.presentation.components.Images
+import com.studios1299.playwall.core.presentation.designsystem.ZEDGE_PURPLE
+import com.studios1299.playwall.core.presentation.designsystem.ZEDGE_WHITE
 import com.studios1299.playwall.monetization.presentation.screens.EVIL_EMOJI
 import com.studios1299.playwall.play.data.model.MessageStatus
 import com.studios1299.playwall.play.presentation.chat.util.rememberRequestPermissionAndPickImage
@@ -216,9 +220,14 @@ private fun FullscreenOverlays(
             .withMaxResultSize(4096, 4096)
             .withOptions(UCrop.Options().apply {
                 setCompressionQuality(100)
-                setFreeStyleCropEnabled(false)
-                setHideBottomControls(true)
+                setFreeStyleCropEnabled(true)
+                setHideBottomControls(false)
+                setToolbarColor(ZEDGE_PURPLE.toArgb())
+                setStatusBarColor(ZEDGE_PURPLE.toArgb())
+                setToolbarWidgetColor(ZEDGE_WHITE.toArgb())
                 setToolbarTitle("Adjust wallpaper")
+                setDimmedLayerColor(ZEDGE_PURPLE.toArgb())
+                setActiveControlsWidgetColor(ZEDGE_PURPLE.toArgb())
             })
 
         cropLauncher.launch(uCrop.getIntent(context))
