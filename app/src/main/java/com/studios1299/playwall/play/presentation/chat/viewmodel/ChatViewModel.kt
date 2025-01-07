@@ -373,7 +373,7 @@ class ChatViewModel(
     private fun setCurrentUser() {
         Log.e(LOG_TAG, "setCurrentUser(), start")
         viewModelScope.launch {
-            when (val result = chatRepository.getUserData()) {
+            when (val result = chatRepository.getUserData(true)) {
                 is SmartResult.Error -> {
                     Log.e(LOG_TAG, "Error: setCurrentUser()")
                 }

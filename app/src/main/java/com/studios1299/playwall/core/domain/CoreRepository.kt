@@ -21,7 +21,7 @@ import java.io.File
 interface CoreRepository {
     // CORE
     suspend fun getCurrentUserId(): String?
-    suspend fun getUserData(): SmartResult<UserDataResponse>
+    suspend fun getUserData(forceUpdate: Boolean): SmartResult<UserDataResponse>
     suspend fun updateProfile(avatarId: String?, nick: String?): SmartResult<Unit>
 
     // S3

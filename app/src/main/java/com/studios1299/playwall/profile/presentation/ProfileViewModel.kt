@@ -58,13 +58,13 @@ class ProfileViewModel(
             NetworkMonitor.isOnline.collect { online ->
                 updateProfileState(state.copy(isOnline = online))
                // if (RefreshStateManager.isProfileScreenRefreshRequired) {
-                    loadUserProfile()
+                    loadUserProfile(false)
                     loadSavedWallpapers(0, 100)
                // }
             }
         }
        // if (RefreshStateManager.isProfileScreenRefreshRequired) {
-            loadUserProfile()
+            loadUserProfile(false)
             loadSavedWallpapers(0, 100)
             //RefreshStateManager.isProfileScreenRefreshRequired = false
        // }
@@ -104,10 +104,10 @@ class ProfileViewModel(
         }
     }
 
-    private fun loadUserProfile() {
+    private fun loadUserProfile(forceUpdate: Boolean) {
         viewModelScope.launch {
             updateProfileState(state.copy(isLoading = true))
-            when (val profileResult = repository.getUserData()) {
+            when (val profileResult = repository.getUserData(forceUpdate)) {
                 is SmartResult.Success -> {
                     updateProfileState(state.copy(
                         userName = TextFieldState(profileResult.data!!.name),
@@ -177,7 +177,7 @@ class ProfileViewModel(
                 } else {
                     eventChannel.send(ProfileEvent.ShowError(UiText.DynamicString(result.message.toString())))
                 }
-                loadUserProfile()
+                loadUserProfile(true)
             }
         }
     }

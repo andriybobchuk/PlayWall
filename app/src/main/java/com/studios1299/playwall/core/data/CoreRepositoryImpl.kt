@@ -339,8 +339,20 @@ class FirebaseCoreRepositoryImpl(
         }
     }
 
-    override suspend fun getUserData(): SmartResult<UserDataResponse> {
+    override suspend fun getUserData(forceUpdate: Boolean): SmartResult<UserDataResponse> {
         return try {
+
+            // Check cache first if not forced to update
+            if (!forceUpdate) {
+                val cachedData = userDao.getCachedUser()
+                if (cachedData != null) {
+                    val result: UserDataResponse = cachedData.toUserDataResponse()
+                    return SmartResult.Success(result)
+                } else {
+                    Log.i(LOG_TAG, "No cached data found, fetching from API")
+                }
+            }
+
             // If no local data, make a remote request
             val result = performAuthRequest { token ->
                 RetrofitClient.userApi.getUserData(token)
@@ -364,6 +376,7 @@ class FirebaseCoreRepositoryImpl(
                     friendshipId = userData.friendshipId,
                     screenRatio = userData.screenRatio
                 )
+                userDao.insertUser(userDataResponse.toUserEntity())
                 SmartResult.Success(userDataResponse)
             } else {
                 SmartResult.Error(600, "Runtime exception in $LOG_TAG:", "Could not get user data")

@@ -318,7 +318,7 @@ fun loadFriendsAndRequests(forceUpdate: Boolean = false) {
             val random = Random()
             val code = (1000 + random.nextInt(9000)).toString()
             val baseUrl = BuildConfig.DEEP_LINK_URL + "invite"
-            val userData = repository.getUserData()
+            val userData = repository.getUserData(true)
             if(userData is SmartResult.Success) {
                 val link = "$baseUrl?requesterId=${userData.data?.id}&code=$code"
                 doStuff(link)
