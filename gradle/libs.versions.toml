@@ -31,7 +31,7 @@ analytics = "22.1.0"
 
 # Project versions
 projectApplicationId = "com.studios1299.playwall"
-projectVersionName = "1.3"
+projectVersionName = "1.4"
 projectMinSdkVersion = "24"
 projectTargetSdkVersion = "34"
 projectCompileSdkVersion = "34"

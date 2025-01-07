@@ -31,6 +31,7 @@ import com.studios1299.playwall.explore.presentation.explore.ExploreStateSinglet
 import com.studios1299.playwall.explore.presentation.explore.ExploreWallpaper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -313,7 +314,10 @@ class ProfileViewModel(
         Log.e("ProfileViewModel", "clearAllAppData() clearing data started")
         val context = MyApp.appModule.context
         Preferences.clear()
-        viewModelScope.launch {
+
+        // Here we fucking go, memory leaks. But it's justified cause I need the db to be fully
+        // cleared regardless of whether VM is active or not
+        GlobalScope.launch {
             try {
                 AppDatabase.clearAllTables()
                 Log.d("ProfileViewModel", "All database tables cleared.")
