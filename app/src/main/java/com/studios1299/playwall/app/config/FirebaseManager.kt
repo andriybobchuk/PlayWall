@@ -46,7 +46,13 @@ object FirebaseManager {
         remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 //TODO("Uncomment when FirebaseConfig actually has these values")
-                //AppConfigManager.updateConfig(getConfigValues())
+                AppConfigManager.updateConfig(getConfigValues())
+
+                AppConfigManager.weeklySubscriptionWithTrialVersion = remoteConfig.getString("weekly_subscription_with_trial_version")
+                AppConfigManager.initialDevils = remoteConfig.getString("initial_devils").toIntOrNull()?:7
+                AppConfigManager.adUnitId = if (remoteConfig.getString("ad_unit_id") == "") AppConfigManager.adUnitId else remoteConfig.getString("ad_unit_id")
+                AppConfigManager.backendUrl = if (remoteConfig.getString("backend_url") == "") AppConfigManager.backendUrl else remoteConfig.getString("backend_url")
+
                 isRemoteConfigInitialized = true
             }
         }
@@ -66,7 +72,7 @@ object FirebaseManager {
             "enable_app_open_ad" to remoteConfig.getBoolean("enable_app_open_ad"),
             "enable_app_open_ad_on_resume" to remoteConfig.getBoolean("enable_app_open_ad_on_resume"),
             "enable_user_daily_reward" to remoteConfig.getBoolean("enable_user_daily_reward"),
-            "enable_user_opinion_prompt" to remoteConfig.getBoolean("enable_user_opinion_prompt")
+            "enable_user_opinion_prompt" to remoteConfig.getBoolean("enable_user_opinion_prompt"),
         )
     }
 }

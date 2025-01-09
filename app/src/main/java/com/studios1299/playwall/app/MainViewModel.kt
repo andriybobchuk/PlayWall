@@ -1,5 +1,6 @@
 package com.studios1299.playwall.app
 
+import android.content.pm.PackageManager
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,6 +37,15 @@ class MainViewModel(
             state = state.copy(isLoggedIn = coreRepository.getCurrentUserId() != null)
             state = state.copy(keepSplashScreen = false)
         }
+        logConfigValues()
+        setAdUnitId()
+    }
+
+    private fun setAdUnitId() {
+        val appContext = MyApp.appModule.context
+        val appInfo = appContext.packageManager.getApplicationInfo(appContext.packageName, PackageManager.GET_META_DATA)
+        val metaData = appInfo.metaData
+        metaData.putString("com.google.android.gms.ads.APPLICATION_ID", AppConfigManager.adUnitId)
     }
 
     private fun logConfigValues() {

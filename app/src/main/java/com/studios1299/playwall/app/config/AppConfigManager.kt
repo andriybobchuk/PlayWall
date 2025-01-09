@@ -11,8 +11,13 @@ object AppConfigManager {
     var enableUserDailyReward = true
     var enableUserOpinionPrompt = true
 
+    var weeklySubscriptionWithTrialVersion = "1"
+    var initialDevils = 8
+    var adUnitId = ""
+    var backendUrl = "http://77.237.234.47:3000/"
+
     fun updateConfig(config: Map<String, Boolean>) {
-        enableRewardAd = config["enable_reward_ad"] ?: enableRewardAd
+        //enableRewardAd = config["enable_reward_ad"] ?: enableRewardAd
         enableBannerAd = config["enable_banner_ad"] ?: enableBannerAd
         enableGridAd = config["enable_grid_ad"] ?: enableGridAd
         enableInterstitialAd = config["enable_interstitial_ad"] ?: enableInterstitialAd

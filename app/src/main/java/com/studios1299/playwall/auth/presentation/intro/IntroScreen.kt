@@ -65,17 +65,17 @@ fun IntroScreen(
                     .padding(16.dp)
                     .padding(bottom = 48.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.welcome_to_playwall),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 20.sp
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.an_incredible_app_that_allows_you_to_send_wallpapers),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
+//                Text(
+//                    text = stringResource(R.string.welcome_to_playwall),
+//                    color = MaterialTheme.colorScheme.onBackground,
+//                    fontSize = 20.sp
+//                )
+//                Spacer(modifier = Modifier.height(8.dp))
+//                Text(
+//                    text = stringResource(R.string.an_incredible_app_that_allows_you_to_send_wallpapers),
+//                    style = MaterialTheme.typography.bodySmall,
+//                    color = MaterialTheme.colorScheme.onSecondaryContainer
+//                )
                 Spacer(modifier = Modifier.height(32.dp))
                 Buttons.Primary(
                     text = stringResource(id = R.string.login),

@@ -62,7 +62,7 @@ class AppConfigLegacy private constructor() {
 //}
 //remoteConfig.setConfigSettingsAsync(configSettings)
 //var appConfig = AppConfig.getInstance()
-
+//
 //// Opcjonalnie -> tak sobie zaczynam wczytywać App Open Ada
 //appConfig.remoteConfigLoaded.observeForever { isLoaded ->
 //    Log.d("MyApplication", "App config loaded: $isLoaded")

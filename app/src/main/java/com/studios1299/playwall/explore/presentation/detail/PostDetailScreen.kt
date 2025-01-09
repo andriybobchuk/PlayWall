@@ -106,7 +106,8 @@ import java.io.File
 @Composable
 fun PostDetailScreenRoot(
     viewModel: PostDetailViewModel,
-    onExit: () -> Unit
+    onExit: () -> Unit,
+    onOpenWrzutomat: () -> Unit,
 ) {
     val state = if (viewModel.fromProfile) {
         viewModel.profileState
@@ -118,6 +119,7 @@ fun PostDetailScreenRoot(
     LaunchedEffect(Unit) {
         viewModel.errorMessages.collect { message ->
             Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            onOpenWrzutomat()
         }
     }
 
@@ -185,6 +187,7 @@ fun PostDetailScreen(
             cropOpen = cropOpen,
             state = exploreState,
             onWallpaperSent = { croppedImagePath ->
+
                 // Toast.makeText(context, "Send image to friend", Toast.LENGTH_LONG).show()
             },
             viewModel = viewModel

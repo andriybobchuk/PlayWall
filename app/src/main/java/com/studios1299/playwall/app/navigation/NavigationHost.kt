@@ -362,7 +362,8 @@ private fun NavGraphBuilder.mainGraph(
                         )
                     }
                 ),
-                onExit = { navController.navigateUp() }
+                onExit = { navController.navigateUp() },
+                onOpenWrzutomat = { navController.navigate(Graphs.Main.Screens.wrzutomat_big) }
             )
         }
 

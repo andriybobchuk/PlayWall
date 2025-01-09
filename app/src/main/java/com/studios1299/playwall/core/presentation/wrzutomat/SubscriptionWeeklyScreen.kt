@@ -145,7 +145,7 @@ fun SubscriptionWeeklyScreen(
                         Text(
                             text = "This is a cool caption that can explain some stuff",
                             color = Color.White,
-                            fontSize = 17.sp,
+                            fontSize = 15.5.sp,
                             textAlign = TextAlign.Center,
                             fontWeight = FontWeight.Medium
                         )

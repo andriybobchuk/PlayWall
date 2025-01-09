@@ -2,6 +2,7 @@ package com.studios1299.playwall.core.data
 
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
+import com.studios1299.playwall.app.config.AppConfigManager
 import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.data.local.dao.ChatDao
 import com.studios1299.playwall.core.data.local.dao.ExploreWallpaperDao
@@ -876,7 +877,7 @@ class FirebaseCoreRepositoryImpl(
                 count = result.data?.devilCount?:0
                 Log.e(LOG_TAG, "getDevilCount from remote: $count, result.data?.devilCount: ${result.data?.devilCount}")
             } else {
-                count = 10
+                count = AppConfigManager.initialDevils
                 Log.e(LOG_TAG, "getDevilCount from remote (error): $count")
             }
         }

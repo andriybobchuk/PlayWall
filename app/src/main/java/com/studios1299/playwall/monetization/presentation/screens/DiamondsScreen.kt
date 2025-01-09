@@ -56,6 +56,7 @@ import androidx.compose.ui.window.Dialog
 import com.android.billingclient.api.BillingClient
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.studios1299.playwall.R
+import com.studios1299.playwall.app.config.AppConfigManager
 import com.studios1299.playwall.core.presentation.components.Toolbars
 import com.studios1299.playwall.monetization.data.AdManager
 import com.studios1299.playwall.monetization.data.BillingManager
@@ -477,25 +478,26 @@ fun BuyDialog(
                 )
                 Spacer(modifier = Modifier.height(24.dp))
 
-                if (priceData.weeklyPrice != "Unavailable") {
+                if (priceData.weekly.price != "") {
                     Button(
                         onClick = {
                             coroutineScope.launch {
                                 billingManager.startPurchaseFlow(
                                     context as Activity,
-                                    "weekly_subscription",
+                                    if (AppConfigManager.weeklySubscriptionWithTrialVersion == "1")
+                                    "weekly_subscription_with_trial" else "weekly_subscription_with_trial_v2",
                                     BillingClient.ProductType.SUBS
                                 )
                             }
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Subscribe Weekly - ${priceData.weeklyPrice}")
+                        Text("Subscribe Weekly - ${priceData.weekly.price}")
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                if (priceData.lifetimePrice != "Unavailable") {
+                if (priceData.lifetime.price != "") {
                     Button(
                         onClick = {
                             coroutineScope.launch {
@@ -508,12 +510,12 @@ fun BuyDialog(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Buy Lifetime - ${priceData.lifetimePrice}")
+                        Text("Buy Lifetime - ${priceData.lifetime.price}")
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                if (priceData.lifetimePrice == "Unavailable" && priceData.weeklyPrice == "Unavailable") {
+                if (priceData.lifetime.price == "" && priceData.weekly.price == "") {
                     Text(
                         text = "Unfortunately, prices are not available at the moment",
                         style = MaterialTheme.typography.bodyMedium,

@@ -243,27 +243,27 @@ private fun RegisterScreen(
                 ),
                 isValid = state.passwordValidationState.hasMinLength
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            PasswordRequirement(
-                text = stringResource(
-                    id = R.string.at_least_one_number,
-                ),
-                isValid = state.passwordValidationState.hasNumber
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            PasswordRequirement(
-                text = stringResource(
-                    id = R.string.contains_lowercase_char,
-                ),
-                isValid = state.passwordValidationState.hasLowerCaseCharacter
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            PasswordRequirement(
-                text = stringResource(
-                    id = R.string.contains_uppercase_char,
-                ),
-                isValid = state.passwordValidationState.hasUpperCaseCharacter
-            )
+//            Spacer(modifier = Modifier.height(4.dp))
+//            PasswordRequirement(
+//                text = stringResource(
+//                    id = R.string.at_least_one_number,
+//                ),
+//                isValid = state.passwordValidationState.hasNumber
+//            )
+//            Spacer(modifier = Modifier.height(4.dp))
+//            PasswordRequirement(
+//                text = stringResource(
+//                    id = R.string.contains_lowercase_char,
+//                ),
+//                isValid = state.passwordValidationState.hasLowerCaseCharacter
+//            )
+//            Spacer(modifier = Modifier.height(4.dp))
+//            PasswordRequirement(
+//                text = stringResource(
+//                    id = R.string.contains_uppercase_char,
+//                ),
+//                isValid = state.passwordValidationState.hasUpperCaseCharacter
+//            )
             Spacer(modifier = Modifier.height(32.dp))
 
             Row(

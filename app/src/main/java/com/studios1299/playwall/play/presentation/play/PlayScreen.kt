@@ -411,18 +411,18 @@ fun PlayScreen(
                 icon = Icons.Rounded.Add,
                 text = "Add friend",
                 items = listOf(
-                    ExpendableFabItem(
-                        icon = Icons.Rounded.ContentCopy,
-                        text = "Link",
-                        onClick = {
-                            onAction(PlayAction.RequestInviteLink)
-                        }
-                    ),
-                    ExpendableFabItem(
-                        icon = Icons.Rounded.QrCode,
-                        text = "QR-code",
-                        onClick = { onAction(PlayAction.RequestQrInvite) }
-                    ),
+//                    ExpendableFabItem(
+//                        icon = Icons.Rounded.ContentCopy,
+//                        text = "Link",
+//                        onClick = {
+//                            onAction(PlayAction.RequestInviteLink)
+//                        }
+//                    ),
+//                    ExpendableFabItem(
+//                        icon = Icons.Rounded.QrCode,
+//                        text = "QR-code",
+//                        onClick = { onAction(PlayAction.RequestQrInvite) }
+//                    ),
                     ExpendableFabItem(
                         icon = Icons.Rounded.Person,
                         text = "Username",
@@ -677,12 +677,9 @@ fun PlayScreen(
                         if (!state.isSelectMode
                             && friend.status == FriendshipStatus.pending
                         ) {
-                            FriendItem(
-                                friend = friend,
-                                isMuted = false,
-                                onClick = {},
-                                isSelectable = false,
-                                isSelected = false
+                            MyFriendRequestItem(
+                                friendRequest = friend,
+                                onCancel = { onAction(PlayAction.OnRejectFriendRequest(friend.id)) }
                             )
                         }
                     }
@@ -829,6 +826,48 @@ fun FriendRequestItem(
                 )
             }
             IconButton(onClick = onReject) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = stringResource(R.string.reject),
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun MyFriendRequestItem(
+    friendRequest: Friend,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Images.Circle(model = friendRequest.avatarId)
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = "Requested ${friendRequest.nick?:friendRequest.email}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onCancel) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = stringResource(R.string.reject),

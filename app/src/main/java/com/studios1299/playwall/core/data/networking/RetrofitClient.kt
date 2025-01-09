@@ -1,6 +1,7 @@
 package com.studios1299.playwall.core.data.networking
 
 import com.studios1299.playwall.BuildConfig
+import com.studios1299.playwall.app.config.AppConfigManager
 import com.studios1299.playwall.core.data.networking.api.FriendsApi
 import com.studios1299.playwall.core.data.networking.api.UserApi
 import com.studios1299.playwall.core.data.networking.api.UserAppDataApi
@@ -23,7 +24,8 @@ object RetrofitClient {
     }
     private fun createRetrofit(): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(BuildConfig.BASE_URL)
+           // .baseUrl(BuildConfig.BASE_URL)
+            .baseUrl(AppConfigManager.backendUrl)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
