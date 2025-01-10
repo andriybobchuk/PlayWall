@@ -1,5 +1,8 @@
 package com.studios1299.playwall.core.presentation.wrzutomat
 
+import android.app.Activity
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -23,12 +26,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -36,7 +41,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.android.billingclient.api.BillingClient
+import com.studios1299.playwall.app.config.AppConfigManager
+import com.studios1299.playwall.monetization.data.BillingManager
 import kotlinx.coroutines.delay
+
+const val LOG_TAG = "Wrzutomat"
 
 data class Feature(
     val emoji: String,
@@ -44,17 +54,21 @@ data class Feature(
 )
 @Composable
 fun SubscriptionWeeklyScreen(
-    subscriptionDetails: SubscriptionOption,
-    onSubscribe: (SubscriptionOption) -> Unit,
+//    subscriptionDetails: SubscriptionOption,
+//    onSubscribe: (SubscriptionOption) -> Unit,
     onClose: () -> Unit,
     onPrivacyPolicyClick: () -> Unit,
-    onTermsOfServiceClick: () -> Unit
+    onTermsOfServiceClick: () -> Unit,
+    billingManager: BillingManager
 ) {
     val features = listOf(
         Feature("\uD83D\uDCE3", "No ads"),
         Feature("\uD83D\uDE08", "Unlimited devils"),
         Feature("\uD83D\uDC51", "Premium wallpapers"),
     )
+
+    val priceData = billingManager.priceData.collectAsState()
+    val useV2WeeklySubscription = AppConfigManager.useV2WeeklySubscription
 
     // Track visibility for each feature
     val featureVisibility = remember { mutableStateOf(List(features.size) { false }) }
@@ -157,8 +171,21 @@ fun SubscriptionWeeklyScreen(
                     text = buildAnnotatedString {
                         append("FREE FOR 3 DAYS\nLATER ")
                         withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
-                            append("${subscriptionDetails.price} ${subscriptionDetails.currency}")
+                            val weeklyPrice = if (useV2WeeklySubscription)
+                                priceData.value.weeklyWithTrialV2.price
+                            else
+                                priceData.value.weeklyWithTrial.price
+
+                            val weeklyCurrency = if (useV2WeeklySubscription)
+                                priceData.value.weeklyWithTrialV2.currency
+                            else
+                                priceData.value.weeklyWithTrial.currency
+
+                            append("${weeklyPrice} ${weeklyCurrency}")
                         }
+//                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
+//                            append("${subscriptionDetails.price} ${subscriptionDetails.currency}")
+//                        }
                         append(" WEEKLY")
                     },
                     color = Color.White,
@@ -177,7 +204,7 @@ fun SubscriptionWeeklyScreen(
                 )
             }
 
-
+            val context = LocalContext.current
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -186,7 +213,20 @@ fun SubscriptionWeeklyScreen(
                 Spacer(modifier = Modifier.height(10.dp))
                 CartoonStyledButton(
                     text = "SUBSCRIBE",
-                    onClick = { onSubscribe(subscriptionDetails) },
+                    onClick = {
+                        try {
+                            val productId = if (useV2WeeklySubscription) {
+                                "weekly_subscription_with_trial_v2"
+                            } else {
+                                "weekly_subscription_with_trial"
+                            }
+                            billingManager.startPurchaseFlow(context as Activity, productId, BillingClient.ProductType.SUBS)
+
+                        } catch (e: Exception) {
+                            Log.e(LOG_TAG, "Subscribing failed: ${e.message}")
+                            Toast.makeText(context, "Purchase Failed", Toast.LENGTH_LONG).show()
+                        }
+                              },
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 PoliciesButtons(

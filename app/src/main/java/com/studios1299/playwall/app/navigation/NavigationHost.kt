@@ -24,6 +24,7 @@ import com.studios1299.playwall.auth.presentation.login.LoginScreenRoot
 import com.studios1299.playwall.auth.presentation.login.LoginViewModel
 import com.studios1299.playwall.auth.presentation.register.RegisterScreenRoot
 import com.studios1299.playwall.auth.presentation.register.RegisterViewModel
+import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.core.presentation.components.WebViewScreen
 import com.studios1299.playwall.core.presentation.components.WebContent
 import com.studios1299.playwall.core.presentation.wrzutomat.Wrzutomat
@@ -42,6 +43,7 @@ import com.studios1299.playwall.play.presentation.chat.viewmodel.ChatViewModel
 import com.studios1299.playwall.play.presentation.play.PlayScreenRoot
 import com.studios1299.playwall.play.presentation.play.PlayViewModel
 import com.studios1299.playwall.monetization.data.AdManager
+import com.studios1299.playwall.monetization.data.BillingManager
 import com.studios1299.playwall.monetization.presentation.DiamondsViewModel
 import com.studios1299.playwall.monetization.presentation.LuckySpinViewModel
 import com.studios1299.playwall.profile.presentation.ProfileDestination
@@ -66,7 +68,11 @@ fun NavigationHostLegacy(
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = if (isLoggedIn) Graphs.Main.root else Graphs.Auth.root
+        startDestination = if (isLoggedIn) {
+           Graphs.Main.root
+        } else {
+            Graphs.Auth.root
+        }
     ) {
         authGraph(navController)
         mainGraph(navController, adManager, isLoggedIn)
@@ -126,11 +132,16 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
                     }
                 },
                 onSuccessfulRegistration = {
-                    navController.navigate("main") {
+                    navController.navigate(Graphs.Main.Screens.wrzutomat_small) {
                         popUpTo("auth") {
                             inclusive = true
                         }
                     }
+//                    navController.navigate("main") {
+//                        popUpTo("auth") {
+//                            inclusive = true
+//                        }
+//                    }
                 },
                 onTermsOfServiceClick = {
                     navController.navigate(
@@ -161,7 +172,9 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
         composable("login") {
             LoginScreenRoot(
                 onLoginSuccess = {
-                    navController.navigate("main") {
+                    navController.navigate(
+                        if (!Preferences.isPremium()) Graphs.Main.Screens.wrzutomat_small else Graphs.Main.Screens.play
+                    ) {
                         popUpTo("auth") {
                             inclusive = true
                         }
@@ -195,7 +208,11 @@ private fun NavGraphBuilder.mainGraph(
     isLoggedIn: Boolean,
 ) {
     navigation(
-        startDestination = "${Graphs.Main.Screens.play}/${-1}/${-1}",
+        startDestination = if (Preferences.isPremium()) {
+            "${Graphs.Main.Screens.play}/${-1}/${-1}"
+        } else {
+            Graphs.Main.Screens.wrzutomat_small
+        },
         route = Graphs.Main.root
     ) {
         composable(
@@ -297,6 +314,7 @@ private fun NavGraphBuilder.mainGraph(
                         )
                     }
                 ),
+                onOpenWrzutomatDuzy = { navController.navigate(Graphs.Main.Screens.wrzutomat_big) }
             )
         }
         composable(Graphs.Main.Screens.lucky_spin) {
@@ -474,6 +492,8 @@ private fun NavGraphBuilder.mainGraph(
                 }
             )
         }
+
+        val billingManager = BillingManager(MyApp.appModule.context)
         composable(Graphs.Main.Screens.wrzutomat_big) {
             Wrzutomat(
                 viewModel = viewModel<WrzutomatViewModel>(
@@ -501,6 +521,7 @@ private fun NavGraphBuilder.mainGraph(
                         )
                     )
                 },
+                billingManager = billingManager
             )
         }
         composable(Graphs.Main.Screens.wrzutomat_small) {
@@ -513,7 +534,10 @@ private fun NavGraphBuilder.mainGraph(
                     }
                 ),
                 type = WrzutomatType.SMALL,
-                onClose = { navController.navigateUp() },
+                onClose = {
+                    navController.navigate("${Graphs.Main.Screens.play}/${-1}/${-1}")
+                   // navController.navigateUp()
+                          },
                 onPrivacyPolicyClick = {
                     navController.navigate(
                         Graphs.Shared.Screens.web.replace(
@@ -530,6 +554,7 @@ private fun NavGraphBuilder.mainGraph(
                         )
                     )
                 },
+                billingManager = billingManager
             )
         }
         composable(

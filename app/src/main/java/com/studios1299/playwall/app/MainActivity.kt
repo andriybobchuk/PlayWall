@@ -74,51 +74,6 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             PlayWallTheme {
-
-//                runBlocking {
-//
-//                    val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-//                        println("Caught exception: $exception")
-//                    }
-//
-//                    CoroutineScope(
-//                        Dispatchers.IO +
-//                                SupervisorJob() +
-//                                CoroutineName("") +
-//                                CoroutineExceptionHandler { _, exception ->
-//                                    println("Caught exception: $exception")
-//                                }
-//                    )
-//
-//
-//                    GlobalScope.launch { }
-//
-//                    lifecycleScope.launch {
-//
-//                    }
-//
-//                    supervisorScope {  }
-//
-//                    MainScope().launch {
-//
-//                    }
-//
-//                    SharedFlow()
-//
-//
-//
-//                    lifecycleScope.async { }
-//
-//                    suspendCancellableCoroutine { continuation ->
-//                        println("Before too")
-//                        continuation.resume(1)
-//                    }
-//
-//
-//                }
-//
-               // NotificationManager.IMPORTANCE_HIGH
-
                 if(!viewModel.state.keepSplashScreen) {
                     NavigationHostLegacy(
                         adManager = adManager,

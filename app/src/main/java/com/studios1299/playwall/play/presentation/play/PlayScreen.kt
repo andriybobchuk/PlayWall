@@ -153,9 +153,9 @@ fun PlayScreenRoot(
             is PlayEvent.QrInviteReady -> onNavigateToInviteScreen(event.inviteLink)
             PlayEvent.FriendInvited -> {
                 Toast.makeText(context,"Friend invited successfully!", Toast.LENGTH_LONG).show()
-                if (state.friends.isEmpty() && state.friendRequests.isEmpty()) {
-                    onOpenWrzutomat()
-                }
+//                if (state.friends.isEmpty() && state.friendRequests.isEmpty()) {
+//                    onOpenWrzutomat()
+//                }
             }
         }
     }
@@ -411,18 +411,18 @@ fun PlayScreen(
                 icon = Icons.Rounded.Add,
                 text = "Add friend",
                 items = listOf(
-//                    ExpendableFabItem(
-//                        icon = Icons.Rounded.ContentCopy,
-//                        text = "Link",
-//                        onClick = {
-//                            onAction(PlayAction.RequestInviteLink)
-//                        }
-//                    ),
-//                    ExpendableFabItem(
-//                        icon = Icons.Rounded.QrCode,
-//                        text = "QR-code",
-//                        onClick = { onAction(PlayAction.RequestQrInvite) }
-//                    ),
+                    ExpendableFabItem(
+                        icon = Icons.Rounded.ContentCopy,
+                        text = "Link",
+                        onClick = {
+                            onAction(PlayAction.RequestInviteLink)
+                        }
+                    ),
+                    ExpendableFabItem(
+                        icon = Icons.Rounded.QrCode,
+                        text = "QR-code",
+                        onClick = { onAction(PlayAction.RequestQrInvite) }
+                    ),
                     ExpendableFabItem(
                         icon = Icons.Rounded.Person,
                         text = "Username",

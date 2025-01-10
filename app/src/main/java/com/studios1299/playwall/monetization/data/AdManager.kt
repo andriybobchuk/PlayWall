@@ -41,10 +41,10 @@ class AdManager(private val activity: Activity) {
         }
 
         isLoadingAd = true
-        Log.e("AdManager", "Loading rewarded ad with ad unit ID: $adUnitId")
+        //Log.e("AdManager", "Loading rewarded ad with ad unit ID: $adUnitId")
 
         val adRequest = AdRequest.Builder().build()
-        RewardedAd.load(activity, adUnitId, adRequest, object : RewardedAdLoadCallback() {
+        RewardedAd.load(activity, AppConfigManager.adUnitId, adRequest, object : RewardedAdLoadCallback() {
             override fun onAdLoaded(ad: RewardedAd) {
                 rewardedAd = ad
                 isLoadingAd = false

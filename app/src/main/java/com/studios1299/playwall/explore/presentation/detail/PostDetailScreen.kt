@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Download
@@ -213,8 +214,8 @@ fun PostDetailScreen(
         },
         floatingActionButton = {
             ExpandableFab(
-                icon = Icons.Rounded.KeyboardArrowUp,
-                iconExpanded = Icons.Rounded.KeyboardArrowDown,
+                icon = Icons.Default.Send,
+                iconExpanded = Icons.Default.Send,
                 text = "Options",
                 items = listOf(
                     ExpendableFabItem(

@@ -19,6 +19,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,17 +35,33 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.studios1299.playwall.app.config.AppConfigManager
 import com.studios1299.playwall.core.presentation.designsystem.ZEDGE_WHITE
+import com.studios1299.playwall.monetization.data.BillingManager
+
+
+enum class priceOption {
+    WEEKLY,
+    MONTHLY,
+    YEARLY
+}
 
 @Composable
 fun SubscriptionOptionsScreen(
-    subscriptionOptions: List<SubscriptionOption>,
-    onSubscribe: (SubscriptionOption) -> Unit,
+//    subscriptionOptions: List<SubscriptionOption>,
+//    onSubscribe: (SubscriptionOption) -> Unit,
     onClose: () -> Unit,
     onPrivacyPolicyClick: () -> Unit,
-    onTermsOfServiceClick: () -> Unit
+    onTermsOfServiceClick: () -> Unit,
+    billingManager: BillingManager
 ) {
-    var selectedOption by remember { mutableStateOf(subscriptionOptions[0]) }
+    var selectedOption by remember { mutableStateOf(priceOption.WEEKLY) }
+
+    val priceData = billingManager.priceData.collectAsState()
+
+    val useV2WeeklySubscription = AppConfigManager.useV2WeeklySubscription
+
+
 
     Background {
             Box(
@@ -73,10 +90,10 @@ fun SubscriptionOptionsScreen(
                     Column(
                         modifier = Modifier.clip(RoundedCornerShape(36.dp))
                     ) {
-                        subscriptionOptions.forEachIndexed { index, option ->
+                        priceOption.entries.forEachIndexed { index, option ->
                             val shape = when (index) {
                                 0 -> RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp)
-                                subscriptionOptions.size - 1 -> RoundedCornerShape(
+                                priceOption.entries.size - 1 -> RoundedCornerShape(
                                     bottomStart = 36.dp,
                                     bottomEnd = 36.dp)
                                 else -> RoundedCornerShape(0.dp)
@@ -109,18 +126,51 @@ fun SubscriptionOptionsScreen(
 
                     Text(
                         text = buildAnnotatedString {
-                            if (selectedOption.name == "WEEKLY") {
-                                append("FREE FOR 3 DAYS\nLATER ")
-                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
-                                    append("${selectedOption.price} ${selectedOption.currency}")
+                            when (selectedOption) {
+                                priceOption.WEEKLY -> {
+                                    append("FREE FOR 3 DAYS\nLATER ")
+                                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
+                                        val weeklyPrice = if (useV2WeeklySubscription)
+                                            priceData.value.weeklyWithTrialV2.price
+                                        else
+                                            priceData.value.weeklyWithTrial.price
+
+                                        val weeklyCurrency = if (useV2WeeklySubscription)
+                                            priceData.value.weeklyWithTrialV2.currency
+                                        else
+                                            priceData.value.weeklyWithTrial.currency
+
+                                        append("${weeklyPrice} ${weeklyCurrency}")
+                                    }
+                                    append(" WEEKLY")
                                 }
-                                append(" WEEKLY")
-                            } else {
-                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
-                                    append("${selectedOption.price} ${selectedOption.currency} ")
+                                priceOption.MONTHLY -> {
+                                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
+                                        append("${priceData.value.monthly.price} ${priceData.value.monthly.currency} ")
+                                    }
+                                    append(selectedOption.name)
                                 }
-                                append(selectedOption.name)
+                                priceOption.YEARLY -> {
+                                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
+                                        append("${priceData.value.yearly.price} ${priceData.value.yearly.currency} ")
+                                    }
+                                    append(selectedOption.name)
+                                }
                             }
+//
+//
+//                            if (selectedOption.name == "WEEKLY") {
+//                                append("FREE FOR 3 DAYS\nLATER ")
+//                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
+//                                    append("${selectedOption.price} ${selectedOption.currency}")
+//                                }
+//                                append(" WEEKLY")
+//                            } else {
+//                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
+//                                    append("${selectedOption.price} ${selectedOption.currency} ")
+//                                }
+//                                append(selectedOption.name)
+//                            }
                         },
                         color = Color.White,
                         fontSize = 20.sp,
@@ -146,7 +196,9 @@ fun SubscriptionOptionsScreen(
                 ) {
                     CartoonStyledButton(
                         text = "SUBSCRIBE",
-                        onClick = { onSubscribe(selectedOption) },
+                        onClick = {
+                           // onSubscribe(selectedOption)
+                                  },
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     PoliciesButtons(

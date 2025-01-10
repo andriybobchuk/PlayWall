@@ -874,7 +874,11 @@ class FirebaseCoreRepositoryImpl(
                 RetrofitClient.userAppDataApi.getAppData(token)
             }
             if (result is SmartResult.Success) {
-                count = result.data?.devilCount?:0
+                count = if (result.data?.devilCount == null || result.data.devilCount == -1) {
+                    AppConfigManager.initialDevils
+                } else {
+                    result.data.devilCount
+                }
                 Log.e(LOG_TAG, "getDevilCount from remote: $count, result.data?.devilCount: ${result.data?.devilCount}")
             } else {
                 count = AppConfigManager.initialDevils

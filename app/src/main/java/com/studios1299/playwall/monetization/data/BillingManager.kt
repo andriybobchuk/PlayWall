@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewModelScope
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
@@ -17,6 +18,8 @@ import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
+import com.studios1299.playwall.app.MyApp
+import com.studios1299.playwall.app.di.AppModule
 import com.studios1299.playwall.core.data.local.Preferences
 import com.studios1299.playwall.monetization.presentation.AppState
 import com.studios1299.playwall.monetization.presentation.DiamondsViewModel
@@ -34,12 +37,12 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 data class PriceData(
-    val weekly: SinglePriceData = SinglePriceData(),
+    //val weekly: SinglePriceData = SinglePriceData(),
     val weeklyWithTrial: SinglePriceData = SinglePriceData(),
     val weeklyWithTrialV2: SinglePriceData = SinglePriceData(),
     val monthly: SinglePriceData = SinglePriceData(),
     val yearly: SinglePriceData = SinglePriceData(),
-    val lifetime: SinglePriceData = SinglePriceData()
+    //val lifetime: SinglePriceData = SinglePriceData()
 )
 
 data class SinglePriceData(
@@ -65,6 +68,7 @@ class BillingManager(
 
     init {
         startBillingConnection()
+        checkPremiumStatus()
     }
 
     var isPremiumUser by mutableStateOf(false)
@@ -209,6 +213,12 @@ class BillingManager(
                 }
 
                 Log.d("BillingManager", "Subscription status checked: $hasSubscription")
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    MyApp.appModule.coreRepository.updatePremiumStatus(hasSubscription)
+                    Preferences.setPremiumStatus(hasSubscription)
+                    AppState.updatePremiumStatus(hasSubscription)
+                }
 
                 subscriptionDeferred.complete(hasSubscription)
             } else {
@@ -361,11 +371,11 @@ class BillingManager(
     fun getPrices() {
 
         CoroutineScope(Dispatchers.IO).launch {
-            getPrice("weekly_subscription") { price, currency ->
-                _priceData.update {
-                    it.copy(weekly = SinglePriceData(price, currency))
-                }
-            }
+//            getPrice("weekly_subscription") { price, currency ->
+//                _priceData.update {
+//                    it.copy(weekly = SinglePriceData(price, currency))
+//                }
+//            }
 
             getPrice("weekly_subscription_with_trial") { price, currency ->
                 _priceData.update {
@@ -391,11 +401,11 @@ class BillingManager(
                 }
             }
 
-            getPrice("premium_lifetime") { price, currency ->
-                _priceData.update {
-                    it.copy(lifetime = SinglePriceData(price, currency))
-                }
-            }
+//            getPrice("premium_lifetime") { price, currency ->
+//                _priceData.update {
+//                    it.copy(lifetime = SinglePriceData(price, currency))
+//                }
+//            }
         }
     }
 

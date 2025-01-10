@@ -24,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -127,9 +128,9 @@ fun CartoonStyledButton(
         Text(
             text = text,
             color = ZEDGE_WHITE,
-            fontSize = (21.sp * animatedScale),
+            fontSize = (21.sp),
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier.padding(horizontal = 16.dp).scale(animatedScale)
         )
     }
 }

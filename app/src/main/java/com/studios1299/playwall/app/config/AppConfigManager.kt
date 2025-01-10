@@ -11,10 +11,13 @@ object AppConfigManager {
     var enableUserDailyReward = true
     var enableUserOpinionPrompt = true
 
-    var weeklySubscriptionWithTrialVersion = "1"
-    var initialDevils = 8
-    var adUnitId = ""
-    var backendUrl = "http://77.237.234.47:3000/"
+    //var weeklySubscriptionWithTrialVersion = "1"
+    var useV2WeeklySubscription = false
+    var initialDevils = 5
+    //var adUnitId = "ca-app-pub-9017574195680735/7081123130" // RELEASE ONLY
+    var adUnitId = "ca-app-pub-3940256099942544/5224354917" // DEBUG MODE
+    //var backendUrl = "http://77.237.234.47:3000/"
+    var backendUrl = "https://app.myplaywall.com/"
 
     fun updateConfig(config: Map<String, Boolean>) {
         //enableRewardAd = config["enable_reward_ad"] ?: enableRewardAd

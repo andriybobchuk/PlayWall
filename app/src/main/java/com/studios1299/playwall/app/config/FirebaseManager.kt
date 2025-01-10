@@ -48,10 +48,12 @@ object FirebaseManager {
                 //TODO("Uncomment when FirebaseConfig actually has these values")
                 AppConfigManager.updateConfig(getConfigValues())
 
-                AppConfigManager.weeklySubscriptionWithTrialVersion = remoteConfig.getString("weekly_subscription_with_trial_version")
-                AppConfigManager.initialDevils = remoteConfig.getString("initial_devils").toIntOrNull()?:7
+                AppConfigManager.useV2WeeklySubscription = remoteConfig.getBoolean("use_v2_weekly_subscription")
+
+                AppConfigManager.initialDevils = remoteConfig.getString("initial_devils").toIntOrNull()?:5
                 AppConfigManager.adUnitId = if (remoteConfig.getString("ad_unit_id") == "") AppConfigManager.adUnitId else remoteConfig.getString("ad_unit_id")
                 AppConfigManager.backendUrl = if (remoteConfig.getString("backend_url") == "") AppConfigManager.backendUrl else remoteConfig.getString("backend_url")
+
 
                 isRemoteConfigInitialized = true
             }

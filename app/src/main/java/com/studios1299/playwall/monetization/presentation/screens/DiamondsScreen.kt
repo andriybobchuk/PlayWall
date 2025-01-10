@@ -74,7 +74,8 @@ fun DiamondsScreen(
     onNavigateToLuckySpin: () -> Unit,
     onNavigateToPremiumPurchase: () -> Unit,
     onBackClick: () -> Unit,
-    adManager: AdManager
+    adManager: AdManager,
+    onOpenWrzutomatDuzy: () -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -180,10 +181,12 @@ fun DiamondsScreen(
                     }
                 )
                 if (showDialog.value) {
-                    BuyDialog(
-                        billingManager = billingManager,
-                        onDismissRequest = { showDialog.value = false }
-                    )
+
+                    onOpenWrzutomatDuzy()
+//                    BuyDialog(
+//                        billingManager = billingManager,
+//                        onDismissRequest = { showDialog.value = false }
+//                    )
                 }
                 Spacer(modifier = Modifier.size(spacing))
 //            Button(onClick = {
@@ -446,95 +449,95 @@ data class DailyCheckinData(
     val checked: Boolean
 )
 
-
-@Composable
-fun BuyDialog(
-    billingManager: BillingManager,
-    onDismissRequest: () -> Unit
-) {
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    val priceData by billingManager.priceData.collectAsState()
-
-    Dialog(onDismissRequest = onDismissRequest) {
-        Surface(
-            shape = MaterialTheme.shapes.medium,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier.padding(all = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Upgrade to Premium",
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Unlock all premium features including additional wallpapers, no ads, and exclusive content!",
-                    style = MaterialTheme.typography.titleSmall,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-
-                if (priceData.weekly.price != "") {
-                    Button(
-                        onClick = {
-                            coroutineScope.launch {
-                                billingManager.startPurchaseFlow(
-                                    context as Activity,
-                                    if (AppConfigManager.weeklySubscriptionWithTrialVersion == "1")
-                                    "weekly_subscription_with_trial" else "weekly_subscription_with_trial_v2",
-                                    BillingClient.ProductType.SUBS
-                                )
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Subscribe Weekly - ${priceData.weekly.price}")
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-
-                if (priceData.lifetime.price != "") {
-                    Button(
-                        onClick = {
-                            coroutineScope.launch {
-                                billingManager.startPurchaseFlow(
-                                    context as Activity,
-                                    "premium_lifetime",
-                                    BillingClient.ProductType.INAPP
-                                )
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Buy Lifetime - ${priceData.lifetime.price}")
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-
-                if (priceData.lifetime.price == "" && priceData.weekly.price == "") {
-                    Text(
-                        text = "Unfortunately, prices are not available at the moment",
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(
-                        onClick = onDismissRequest
-                    ) {
-                        Text("Cancel")
-                    }
-                }
-            }
-        }
-    }
-}
+//
+//@Composable
+//fun BuyDialog(
+//    billingManager: BillingManager,
+//    onDismissRequest: () -> Unit
+//) {
+//    val context = LocalContext.current
+//    val coroutineScope = rememberCoroutineScope()
+//    val priceData by billingManager.priceData.collectAsState()
+//
+//    Dialog(onDismissRequest = onDismissRequest) {
+//        Surface(
+//            shape = MaterialTheme.shapes.medium,
+//            modifier = Modifier.fillMaxWidth()
+//        ) {
+//            Column(
+//                modifier = Modifier.padding(all = 24.dp),
+//                horizontalAlignment = Alignment.CenterHorizontally
+//            ) {
+//                Text(
+//                    text = "Upgrade to Premium",
+//                    style = MaterialTheme.typography.titleLarge,
+//                    textAlign = TextAlign.Center
+//                )
+//                Spacer(modifier = Modifier.height(16.dp))
+//                Text(
+//                    text = "Unlock all premium features including additional wallpapers, no ads, and exclusive content!",
+//                    style = MaterialTheme.typography.titleSmall,
+//                    textAlign = TextAlign.Center
+//                )
+//                Spacer(modifier = Modifier.height(24.dp))
+//
+//                if (priceData.weeklyWithTri.price != "") {
+//                    Button(
+//                        onClick = {
+//                            coroutineScope.launch {
+//                                billingManager.startPurchaseFlow(
+//                                    context as Activity,
+//                                    if (AppConfigManager.useV2WeeklySubscription)
+//                                        "weekly_subscription_with_trial_v2" else "weekly_subscription_with_trial",
+//                                    BillingClient.ProductType.SUBS
+//                                )
+//                            }
+//                        },
+//                        modifier = Modifier.fillMaxWidth()
+//                    ) {
+//                        Text("Subscribe Weekly - ${priceData.weekly.price}")
+//                    }
+//                    Spacer(modifier = Modifier.height(8.dp))
+//                }
+//
+//                if (priceData.lifetime.price != "") {
+//                    Button(
+//                        onClick = {
+//                            coroutineScope.launch {
+//                                billingManager.startPurchaseFlow(
+//                                    context as Activity,
+//                                    "premium_lifetime",
+//                                    BillingClient.ProductType.INAPP
+//                                )
+//                            }
+//                        },
+//                        modifier = Modifier.fillMaxWidth()
+//                    ) {
+//                        Text("Buy Lifetime - ${priceData.lifetime.price}")
+//                    }
+//                    Spacer(modifier = Modifier.height(16.dp))
+//                }
+//
+//                if (priceData.lifetime.price == "" && priceData.weekly.price == "") {
+//                    Text(
+//                        text = "Unfortunately, prices are not available at the moment",
+//                        style = MaterialTheme.typography.bodyMedium,
+//                        textAlign = TextAlign.Center
+//                    )
+//                    Spacer(modifier = Modifier.height(24.dp))
+//                }
+//
+//                Row(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    horizontalArrangement = Arrangement.End
+//                ) {
+//                    TextButton(
+//                        onClick = onDismissRequest
+//                    ) {
+//                        Text("Cancel")
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
