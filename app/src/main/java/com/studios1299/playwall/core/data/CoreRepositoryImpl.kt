@@ -868,11 +868,12 @@ class FirebaseCoreRepositoryImpl(
 
     override suspend fun getDevilCount(): Int {
         Log.e(LOG_TAG, "getDevilCount() start")
-        var count = Preferences.getDevilsCount()
-        if (count != -1) {
-            Log.e(LOG_TAG, "getDevilCount from local: $count")
-            return count
-        } else {
+        var count = 0
+//        var count = Preferences.getDevilsCount()
+//        if (count != -1) {
+//            Log.e(LOG_TAG, "getDevilCount from local: $count")
+//            return count
+//        } else {
             val result = performAuthRequest { token ->
                 RetrofitClient.userAppDataApi.getAppData(token)
             }
@@ -887,7 +888,7 @@ class FirebaseCoreRepositoryImpl(
                 count = AppConfigManager.initialDevils
                 Log.e(LOG_TAG, "getDevilCount from remote (error): $count")
             }
-        }
+       // }
         Log.e(LOG_TAG, "Final devils count $count")
         Preferences.setDevilsCount(count)
         AppState.updateDevilCount(count)
