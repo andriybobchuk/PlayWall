@@ -484,11 +484,13 @@ class FirebaseCoreRepositoryImpl(
     override suspend fun changeWallpaper(request: ChangeWallpaperRequest): SmartResult<ChangeWallpaperResponse?> {
         return try {
             Log.v(LOG_TAG, "changeWallpaper, start")
+            Log.v(LOG_TAG, "changeWallpaper, received S3 filename: ${request.fileName}")
 
             if (!AppState.isPremium.value && AppState.devilCount.value <= 0) {
                 return SmartResult.Error(614, "Not enough $EVIL_EMOJI to send wallpaper, get more by watching ads", "Not enough $EVIL_EMOJI to send wallpaper")
             }
 
+            Log.v(LOG_TAG, "changeWallpaper, request: ${request.fileName}  ${request.type}")
             val response = performAuthRequest { token ->
                 RetrofitClient.wallpaperApi.changeWallpaper(token, request)
             }
@@ -507,6 +509,7 @@ class FirebaseCoreRepositoryImpl(
 
                 SmartResult.Success(response.data?.data)
             } else if (response is SmartResult.Error) {
+                Log.e(LOG_TAG, "chnageWallpaper error: ${response.errorBody}")
                 if (response.code == 404) {
                     Log.e(LOG_TAG, "This user has no push token, probably uninstalled the app")
                     val editedResponse = response.copy(errorBody = "This user restricted sending wallpapers", message = "This user restricted sending wallpapers, probably uninstalled the app")

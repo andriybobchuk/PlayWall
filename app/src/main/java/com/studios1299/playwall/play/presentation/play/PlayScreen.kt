@@ -411,13 +411,13 @@ fun PlayScreen(
                 icon = Icons.Rounded.Add,
                 text = "Add friend",
                 items = listOf(
-                    ExpendableFabItem(
-                        icon = Icons.Rounded.ContentCopy,
-                        text = "Link",
-                        onClick = {
-                            onAction(PlayAction.RequestInviteLink)
-                        }
-                    ),
+//                    ExpendableFabItem(
+//                        icon = Icons.Rounded.ContentCopy,
+//                        text = "Link",
+//                        onClick = {
+//                            onAction(PlayAction.RequestInviteLink)
+//                        }
+//                    ),
                     ExpendableFabItem(
                         icon = Icons.Rounded.QrCode,
                         text = "QR-code",

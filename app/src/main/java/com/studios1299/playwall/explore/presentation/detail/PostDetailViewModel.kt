@@ -205,13 +205,11 @@ class PostDetailViewModel(
 
             var s3Filename: String? = null
             if (uri != null) {
-                Log.d("sendWallpaper", "Converting Uri to File...")
                 val wallpaperFile = uriToFile(MyApp.appModule.context, uri)
                 if (wallpaperFile == null || !wallpaperFile.exists()) {
                     Log.e("sendWallpaper", "Failed to convert Uri to File or file does not exist.")
                     return@launch
                 }
-                Log.d("sendWallpaper", "Uploading file to S3...")
                 val filename = repository.uploadFile(wallpaperFile, S3Handler.Folder.WALLPAPERS)
                 if (filename is SmartResult.Success) {
                     s3Filename = filename.data
@@ -223,12 +221,10 @@ class PostDetailViewModel(
                 Log.e("sendWallpaper", "Uri is null, cannot proceed.")
             }
 
-            if (s3Filename == null) {
-                Log.e("sendWallpaper", "Failed: filename in S3 is null")
+            if (s3Filename == null || s3Filename == "") {
+                Log.e("sendWallpaper", "Failed: filename in S3 is null!!!")
                 return@launch
             }
-
-
 
             friends.forEach { friend ->
                 val result = repository.changeWallpaper(

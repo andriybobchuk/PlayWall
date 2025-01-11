@@ -215,22 +215,26 @@ private fun FullscreenOverlays(
         val destinationUri =
             Uri.fromFile(File(context.cacheDir, "cropped_image_${System.currentTimeMillis()}.jpg"))
 
-        val uCrop = UCrop.of(sourceUri, destinationUri)
-            .withAspectRatio(screenRatio ?: 1f, 1f)
-            .withMaxResultSize(4096, 4096)
-            .withOptions(UCrop.Options().apply {
-                setCompressionQuality(100)
-                setFreeStyleCropEnabled(true)
-                setHideBottomControls(false)
-                setToolbarColor(ZEDGE_PURPLE.toArgb())
-                setStatusBarColor(ZEDGE_PURPLE.toArgb())
-                setToolbarWidgetColor(ZEDGE_WHITE.toArgb())
-                setToolbarTitle("Adjust wallpaper")
-                setDimmedLayerColor(ZEDGE_PURPLE.toArgb())
-                setActiveControlsWidgetColor(ZEDGE_PURPLE.toArgb())
-            })
+        try {
+            val uCrop = UCrop.of(sourceUri, destinationUri)
+                .withAspectRatio(screenRatio ?: 1f, 1f)
+                .withMaxResultSize(4096, 4096)
+                .withOptions(UCrop.Options().apply {
+                    setCompressionQuality(100)
+                    setFreeStyleCropEnabled(true)
+                    setHideBottomControls(false)
+                    setToolbarColor(ZEDGE_PURPLE.toArgb())
+                    setStatusBarColor(ZEDGE_PURPLE.toArgb())
+                    setToolbarWidgetColor(ZEDGE_WHITE.toArgb())
+                    setToolbarTitle("Adjust wallpaper")
+                    setDimmedLayerColor(ZEDGE_PURPLE.toArgb())
+                    setActiveControlsWidgetColor(ZEDGE_PURPLE.toArgb())
+                })
 
-        cropLauncher.launch(uCrop.getIntent(context))
+            cropLauncher.launch(uCrop.getIntent(context))
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, "Exception in launchUCrop: $e")
+        }
     }
 
     if (selectedMessage != null) {
