@@ -54,6 +54,12 @@ object FirebaseManager {
                 AppConfigManager.adUnitId = if (remoteConfig.getString("ad_unit_id") == "") AppConfigManager.adUnitId else remoteConfig.getString("ad_unit_id")
                 AppConfigManager.backendUrl = if (remoteConfig.getString("backend_url") == "") AppConfigManager.backendUrl else remoteConfig.getString("backend_url")
 
+                AppConfigManager.termsOfServices = remoteConfig.getString("terms_of_service_url")
+                AppConfigManager.privacyPolicy = remoteConfig.getString("privacy_policy_url")
+                AppConfigManager.contentPolicy = remoteConfig.getString("content_policy_url")
+                AppConfigManager.faq = remoteConfig.getString("faq_url")
+                AppConfigManager.insta = remoteConfig.getString("instagram_url")
+                AppConfigManager.tiktok = remoteConfig.getString("tiktok_url")
 
                 isRemoteConfigInitialized = true
             }

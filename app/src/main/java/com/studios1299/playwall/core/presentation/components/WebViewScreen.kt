@@ -33,15 +33,16 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.studios1299.playwall.app.config.AppConfigManager
 
 
 enum class WebContent(val title: String, val url: String) {
-    TOS("Terms of Service", "https://www.facebook.com/terms.php?paipv=0&eav=AfYpS9BfUgSfKgu2rxjNFVIcBqsbTB9R63KFiuKDFqodvsFu401FYgmpPmrQi5pquFM&_rdr"),
-    PP("Privacy Policy", "https://www.facebook.com/privacy/policy/version/7122790421067234"),
-    CP("Content Policy", "https://www.instagram.com/"),
-    FAQ("FAQ", "https://www.instagram.com/andriybobchuk.bro"),
-    IG("Follow us on IG", "https://www.instagram.com/andriybobchuk"),
-    TIKTOK("Follow us on TikTok", "https://www.tiktok.com/"),
+    TOS("Terms of Service", AppConfigManager.termsOfServices),
+    PP("Privacy Policy", AppConfigManager.privacyPolicy),
+    CP("Content Policy", AppConfigManager.contentPolicy),
+    FAQ("FAQ", AppConfigManager.faq),
+    IG("Follow us on IG", AppConfigManager.insta),
+    TIKTOK("Follow us on TikTok", AppConfigManager.tiktok),
 }
 
 @Composable

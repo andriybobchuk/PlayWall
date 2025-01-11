@@ -1,5 +1,8 @@
 package com.studios1299.playwall.core.presentation.wrzutomat
 
+import android.app.Activity
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.android.billingclient.api.BillingClient
 import com.studios1299.playwall.app.config.AppConfigManager
 import com.studios1299.playwall.core.presentation.designsystem.ZEDGE_WHITE
 import com.studios1299.playwall.monetization.data.BillingManager
@@ -194,10 +199,29 @@ fun SubscriptionOptionsScreen(
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
                 ) {
+                    val context = LocalContext.current
                     CartoonStyledButton(
                         text = "SUBSCRIBE",
                         onClick = {
-                           // onSubscribe(selectedOption)
+                            try {
+                                val productId = when (selectedOption) {
+                                    priceOption.WEEKLY -> {
+                                        if (useV2WeeklySubscription) {
+                                            "weekly_subscription_with_trial_v2"
+                                        } else {
+                                            "weekly_subscription_with_trial"
+                                        }
+                                    }
+                                    priceOption.MONTHLY -> "subscription_monthly"
+                                    priceOption.YEARLY -> "yearly_subscription"
+                                }
+                                billingManager.startPurchaseFlow(context as Activity, productId, BillingClient.ProductType.SUBS)
+
+                            } catch (e: Exception) {
+                                Log.e(LOG_TAG, "Subscribing failed: ${e.message}")
+                                Toast.makeText(context, "Purchase Failed", Toast.LENGTH_LONG).show()
+                            }
+
                                   },
                     )
                     Spacer(modifier = Modifier.height(8.dp))

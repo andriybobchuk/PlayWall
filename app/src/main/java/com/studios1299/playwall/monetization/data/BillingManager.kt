@@ -263,8 +263,8 @@ class BillingManager(
 
                 if (isPremiumUser != isPremiumFromPrefs) {
                     //preferenceManager.setPremiumUser(isPremiumUser)
-                    Preferences.setPremiumStatus(true)
-                    AppState.updatePremiumStatus(true)
+                    Preferences.setPremiumStatus(isPremiumUser)
+                    AppState.updatePremiumStatus(isPremiumUser)
 
                     restartApp(applicationContext)
                 }
